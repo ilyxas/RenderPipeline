@@ -43,11 +43,14 @@ def context(bundle,observations,timeline,calibration):
     return dict(n=n,k=len(selected),width=2+3*len(selected),initial=initial,selected=selected,variable=variable,points=points,directions=directions,closure=sorted(closure),rest=rest,rest_rotation=[quat_matrix(q) for q in a['rest_rotation']],scale=a['rest_scale'],parents=a['parent_indices'],armature=a['armature_transform'],fixed_rotation=fixed,root_initial=a['root_translation'].copy(),camera=calibration['reference_camera'],times=a['sample_times_s'],confidence=joint_conf,weights=temporal_weights(initial,joint_conf),caps=np.deg2rad([s[3] for s in SEGMENTS.values()]))
 
 
-def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80,initializer=None,boundary=None):
+def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80,initializer=None,boundary=None,contacts=False):
     started=time.monotonic();b=baseline_solve(observations,timeline,profile,rig,calibration) if initializer is None else initializer;calibration=b.metadata['calibration'];c=context(b,observations,timeline,calibration)
     if c['n']<3: return b
     if c['times'][-1]-c['times'][0]>4:raise ValueError('Temporal window exceeds four seconds')
     if boundary is not None:c['boundary']=boundary
+    if contacts:
+        from .contacts import constraints
+        c['contacts']=constraints(b)
     x0=np.zeros(c['n']*c['width']);before=residual(x0,c,True)
     def bounded_residual(x):
         if time.monotonic()-started>115:raise TimeoutError('Stage 8 115-second internal solve deadline exceeded')

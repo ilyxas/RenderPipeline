@@ -20,7 +20,7 @@ def intervals(n,fps,seconds=3,overlap=.75):
         start=end-shared
 
 
-def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80):
+def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80,contacts=True):
     from .temporal_body import solve as window_solve,context
     from .parameterization import quaternions_to_rotvec
     calibration=calibrate(observations,timeline,profile,rig) if calibration is None else calibration
@@ -39,7 +39,7 @@ def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80):
             target[:,2:]=np.stack([quaternions_to_rotvec(result.arrays['local_rotation_delta'][start:previous_end,j]) for j in c['selected']],axis=1).reshape(count,-1)-c['initial'][:count].reshape(count,-1)
             boundary=(count,target)
         try:
-            solved=window_solve(observations,local,profile,rig,calibration,max_nfev,part,boundary)
+            solved=window_solve(observations,local,profile,rig,calibration,max_nfev,part,boundary,contacts)
             diag=solved.metadata.get('temporal_diagnostics',{'success':True,'termination':'short_baseline'})
             if not diag['success']:raise RuntimeError(diag['message'])
         except (RuntimeError,TimeoutError) as error:
@@ -50,6 +50,10 @@ def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80):
         # of fast gestures, no duplicated times, and no terminal padding.
         if start:seams.append(previous_end)
         previous_end=end;logs.append({'start':start,'end':end,**diag});print(f'SOLVE window {start}:{end} {diag["success"]}',flush=True)
+    if contacts:
+        from .contacts import constraints
+        from xms.qa.contacts import measure as contact_measure
+        constraints(result);result.metadata['contact_diagnostics']=contact_measure(result)
     result.arrays['local_rotation_delta']=continuous(result.arrays['local_rotation_delta'])
     from xms.qa.continuity import measure
     result.metadata.update(quality='development_candidate',temporal_diagnostics={'success':True,'windows':logs,'fallback_windows':sum(not x['success'] for x in logs),'continuity':measure(result,seams)},limitations=['Experimental windowed temporal solver; motion-quality acceptance pending.','Exhausted windows use baseline and are recorded; monocular depth remains ambiguous.'])

@@ -5,3 +5,4 @@ Functional delivery is separate from motion-quality acceptance. Frozen benchmark
 | Stage | Implementation / verification | Acceptance and remaining work |
 |---|---|---|
 | 9 | Bounded 3s windows, .75s overlap, fixed global calibration, boundary constraints, quaternion sign continuity, baseline fallback logs. Two focused tests; real saved dance observations plus 120-sample overlap smoke validated and serialized (two windows, no dropped samples). | Functional; experimental quality. Full-film performance/visual acceptance not run. No chunked writer needed for tested size. |
+| 10 | Visibility/height/speed hysteresis, world anchors, flight events, coupled leg/root contact residuals and drift QA; stance/flight/missing fixture passes. Saved dance solve serialized successfully. | Partial physical acceptance: skeletal origins replace unverified sole points; stance can be unavailable. Frozen real contact/jump gates are not accepted. No unconditional floor clamp. |
