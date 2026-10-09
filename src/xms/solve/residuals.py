@@ -84,16 +84,15 @@ def sparsity(c):
     for order in (0,1,2):
         for t in range(n-order):
             for d in range(2):rows.append([(t+o)*w+d for o in range(order+1)])
-    if 'boundary' in c:
-        count,_=c['boundary']
-        for t in range(count):
-            rows.extend([[t*w+d] for d in range(w)])
-    for j,anchor,valid,conf in c.get('contacts',[]):
-        for t in np.flatnonzero(valid):rows.extend([point_columns(j,t)]*3)
     for t in range(n) if 'collision_proxies' in c else ():
         for pair in c['collision_proxies']['pairs']:
             endpoints=[c['joint_lookup'][c['collision_proxies']['capsules'][name][key]] for name in pair for key in ('start','end')]
             rows.append(sorted(set(column for j in endpoints for column in point_columns(j,t))))
+    for j,anchor,valid,conf in c.get('contacts',[]):
+        for t in np.flatnonzero(valid):rows.extend([point_columns(j,t)]*3)
+    if 'boundary' in c:
+        count,_=c['boundary']
+        for t in range(count):rows.extend([[t*w+d] for d in range(w)])
     matrix=lil_matrix((len(rows),n*w),dtype=np.int8)
     for i,columns in enumerate(rows):matrix[i,columns]=1
     return matrix.tocsr()

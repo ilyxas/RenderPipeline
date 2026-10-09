@@ -36,7 +36,9 @@ def context(bundle,observations,timeline,calibration):
         mask=valid[:,start+end].all(axis=1)&(length>1e-8);conf=np.min(confidence[:,start+end],axis=1)*mask
         directions.append((lookup[name],lookup[child],direction/np.maximum(length[:,None],1e-10),mask,conf));joint_conf.append(conf)
     joint_conf=np.stack(joint_conf,axis=1);closure=set()
-    for j in [p[0] for p in points]+[j for d in directions for j in d[:2]]:
+    needed=[p[0] for p in points]+[j for d in directions for j in d[:2]]
+    if 'neck_01' in lookup:needed.append(lookup['neck_01'])
+    for j in needed:
         while j>=0:closure.add(j);j=int(a['parent_indices'][j])
     rest=[trs(t,q,s) for t,q,s in zip(a['rest_translation'],a['rest_rotation'],a['rest_scale'])]
     fixed=np.array([[quat_matrix(a['rest_rotation'][j])@quat_matrix(q)@np.diag(a['rest_scale'][j]) for j,q in enumerate(frame)] for frame in a['local_rotation_delta']])

@@ -35,9 +35,13 @@ def palm_correction(bundle,max_degrees=5):
         if min(a['rotation_confidence'][i,[lookup['hand_l'],lookup['hand_r']]])<.5:continue
         world=evaluate(bundle,i);centers,normals=palms(world);distance=np.linalg.norm(centers[0]-centers[1])
         if distance>.09 or normals[0]@normals[1]>-.5:continue
+        if not a['rotation_validity'][i,selected].all():continue
         initial=a['local_rotation_delta'][i,selected].copy();v=quaternions_to_rotvec(initial);target=centers.mean(axis=0)
         def cost(x):
-            a['local_rotation_delta'][i,selected]=rotvec_to_quaternions(v+x.reshape(-1,3));c,n=palms(evaluate(bundle,i))
+            from .parameterization import cap_rotvec
+            adjusted=v+x.reshape(-1,3)
+            for k,cap in enumerate((160,155,95,160,155,95)):adjusted[k]=cap_rotvec(adjusted[k],cap)
+            a['local_rotation_delta'][i,selected]=rotvec_to_quaternions(adjusted);c,n=palms(evaluate(bundle,i))
             return np.r_[(c-target).ravel()*8,(n[0]+n[1])*.03,x*.1]
         before=float(np.linalg.norm(cost(np.zeros(18))));r=least_squares(cost,np.zeros(18),bounds=(-limit,limit),max_nfev=16,ftol=.01)
         after=float(np.linalg.norm(cost(r.x)))

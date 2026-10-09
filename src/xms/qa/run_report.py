@@ -27,7 +27,7 @@ def quality(run):
         metrics['hand_identity_swaps']=metric(reason='Frame-local body-wrist association checked synthetically; no temporal identity ground truth')
     status='needs_review' if any(v['status'] in ('fail','unavailable') for v in metrics.values()) else 'warnings' if any(v['status']=='measured' for v in metrics.values()) else 'success'
     runtime={'python':m['python'],'versions':m.get('versions',{}),'blender':m['stages']['render']['blender_version']}
-    return {'schema_version':'xms.quality.v1','quality':'baseline_preview','status':status,'exit_code':EXIT_CODES[status],'metrics':metrics,'limitations':m.get('limitations',[]),'provenance':{'run_manifest_sha256':file_hash(run/'manifest.json'),'input_hashes':m['input_hashes'],'character_profile_hash':m['character_profile_hash'],'scene_profile_hash':m['scene_profile_hash'],'bundle_hash':bundle_hash(run/'animation'),'runtime':runtime,'runtime_hash':hashlib.sha256(json.dumps(runtime,sort_keys=True).encode()).hexdigest()},'performance':m.get('performance',{})}
+    return {'schema_version':'xms.quality.v1','quality':m.get('quality','development_candidate'),'status':status,'exit_code':EXIT_CODES[status],'metrics':metrics,'limitations':m.get('limitations',[]),'provenance':{'run_manifest_sha256':file_hash(run/'manifest.json'),'input_hashes':m['input_hashes'],'character_profile_hash':m['character_profile_hash'],'scene_profile_hash':m['scene_profile_hash'],'bundle_hash':bundle_hash(run/'animation'),'runtime':runtime,'runtime_hash':hashlib.sha256(json.dumps(runtime,sort_keys=True).encode()).hexdigest()},'performance':m.get('performance',{})}
 
 
 def write_report(run,out,comparison=None):
