@@ -11,7 +11,8 @@ def main():
     o=sub.add_parser('observe');o.add_argument('input');o.add_argument('--start',type=float,required=True);o.add_argument('--end',type=float,required=True);o.add_argument('--out',required=True);o.add_argument('--config',required=True)
     r=sub.add_parser('run');r.add_argument('input',nargs='?');r.add_argument('--start',type=float);r.add_argument('--end',type=float);r.add_argument('--config');r.add_argument('--job');r.add_argument('--runs-root',default='runs')
     r.add_argument('--channels',choices=['body','full'],default='body')
-    for name,value in [('character','xandra'),('scene','bedroom'),('quality','preview'),('solver','baseline')]:r.add_argument('--'+name,choices=[value],default=value)
+    for name,value in [('character','xandra'),('scene','bedroom'),('quality','preview')]:r.add_argument('--'+name,choices=[value],default=value)
+    r.add_argument('--solver',choices=['baseline','temporal'],default='baseline')
     rr=sub.add_parser('render');rr.add_argument('bundle');rr.add_argument('--config',required=True);rr.add_argument('--out',required=True);rr.add_argument('--fps',required=True);rr.add_argument('--frame-indices')
     rr.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r'])
     rep=sub.add_parser('report');rep.add_argument('run');rep.add_argument('--out',required=True);rep.add_argument('--config',required=True)
@@ -42,7 +43,7 @@ def main():
                 if job[k]!=v:raise ValueError('Unsupported Stage 4 job option: '+k)
             args.input=job['input'];args.start=job['start_s'];args.end=job['end_s'];args.config=job['config'];args.runs_root=job.get('runs_root','runs')
         if args.input is None or args.start is None or args.end is None or args.config is None:p.error('run requires INPUT, --start, --end and --config (or --job)')
-        result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,channels=args.channels)
+        result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,channels=args.channels,solver=args.solver)
         print(result);raise SystemExit(json.loads((result/'manifest.json').read_text()).get('result_exit_code',0))
 
 

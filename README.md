@@ -29,11 +29,25 @@ MP4 -> observations -> solver -> AnimationBundle -> Blender adapter -> rendered 
 
 ## Current state
 
-Stages 0–7 are implemented as a development baseline. Stage 6 includes actual
-body/head/face/hand renders through one AnimationBundle. Stage 7 freezes three
-source baselines, calibration artifacts and acceptance criteria. Work is stopped
-for engineering review before Stage 8; motion-quality gates are not all passing.
+Stages 0–7 are the frozen functional baseline. Stage 8 adds an experimental
+single-window body optimizer (`--solver temporal`); baseline remains the default.
+The temporal experiment reduces reprojection error and body jitter, but fails
+frozen fast-gesture/continuity gates and regresses dance foot drift. It is not
+motion-quality acceptance. Work stops after Stage 8.
 
-See the [Stages 5–7 handoff and artifacts](docs/development/STAGES_5_7_HANDOFF.md)
-and the preserved [Stages 0–4 checkpoint](docs/development/STAGES_0_4_HANDOFF.md).
-Temporal optimization, contacts and collision correction remain later work.
+See the [Stage 8 handoff and comparison videos](docs/development/STAGE8_HANDOFF.md),
+the [Stages 5–7 checkpoint](docs/development/STAGES_5_7_HANDOFF.md), and the
+preserved [Stages 0–4 checkpoint](docs/development/STAGES_0_4_HANDOFF.md).
+Contacts, collision solving and window stitching remain later-stage work.
+
+The temporal backend uses the optional `temporal` dependency group (SciPy) and
+accepts one 2–4 second window. Frozen benchmark reproduction uses existing
+observations and saved calibration, without rerunning tracking:
+
+```sh
+PYTHONPATH=src .venv/bin/python benchmarks/run_temporal.py sing --phase solve
+PYTHONPATH=src .venv/bin/python benchmarks/run_temporal.py sing --phase render
+```
+
+The harness requires a fresh `runs/stage8/sing` directory; it never overwrites a
+published bundle. Repeat for `dance` and `non_neutral` with the same parameters.

@@ -11,9 +11,9 @@ from .assembly.encode import preflight,encode,verify
 from .qa.contract import self_peak_bytes,NeedsInput,EXIT_CODES
 
 
-def run(video,start,end,config,runs_root='runs',channels='body'):
+def run(video,start,end,config,runs_root='runs',channels='body',solver='baseline'):
     out=Path(runs_root)/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
-    manifest={'schema_version':'xms.run.v1','quality':'baseline_preview','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':'preview','solver':'baseline'},'config':config,'python':sys.version,'limitations':LIMITATIONS,'stages':{}}
+    manifest={'schema_version':'xms.run.v1','quality':'development_candidate' if solver=='temporal' else 'baseline_preview','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':'preview','solver':solver},'config':config,'python':sys.version,'limitations':LIMITATIONS,'stages':{}}
     began=time.monotonic()
     manifest['parameters']['channels']=channels
     def save(): (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
@@ -35,12 +35,22 @@ def run(video,start,end,config,runs_root='runs',channels='body'):
             detail_face,detail_hands=observe_details(video,out/'observations',config)
             manifest['stages']['observe_details']=json.loads((out/'observations/details-manifest.json').read_text())
         t=time.monotonic()
-        if channels=='full':
+        if solver=='temporal':
+            from .solve.temporal_body import solve as solve_temporal
+            from .solve.temporal_full import solve_full as solve_temporal_full
+            if channels=='full':b=solve_temporal_full(read_observations(out/'observations/body'),detail_face,detail_hands,timeline,p,rig,face)
+            else:b=solve_temporal(read_observations(out/'observations/body'),timeline,p,rig)
+            manifest['limitations']=b.metadata['limitations']
+            (out/'temporal_diagnostics.json').write_text(json.dumps(b.metadata['temporal_diagnostics'],indent=2))
+            if not b.metadata['temporal_diagnostics']['success']:raise RuntimeError('Temporal optimizer exhausted; not a successful solve')
+        elif channels=='full':
             from .solve.baseline_full import solve_full,FULL_LIMITATIONS
             b=solve_full(read_observations(out/'observations/body'),detail_face,detail_hands,timeline,p,rig,face)
             manifest['limitations']=FULL_LIMITATIONS
             b.metadata['face_observations_sha256']=file_hash(out/'observations/face/arrays.npz');b.metadata['hand_observations_sha256']=file_hash(out/'observations/hands/arrays.npz')
         else:b=solve(read_observations(out/'observations/body'),timeline,p,rig)
+        if channels=='full':
+            b.metadata['face_observations_sha256']=file_hash(out/'observations/face/arrays.npz');b.metadata['hand_observations_sha256']=file_hash(out/'observations/hands/arrays.npz')
         b.metadata['observations_arrays_sha256']=file_hash(out/'observations/body/arrays.npz')
         h=write_bundle(b,out/'animation');(out/'calibration.json').write_text(json.dumps(b.metadata['calibration'],indent=2))
         manifest['bundle_hash']=h;manifest['stages']['solve']={'exit_status':0,'seconds':time.monotonic()-t};save()
