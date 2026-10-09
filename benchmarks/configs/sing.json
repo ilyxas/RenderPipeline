@@ -1,0 +1,15 @@
+{
+  "schema_version": "xms.benchmark_config.v1",
+  "id": "sing",
+  "source_sha256": "20c16af4c286190b9a2e2fd33780f71000c885cf3c835a377f41dd6dae3ce8cb",
+  "split": "tuning",
+  "interval": [
+    3,
+    5.5
+  ],
+  "profile": "profiles/characters/xandra/v2",
+  "channels": "full",
+  "calibration_policy": "reliable_windows_rest_regularized_v1",
+  "reference_camera": "calibration_artifact_locked",
+  "solver": "baseline"
+}

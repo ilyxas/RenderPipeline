@@ -1,0 +1,15 @@
+{
+  "schema_version": "xms.benchmark_config.v1",
+  "id": "dance",
+  "source_sha256": "a36905c295b7035e11581670643d361898b133cac6f3526811c46e5ff38b7772",
+  "split": "tuning",
+  "interval": [
+    2,
+    4.5
+  ],
+  "profile": "profiles/characters/xandra/v2",
+  "channels": "full",
+  "calibration_policy": "reliable_windows_rest_regularized_v1",
+  "reference_camera": "calibration_artifact_locked",
+  "solver": "baseline"
+}

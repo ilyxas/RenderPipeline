@@ -1,0 +1,60 @@
+{
+  "schema_version": "xms.annotations.v1",
+  "annotation_method": "manual visual review of source-only contact sheets, before numerical baseline measurement; confidence denotes annotator judgment, not tracker probability",
+  "mouth_events": [],
+  "stance_intervals": [
+    {
+      "side": "l",
+      "start_source_s": 2.75,
+      "end_source_s": 3.0,
+      "confidence": 0.85,
+      "note": "Single supporting foot while opposite knee is raised"
+    },
+    {
+      "side": "r",
+      "start_source_s": 3.5,
+      "end_source_s": 3.75,
+      "confidence": 0.85,
+      "note": "Support during opposite knee lift"
+    }
+  ],
+  "flight_intervals": [],
+  "fast_gestures": [
+    {
+      "label": "arms rise then lower",
+      "start_source_s": 2,
+      "end_source_s": 2.625,
+      "joints": [
+        "upperarm_l",
+        "upperarm_r",
+        "lowerarm_l",
+        "lowerarm_r"
+      ]
+    }
+  ],
+  "source_sha256": "a36905c295b7035e11581670643d361898b133cac6f3526811c46e5ff38b7772",
+  "full_body_visible": true,
+  "confident_joints": [
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle"
+  ],
+  "visible_face_intervals": [
+    [
+      2,
+      4.5
+    ]
+  ],
+  "flight_note": "No high-confidence both-feet-airborne interval in this slice; do not invent flight ground truth",
+  "mouth_event_note": "No independently annotated speech/closure events",
+  "evidence": "runs/stage7/dance-contacts-source.jpg"
+}

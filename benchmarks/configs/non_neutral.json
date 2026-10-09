@@ -1,0 +1,15 @@
+{
+  "schema_version": "xms.benchmark_config.v1",
+  "id": "non_neutral",
+  "source_sha256": "9a49e0006cd86f2eed44fd14a5e8093981f4070a476d6512b1d4996db3fb79d0",
+  "split": "holdout",
+  "interval": [
+    0,
+    2.5
+  ],
+  "profile": "profiles/characters/xandra/v2",
+  "channels": "full",
+  "calibration_policy": "reliable_windows_rest_regularized_v1",
+  "reference_camera": "calibration_artifact_locked",
+  "solver": "baseline"
+}

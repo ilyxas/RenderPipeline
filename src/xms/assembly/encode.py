@@ -1,10 +1,12 @@
 import subprocess,json
 from pathlib import Path
 from fractions import Fraction
+from xms.qa.contract import measured_command,write_json
 
 
 def command(cmd,log):
-    r=subprocess.run([str(x) for x in cmd],capture_output=True,text=True,timeout=180)
+    r,performance=measured_command(cmd,capture_output=True,text=True,timeout=180)
+    write_json(str(log)+'.runtime.json',performance)
     Path(log).write_text(r.stdout+r.stderr)
     if r.returncode:raise RuntimeError('FFmpeg failed; see '+str(log))
     return r

@@ -1,0 +1,43 @@
+{
+  "schema_version": "xms.annotations.v1",
+  "annotation_method": "manual visual review of source-only contact sheets, before numerical baseline measurement; confidence denotes annotator judgment, not tracker probability",
+  "mouth_events": [],
+  "stance_intervals": [],
+  "flight_intervals": [],
+  "fast_gestures": [
+    {
+      "label": "non-neutral torso leans forward",
+      "start_source_s": 0,
+      "end_source_s": 2.5,
+      "joints": [
+        "pelvis",
+        "head"
+      ]
+    }
+  ],
+  "source_sha256": "9a49e0006cd86f2eed44fd14a5e8093981f4070a476d6512b1d4996db3fb79d0",
+  "full_body_visible": false,
+  "confident_joints": [
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee"
+  ],
+  "visible_face_intervals": [
+    [
+      0,
+      2.5
+    ]
+  ],
+  "stance_note": "Kneeling; feet/sole contacts occluded, no foot stance labels",
+  "flight_note": "Flight unobservable with feet occluded",
+  "mouth_event_note": "No frame-refined independent mouth transition annotations for this holdout",
+  "evidence": "runs/stage7/holdout-source.jpg",
+  "initial_pose": "kneeling, elbows bent, then forward lean; explicitly not rest or A-pose"
+}

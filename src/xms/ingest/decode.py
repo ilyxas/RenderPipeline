@@ -2,6 +2,7 @@ import re
 import subprocess
 from pathlib import Path
 import numpy as np
+from xms.qa.contract import measured_command,write_json
 
 
 def decode(path,probe,timeline,ffmpeg,log_path):
@@ -9,7 +10,8 @@ def decode(path,probe,timeline,ffmpeg,log_path):
     start,end=timeline['source_frame_indices'][0],timeline['source_frame_indices'][-1]
     # select by decoded frame order, verify actual integer PTS independently from showinfo.
     command=[str(ffmpeg),'-hide_banner','-copyts','-noautorotate','-i',str(path),'-map',f"0:{probe['video']['index']}",'-vf',f"select=between(n\\,{start}\\,{end}),showinfo",'-fps_mode','passthrough','-f','rawvideo','-pix_fmt','rgb24','pipe:1']
-    r=subprocess.run(command,capture_output=True)
+    r,performance=measured_command(command,capture_output=True)
+    write_json(str(log_path)+'.runtime.json',performance)
     log=r.stderr.decode(errors='replace');Path(log_path).write_text(log)
     if r.returncode:raise RuntimeError('Decode failed: '+str(log_path))
     decoded_pts=[int(x) for x in re.findall(r'\bn:\s*\d+\s+pts:\s*(-?\d+)',log)]

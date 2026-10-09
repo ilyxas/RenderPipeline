@@ -29,11 +29,11 @@ MP4 -> observations -> solver -> AnimationBundle -> Blender adapter -> rendered 
 
 ## Current state
 
-Stages 0–4 are implemented and verified as a `baseline_preview` architecture
-checkpoint. The real run produced a 2.5-second, 540×960 MP4 from newly extracted
-observations. Work is stopped for review before Stage 5.
+Stages 0–7 are implemented as a development baseline. Stage 6 includes actual
+body/head/face/hand renders through one AnimationBundle. Stage 7 freezes three
+source baselines, calibration artifacts and acceptance criteria. Work is stopped
+for engineering review before Stage 8; motion-quality gates are not all passing.
 
-See the [engineering handoff and artifacts](docs/development/STAGES_0_4_HANDOFF.md)
-and [run instructions](docs/development/STAGES_0_4_USAGE.md). Face/finger motion,
-temporal quality, contacts and later-stage infrastructure remain unimplemented.
-
+See the [Stages 5–7 handoff and artifacts](docs/development/STAGES_5_7_HANDOFF.md)
+and the preserved [Stages 0–4 checkpoint](docs/development/STAGES_0_4_HANDOFF.md).
+Temporal optimization, contacts and collision correction remain later work.
