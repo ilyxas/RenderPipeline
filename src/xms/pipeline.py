@@ -36,7 +36,7 @@ def run(video,start,end,config,runs_root='runs',channels='body',solver='baseline
             manifest['stages']['observe_details']=json.loads((out/'observations/details-manifest.json').read_text())
         t=time.monotonic()
         if solver=='temporal':
-            from .solve.temporal_body import solve as solve_temporal
+            from .solve.windows import solve as solve_temporal
             from .solve.temporal_full import solve_full as solve_temporal_full
             if channels=='full':b=solve_temporal_full(read_observations(out/'observations/body'),detail_face,detail_hands,timeline,p,rig,face)
             else:b=solve_temporal(read_observations(out/'observations/body'),timeline,p,rig)

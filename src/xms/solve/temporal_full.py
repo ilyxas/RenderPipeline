@@ -1,5 +1,6 @@
 """Stage 8 body backend with unchanged Stage 6 face/head/hand ownership."""
-from .temporal_body import solve as solve_body,LIMITATIONS
+from .windows import solve as solve_body
+from .temporal_body import LIMITATIONS
 from .baseline_face import solve_face
 from .head import solve_head
 from .baseline_hands import solve_hands

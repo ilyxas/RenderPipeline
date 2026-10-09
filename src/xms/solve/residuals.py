@@ -52,6 +52,8 @@ def residual(x,c,terms=False):
     root_steps=np.diff(root,axis=0)/(np.diff(c['times'])[:,None]*24)
     parts['root_velocity']=(root_steps*.08).ravel()
     parts['root_acceleration']=(np.diff(root_steps,axis=0)*.55).ravel()
+    if 'boundary' in c:
+        count,target=c['boundary'];parts['boundary']=(x.reshape(c['n'],c['width'])[:count]-target).ravel()*2
     return {key:float(value@value) for key,value in parts.items()} if terms else np.concatenate(list(parts.values()))
 
 
@@ -77,6 +79,10 @@ def sparsity(c):
     for order in (0,1,2):
         for t in range(n-order):
             for d in range(2):rows.append([(t+o)*w+d for o in range(order+1)])
+    if 'boundary' in c:
+        count,_=c['boundary']
+        for t in range(count):
+            rows.extend([[t*w+d] for d in range(w)])
     matrix=lil_matrix((len(rows),n*w),dtype=np.int8)
     for i,columns in enumerate(rows):matrix[i,columns]=1
     return matrix.tocsr()
