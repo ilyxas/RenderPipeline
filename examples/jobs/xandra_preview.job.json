@@ -1,0 +1,58 @@
+{
+  "schema_version": "xms.job.v1",
+  "input": {
+    "video": "/path/to/input.mp4",
+    "subject": "auto_single_person",
+    "interval": {"start_s": 0.0, "end_s": null},
+    "trim": "none",
+    "lyrics": null
+  },
+  "character": {"id": "xandra", "profile_version": "1"},
+  "scene": {"id": "bedroom", "profile_version": "1"},
+  "animation": {
+    "sample_rate_hz": 30,
+    "calibration": "auto_reliable_segments",
+    "head": "face_with_body_fallback",
+    "face": "video_audio_confidence_fusion",
+    "hands": "tracked_with_neutral_fallback",
+    "contacts": "temporal",
+    "collision": "proxy_then_surface_refinement",
+    "root_motion": "preserve"
+  },
+  "audio": {
+    "separation": "auto",
+    "separation_backend": "demucs_htdemucs",
+    "mouth_cues_backend": "rhubarb",
+    "preserve_source_mix": true
+  },
+  "render": {
+    "backend": "blender_eevee",
+    "runtime_profile": "blender_4_5_lts_verified",
+    "camera": "presentation",
+    "quality": "final",
+    "resolution": [1080, 1920],
+    "output_fps": "source_cfr_or_30",
+    "preview": {"resolution": [540, 960], "samples": 16},
+    "final_samples_candidate": 64
+  },
+  "outputs": {
+    "video": true,
+    "compare": true,
+    "report": true,
+    "face_closeup": true,
+    "glb": false,
+    "assembled_blend": false
+  },
+  "quality_policy": {
+    "profile": "xandra_short_clip_v1",
+    "on_partial_tracking_loss": "produce_review_candidate",
+    "on_invalid_input": "fail_with_report"
+  },
+  "execution": {
+    "resume": false,
+    "max_transient_retries": 1,
+    "max_extra_tracking_passes": 1,
+    "max_collision_refinement_passes": 1,
+    "max_gpu_render_workers": 1
+  }
+}
