@@ -52,6 +52,9 @@ def residual(x,c,terms=False):
     root_steps=np.diff(root,axis=0)/(np.diff(c['times'])[:,None]*24)
     parts['root_velocity']=(root_steps*.08).ravel()
     parts['root_acceleration']=(np.diff(root_steps,axis=0)*.55).ravel()
+    if 'collision_proxies' in c:
+        from xms.geometry.proxies import terms as proxy_terms
+        parts['collision_proxy']=(proxy_terms(positions,c['joint_lookup'],c['collision_proxies'])*3).ravel()
     if 'contacts' in c:
         parts['contacts']=np.concatenate([((positions[j]-anchor)*np.sqrt(conf)[:,None]*3)[valid].ravel() for j,anchor,valid,conf in c['contacts']]) if c['contacts'] else np.empty(0)
     if 'boundary' in c:
@@ -87,6 +90,10 @@ def sparsity(c):
             rows.extend([[t*w+d] for d in range(w)])
     for j,anchor,valid,conf in c.get('contacts',[]):
         for t in np.flatnonzero(valid):rows.extend([point_columns(j,t)]*3)
+    for t in range(n) if 'collision_proxies' in c else ():
+        for pair in c['collision_proxies']['pairs']:
+            endpoints=[c['joint_lookup'][c['collision_proxies']['capsules'][name][key]] for name in pair for key in ('start','end')]
+            rows.append(sorted(set(column for j in endpoints for column in point_columns(j,t))))
     matrix=lil_matrix((len(rows),n*w),dtype=np.int8)
     for i,columns in enumerate(rows):matrix[i,columns]=1
     return matrix.tocsr()

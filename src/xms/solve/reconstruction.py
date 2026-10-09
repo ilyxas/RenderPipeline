@@ -22,4 +22,7 @@ def solve_full(body_obs,face_obs,hand_obs,timeline,profile,rig,face_map,solver='
     from xms.qa.contacts import measure
     constraints(result);result.metadata['contact_diagnostics']=measure(result)
     result.metadata.update(face_diagnostics=face['diagnostics'],lip_diagnostics=face.get('lip_diagnostics',{}),hand_diagnostics=hands['diagnostics'],quality='development_candidate',limitations=['Single visible upright person; monocular depth/floor are estimates.','Long gaps remain neutral; hands/metacarpal twist and physical contact are limited.','Temporal optimizer, palm constraints and audio lip cues are experimental; quality acceptance pending.'])
+    if profile.get('collision_proxies'):
+        from xms.qa.collision_proxy import measure as proxy_measure
+        result.metadata['collision_proxy_diagnostics']=proxy_measure(result,profile['collision_proxies'])
     result.metadata['solver']['channels']='video_face_head_temporal_hands';return validate(result)

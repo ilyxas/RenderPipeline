@@ -51,11 +51,16 @@ def solve(observations,timeline,profile,rig,calibration=None,max_nfev=80,initial
     if contacts:
         from .contacts import constraints
         c['contacts']=constraints(b)
-    x0=np.zeros(c['n']*c['width']);before=residual(x0,c,True)
+    x0=np.zeros(c['n']*c['width'])
+    bounds=(-np.inf,np.inf)
+    if profile.get('collision_proxies'):
+        c['collision_proxies']=profile['collision_proxies'];c['joint_lookup']={name:i for i,name in enumerate(b.metadata['joint_names'])}
+        budget=np.full((c['n'],c['width']),np.deg2rad(profile['collision_proxies']['angular_correction_budget_degrees'])/np.sqrt(3));budget[:,:2]=profile['collision_proxies']['translation_correction_budget_m'];bounds=(-budget.ravel(),budget.ravel())
+    before=residual(x0,c,True)
     def bounded_residual(x):
         if time.monotonic()-started>115:raise TimeoutError('Stage 8 115-second internal solve deadline exceeded')
         return residual(x,c)
-    result=least_squares(bounded_residual,x0,jac_sparsity=sparsity(c),loss='soft_l1',f_scale=.015,max_nfev=max_nfev,ftol=1e-3,xtol=1e-3,gtol=1e-4)
+    result=least_squares(bounded_residual,x0,bounds=bounds,jac_sparsity=sparsity(c),loss='soft_l1',f_scale=.015,max_nfev=max_nfev,ftol=1e-3,xtol=1e-3,gtol=1e-4)
     v=c['initial']+result.x.reshape(c['n'],c['width'])[:,2:].reshape(c['n'],c['k'],3)
     # Publish bounded rotations; record the projected objective separately.
     for i,j in enumerate(c['selected']):
