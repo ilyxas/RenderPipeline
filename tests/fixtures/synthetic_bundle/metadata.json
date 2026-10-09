@@ -1,0 +1,52 @@
+{
+  "joint_names": [
+    "root",
+    "head"
+  ],
+  "face_channel_names": [
+    "jawOpen"
+  ],
+  "face_ranges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "root_carrier_index": 0,
+  "ownership": {
+    "head": {
+      "owner": "body",
+      "joints": [
+        "head"
+      ],
+      "faces": []
+    },
+    "eyes": {
+      "owner": "neutral",
+      "joints": [],
+      "faces": []
+    },
+    "jaw": {
+      "owner": "morph",
+      "joints": [],
+      "faces": [
+        "jawOpen"
+      ]
+    }
+  },
+  "schema_version": "xms.animation_bundle.v1",
+  "character_profile_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "units": "metres",
+  "coordinate_system": "RH_Y_UP_Z_FORWARD",
+  "quaternion_order": "XYZW",
+  "rotation_semantics": "rest_local_times_delta",
+  "provenance_codes": {
+    "unobserved": 0,
+    "observed": 1,
+    "body_prior": 2,
+    "synthetic": 3
+  },
+  "contacts": [],
+  "events": [],
+  "quality": "baseline_preview"
+}

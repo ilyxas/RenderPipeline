@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xms.animation_bundle.v1",
+  "title": "AnimationBundle v1 metadata; NPZ constraints enforced by xms.animation.validate",
+  "type": "object",
+  "required": ["schema_version", "character_profile_hash", "joint_names", "face_channel_names", "face_ranges", "root_carrier_index", "ownership", "units", "coordinate_system", "quaternion_order", "rotation_semantics", "provenance_codes", "contacts", "events"],
+  "properties": {
+    "schema_version": {"const": "xms.animation_bundle.v1"},
+    "character_profile_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "units": {"const": "metres"},
+    "coordinate_system": {"const": "RH_Y_UP_Z_FORWARD"},
+    "quaternion_order": {"const": "XYZW"},
+    "rotation_semantics": {"const": "rest_local_times_delta"},
+    "joint_names": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "face_channel_names": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "contacts": {"type": "array", "items": {"type": "object", "required": ["start_s", "end_s", "joint", "kind", "confidence"], "additionalProperties": false, "properties": {"start_s": {"type": "number"}, "end_s": {"type": "number"}, "joint": {"type": "string"}, "kind": {"enum": ["foot", "palm"]}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}}},
+    "events": {"type": "array", "items": {"type": "object", "required": ["time_s", "kind", "channels"], "additionalProperties": false, "properties": {"time_s": {"type": "number"}, "kind": {"enum": ["jump", "tracking_loss"]}, "channels": {"type": "array", "items": {"type": "string"}}}}}
+  }
+}

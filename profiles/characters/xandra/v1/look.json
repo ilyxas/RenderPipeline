@@ -1,0 +1,33 @@
+{
+  "schema_version": "xms.look.v1",
+  "id": "xandra_kit_natural_v1",
+  "reference": "clip02 scripts/b_render.py material constants only",
+  "hair": {
+    "material": "MI_X3D_Hair_V7",
+    "node": "Principled_glTF",
+    "tint": [
+      0.1697,
+      0.1006,
+      0.0921,
+      1.0
+    ]
+  },
+  "skin": {
+    "materials": [
+      "MI_X3D_Skin_Face_F4",
+      "MI_X3D_Skin_Body_F4",
+      "MI_X3D_Skin_Body_Nude_F4"
+    ],
+    "specular": 0.32,
+    "roughness": 0.58
+  },
+  "teeth": {
+    "variant": "natural",
+    "geometry_offsets_m": [
+      0,
+      0,
+      0
+    ],
+    "note": "Canonical teeth retained. Legacy soft_lips tuck is a separate unverified variant, not enabled."
+  }
+}

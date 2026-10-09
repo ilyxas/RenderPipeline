@@ -29,5 +29,11 @@ MP4 -> observations -> solver -> AnimationBundle -> Blender adapter -> rendered 
 
 ## Current state
 
-The repository is scaffolded but production implementation has not started. The next step is Stage 0 in [`STAGES.md`](docs/development/STAGES.md).
+Stages 0–4 are implemented and verified as a `baseline_preview` architecture
+checkpoint. The real run produced a 2.5-second, 540×960 MP4 from newly extracted
+observations. Work is stopped for review before Stage 5.
+
+See the [engineering handoff and artifacts](docs/development/STAGES_0_4_HANDOFF.md)
+and [run instructions](docs/development/STAGES_0_4_USAGE.md). Face/finger motion,
+temporal quality, contacts and later-stage infrastructure remain unimplemented.
 

@@ -1,0 +1,1 @@
+{"schema_version":"xms.baseline_job.v1","input":"/path/to/input.mp4","start_s":3.0,"end_s":5.5,"character":"xandra","scene":"bedroom","quality":"preview","solver":"baseline","config":"/path/to/local-config.json","runs_root":"runs"}
