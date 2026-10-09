@@ -16,6 +16,6 @@ def compose(body,face,head,hands):
             a['local_rotation_delta'][i,j]=head['rotations'][i];a['rotation_validity'][i,j]=True;a['rotation_confidence'][i,j]=head['confidence'][i];a['rotation_provenance'][i,j]=1;sources.append('face')
         else:sources.append('body_prior' if a['rotation_validity'][i,j] else 'unobserved')
     for j in hands['indices']:
-        mask=hands['validity'][:,j];a['local_rotation_delta'][:,j]=np.where(mask[:,None],hands['rotations'][:,j],[0,0,0,1]);a['rotation_validity'][:,j]=mask;a['rotation_confidence'][:,j]=hands['confidence'][:,j];a['rotation_provenance'][:,j]=mask.astype(np.uint8)
+        mask=hands['validity'][:,j];a['local_rotation_delta'][:,j]=np.where(mask[:,None],hands['rotations'][:,j],[0,0,0,1]);a['rotation_validity'][:,j]=mask;a['rotation_confidence'][:,j]=hands['confidence'][:,j];a['rotation_provenance'][:,j]=hands.get('provenance',hands['validity'].astype(np.uint8))[:,j]
     b.metadata['head_source_by_sample']=sources;b.metadata['compositor']={'version':'1','head':'exclusive face replacement with body fallback','jaw':'face morph only','eyes':'face morph only','hands':'local wrist and primary fingers only','gaps':'No gap interpolation; long gaps are neutral; head may use body prior'}
     return validate(b)

@@ -1,0 +1,111 @@
+{
+  "schema_version": "xms.scene.v1",
+  "id": "bedroom",
+  "asset_sha256": "09da5370a2d72ae544fa5b9ac3c2b123f85392e4f67b00988e91a946f2f37fdc",
+  "collection": "Bedroom_Clip02",
+  "world": "Clip02_World",
+  "camera": {
+    "position_blender_m": [
+      0,
+      -3.8,
+      0.88
+    ],
+    "rotation_euler_degrees": [
+      90,
+      0,
+      0
+    ],
+    "vertical_fov_degrees": 36
+  },
+  "floor_transform": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "resolution": [
+    540,
+    960
+  ],
+  "samples": 16,
+  "exposure": -0.2,
+  "disable_character_objects": [
+    "Xa_Floor",
+    "stage"
+  ],
+  "disable_character_lights": true,
+  "profile_hash": "5a981f8387ddee6015c2d03a753ff154ff0a5fc63bd467c1356f77872472fd7c",
+  "profile_revision": 3,
+  "diagnostic_views": {
+    "face": {
+      "bone": "head",
+      "offset_blender_m": [
+        0,
+        -1.1,
+        0.04
+      ],
+      "vertical_fov_degrees": 24,
+      "resolution": [
+        360,
+        640
+      ]
+    },
+    "hand_l": {
+      "bone": "hand_l",
+      "offset_blender_m": [
+        0,
+        -0.75,
+        0
+      ],
+      "vertical_fov_degrees": 30,
+      "resolution": [
+        360,
+        640
+      ]
+    },
+    "hand_r": {
+      "bone": "hand_r",
+      "offset_blender_m": [
+        0,
+        -0.75,
+        0
+      ],
+      "vertical_fov_degrees": 30,
+      "resolution": [
+        360,
+        640
+      ]
+    }
+  },
+  "collision_planes": [
+    {
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "offset_m": 0,
+      "status": "floor only; furniture geometry not registered"
+    }
+  ]
+}

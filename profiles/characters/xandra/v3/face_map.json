@@ -1,0 +1,465 @@
+{
+  "schema_version": "xms.face_map.v1",
+  "channels": {
+    "eyeBlinkLeft": {
+      "object": "F4_Head",
+      "key": "eyeBlinkLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookDownLeft": {
+      "object": "F4_Head",
+      "key": "eyeLookDownLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookInLeft": {
+      "object": "F4_Head",
+      "key": "eyeLookInLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookOutLeft": {
+      "object": "F4_Head",
+      "key": "eyeLookOutLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookUpLeft": {
+      "object": "F4_Head",
+      "key": "eyeLookUpLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeSquintLeft": {
+      "object": "F4_Head",
+      "key": "eyeSquintLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeWideLeft": {
+      "object": "F4_Head",
+      "key": "eyeWideLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeBlinkRight": {
+      "object": "F4_Head",
+      "key": "eyeBlinkRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookDownRight": {
+      "object": "F4_Head",
+      "key": "eyeLookDownRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookInRight": {
+      "object": "F4_Head",
+      "key": "eyeLookInRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookOutRight": {
+      "object": "F4_Head",
+      "key": "eyeLookOutRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeLookUpRight": {
+      "object": "F4_Head",
+      "key": "eyeLookUpRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeSquintRight": {
+      "object": "F4_Head",
+      "key": "eyeSquintRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "eyeWideRight": {
+      "object": "F4_Head",
+      "key": "eyeWideRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "jawForward": {
+      "object": "F4_Head",
+      "key": "jawForward",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "jawLeft": {
+      "object": "F4_Head",
+      "key": "jawLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "jawRight": {
+      "object": "F4_Head",
+      "key": "jawRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "jawOpen": {
+      "object": "F4_Head",
+      "key": "jawOpen",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthClose": {
+      "object": "F4_Head",
+      "key": "mouthClose",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthFunnel": {
+      "object": "F4_Head",
+      "key": "mouthFunnel",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthPucker": {
+      "object": "F4_Head",
+      "key": "mouthPucker",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthRight": {
+      "object": "F4_Head",
+      "key": "mouthRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthLeft": {
+      "object": "F4_Head",
+      "key": "mouthLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthSmileLeft": {
+      "object": "F4_Head",
+      "key": "mouthSmileLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthFrownRight": {
+      "object": "F4_Head",
+      "key": "mouthFrownRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthFrownLeft": {
+      "object": "F4_Head",
+      "key": "mouthFrownLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthDimpleLeft": {
+      "object": "F4_Head",
+      "key": "mouthDimpleLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthDimpleRight": {
+      "object": "F4_Head",
+      "key": "mouthDimpleRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthStretchLeft": {
+      "object": "F4_Head",
+      "key": "mouthStretchLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthStretchRight": {
+      "object": "F4_Head",
+      "key": "mouthStretchRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthRollLower": {
+      "object": "F4_Head",
+      "key": "mouthRollLower",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthRollUpper": {
+      "object": "F4_Head",
+      "key": "mouthRollUpper",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthShrugLower": {
+      "object": "F4_Head",
+      "key": "mouthShrugLower",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthShrugUpper": {
+      "object": "F4_Head",
+      "key": "mouthShrugUpper",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthPressLeft": {
+      "object": "F4_Head",
+      "key": "mouthPressLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthPressRight": {
+      "object": "F4_Head",
+      "key": "mouthPressRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthLowerDownLeft": {
+      "object": "F4_Head",
+      "key": "mouthLowerDownLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthLowerDownRight": {
+      "object": "F4_Head",
+      "key": "mouthLowerDownRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthUpperUpLeft": {
+      "object": "F4_Head",
+      "key": "mouthUpperUpLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthUpperUpRight": {
+      "object": "F4_Head",
+      "key": "mouthUpperUpRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "browDownLeft": {
+      "object": "F4_Head",
+      "key": "browDownLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "browDownRight": {
+      "object": "F4_Head",
+      "key": "browDownRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "browInnerUp": {
+      "object": "F4_Head",
+      "key": "browInnerUp",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "browOuterUpLeft": {
+      "object": "F4_Head",
+      "key": "browOuterUpLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "browOuterUpRight": {
+      "object": "F4_Head",
+      "key": "browOuterUpRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "cheekPuff": {
+      "object": "F4_Head",
+      "key": "cheekPuff",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "cheekSquintLeft": {
+      "object": "F4_Head",
+      "key": "cheekSquintLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "cheekSquintRight": {
+      "object": "F4_Head",
+      "key": "cheekSquintRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "noseSneerLeft": {
+      "object": "F4_Head",
+      "key": "noseSneerLeft",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "noseSneerRight": {
+      "object": "F4_Head",
+      "key": "noseSneerRight",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "mouthSmileRight": {
+      "object": "F4_Head",
+      "key": "mouthSmileRightold",
+      "neutral": 0.0,
+      "range": [
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "alias_policy": "one semantic channel per key; old duplicates excluded except right smile alias"
+}

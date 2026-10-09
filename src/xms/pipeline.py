@@ -1,83 +1,137 @@
-"""Stages 0–4 sequential vertical slice. JSON evidence, no job infrastructure."""
-import json,time,uuid,sys,subprocess,traceback
+"""One sequential MP4 → observations → bundle → Blender → MP4 command."""
+import json,time,uuid,sys,traceback,shutil
+from fractions import Fraction
 from pathlib import Path
 from .animation.io import write_bundle,file_hash,bundle_hash
 from .observations.io import read_observations
 from .profiles.character import load_character
 from .profiles.scene import load_scene
-from .solve.baseline_body import solve,LIMITATIONS
 from .render.process import render
+from .render.camera import presentation,PRESETS
 from .assembly.encode import preflight,encode,verify
-from .qa.contract import self_peak_bytes,NeedsInput,EXIT_CODES
+from .qa.contract import self_peak_bytes
 
 
-def run(video,start,end,config,runs_root='runs',channels='body'):
-    out=Path(runs_root)/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
-    manifest={'schema_version':'xms.run.v1','quality':'baseline_preview','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':'preview','solver':'baseline'},'config':config,'python':sys.version,'limitations':LIMITATIONS,'stages':{}}
+def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True):
+    out=Path(runs_root).resolve()/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
+    manifest={'schema_version':'xms.run.v1','quality':'development_candidate','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':quality,'solver':solver,'channels':channels,'audio':audio_mode,'surface_qa':surface_qa,'camera':camera},'config':config,'python':sys.version,'limitations':[],'warnings':[],'stages':{}}
     began=time.monotonic()
-    manifest['parameters']['channels']=channels
     def save(): (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
-    save();print('RUN',out,flush=True)
+    def log(message):print(message,flush=True)
+    def optional(name,action):
+        try:return action()
+        except Exception as error:
+            warning=f'{name}: {error}';manifest['warnings'].append(warning);log('WARNING '+warning);return None
+    save();log('RUN '+str(out))
     try:
+        if not Path(video).is_file():raise ValueError('Input MP4 does not exist: '+str(video))
+        if output and Path(output).exists():raise ValueError('Output already exists: '+str(output)+'; choose a new --output path')
         p,rig,face=load_character(config['character_profile']);sp=load_scene(config['scene_profile'])
+        from .ingest.probe import probe
+        info=probe(video,config['ffprobe']);start=0 if start is None else start
+        # Source last PTS plus one CFR output step is the same timeline bound.
+        end=float(Fraction(info['pts'][-1]-info['pts'][0])*Fraction(info['time_base'])+1/Fraction(info['fps'])) if end is None else end
+        manifest['parameters'].update(start_s=start,end_s=end)
         manifest['input_hashes']={k:file_hash(v) for k,v in {'video':video,'character':config['character_asset'],'scene':config['scene_asset'],'pose_model':config['pose_model']}.items()}
-        if manifest['input_hashes']['character']!=p['asset_sha256'] or manifest['input_hashes']['scene']!=sp['asset_sha256']:raise ValueError('Registered source asset hash mismatch')
+        if manifest['input_hashes']['character']!=p['asset_sha256'] or manifest['input_hashes']['scene']!=sp['asset_sha256']:raise ValueError('Registered character/scene asset hash mismatch; re-register the correct assets')
         if channels=='full':
-            for key in ('face_model','hand_model'):manifest['input_hashes'][key]=file_hash(config[key])
-        manifest['character_profile_hash']=p['profile_hash'];manifest['scene_profile_hash']=sp['profile_hash']
-        manifest['versions']={n:subprocess.check_output([config[n],'-version'],text=True).splitlines()[0] for n in ['ffmpeg','ffprobe']}
+            for key in ('face_model','hand_model'):
+                if key not in config:raise ValueError(f'Missing {key}; configure it or use --channels body')
+                manifest['input_hashes'][key]=file_hash(config[key])
+        manifest.update(character_profile_hash=p['profile_hash'],scene_profile_hash=sp['profile_hash']);save()
+        log(f'OBSERVE {video} [{start:g}, {end:g}) | solver={solver}, quality={quality}, channels={channels}')
         from .observations.pose_mediapipe import observe
         observe(video,start,end,out/'observations',config['pose_model'],config['ffmpeg'],config['ffprobe'])
-        manifest['performance']={'tracking_python_peak_rss_bytes':self_peak_bytes(),'memory_semantics':'Process high-water RSS; solve shares the tracking process, not a subtractable incremental peak.'}
-        timeline=json.loads((out/'observations/timeline.json').read_text());manifest['stages']['observe']=json.loads((out/'observations/manifest.json').read_text());save()
+        timeline=json.loads((out/'observations/timeline.json').read_text());manifest['stages']['observe']=json.loads((out/'observations/manifest.json').read_text())
+        manifest['performance']={'tracking_python_peak_rss_bytes':self_peak_bytes()};audio=None
         if channels=='full':
             from .observations.details import observe_details
-            detail_face,detail_hands=observe_details(video,out/'observations',config)
-            manifest['stages']['observe_details']=json.loads((out/'observations/details-manifest.json').read_text())
-        t=time.monotonic()
-        if channels=='full':
-            from .solve.baseline_full import solve_full,FULL_LIMITATIONS
-            b=solve_full(read_observations(out/'observations/body'),detail_face,detail_hands,timeline,p,rig,face)
-            manifest['limitations']=FULL_LIMITATIONS
-            b.metadata['face_observations_sha256']=file_hash(out/'observations/face/arrays.npz');b.metadata['hand_observations_sha256']=file_hash(out/'observations/hands/arrays.npz')
-        else:b=solve(read_observations(out/'observations/body'),timeline,p,rig)
+            detail_face,detail_hands=observe_details(video,out/'observations',config);manifest['stages']['observe_details']=json.loads((out/'observations/details-manifest.json').read_text())
+            from .observations.audio import observe as observe_audio
+            audio=optional('audio cues (video-only fallback)',lambda:observe_audio(video,timeline,config,out/'observations/audio',audio_mode))
+            if audio:manifest['warnings']+=audio['metadata']['warnings']
+        save();t=time.monotonic();body=read_observations(out/'observations/body');log('SOLVE '+solver)
+        if solver=='baseline':
+            if channels=='full':
+                from .solve.baseline_full import solve_full
+                b=solve_full(body,detail_face,detail_hands,timeline,p,rig,face)
+            else:
+                from .solve.baseline_body import solve
+                b=solve(body,timeline,p,rig)
+        elif channels=='full':
+            from .solve.reconstruction import solve_full
+            b=solve_full(body,detail_face,detail_hands,timeline,p,rig,face,solver,audio)
+        else:
+            if solver=='temporal':from .solve.windows import solve
+            else:from .solve.baseline_body import solve
+            b=solve(body,timeline,p,rig)
         b.metadata['observations_arrays_sha256']=file_hash(out/'observations/body/arrays.npz')
-        h=write_bundle(b,out/'animation');(out/'calibration.json').write_text(json.dumps(b.metadata['calibration'],indent=2))
-        manifest['bundle_hash']=h;manifest['stages']['solve']={'exit_status':0,'seconds':time.monotonic()-t};save()
-        manifest['performance']['solve_python_peak_rss_bytes']=self_peak_bytes()
-        preflight(config['ffmpeg'],sp['resolution'],timeline['fps'],out/'outputs/encode-preflight.mp4',out/'logs/encode-preflight.log')
-        manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log')
+        if channels=='full':
+            b.metadata['face_observations_sha256']=file_hash(out/'observations/face/arrays.npz');b.metadata['hand_observations_sha256']=file_hash(out/'observations/hands/arrays.npz')
+        manifest['limitations']=b.metadata['limitations'];write_bundle(b,out/'animation-candidate');chosen=out/'animation-candidate'
+        (out/'calibration.json').write_text(json.dumps(b.metadata['calibration'],indent=2))
+        manifest['stages']['solve']={'exit_status':0,'seconds':time.monotonic()-t,'backend':b.metadata['solver']};manifest['performance']['solve_python_peak_rss_bytes']=self_peak_bytes()
+        diagnostics={k:v for k,v in b.metadata.items() if k.endswith('diagnostics')};(out/'solve-diagnostics.json').write_text(json.dumps(diagnostics,indent=2))
+        from .qa.continuity import measure as continuity
+        manifest['stages']['continuity']=continuity(b)
+        if surface_qa!='off':
+            from .qa.surface_collision import evaluate
+            log('SURFACE QA '+surface_qa)
+            surface=optional('surface QA',lambda:evaluate(chosen,config,out/'surface',surface_qa));manifest['stages']['surface']=surface or {'status':'unavailable'}
+            if surface and refine and surface['status']=='needs_review' and solver!='baseline':
+                from .solve.surface_refine import refine as refine_surface
+                trial=optional('one bounded surface refinement',lambda:refine_surface(b,surface))
+                if trial and not trial.metadata['surface_refinement']['passes']:
+                    manifest['stages']['surface_refinement']={'passes':0,'accepted':False,'skipped_samples':trial.metadata['surface_refinement'].get('skipped_samples',[])}
+                    manifest['warnings'].append('Surface defect remains; insufficient reliable arm/wrist channels for bounded refinement.')
+                if trial and trial.metadata['surface_refinement']['passes']:
+                    write_bundle(trial,out/'animation-refined');trial_surface=optional('refined surface QA',lambda:evaluate(out/'animation-refined',config,out/'surface-refined',surface_qa))
+                    from .qa.contacts import measure as contacts
+                    old_contact=contacts(b);new_contact=contacts(trial);old_cont=continuity(b);new_cont=continuity(trial)
+                    drift_ok=old_contact['p95_segment_max_drift_m'] is None or (new_contact['p95_segment_max_drift_m'] is not None and new_contact['p95_segment_max_drift_m']<=old_contact['p95_segment_max_drift_m']+.01)
+                    accepted=bool(trial_surface and trial_surface['max_candidate_depth_m']<surface['max_candidate_depth_m'] and new_cont['max_rotation_step_deg']<=old_cont['max_rotation_step_deg']+5 and drift_ok)
+                    manifest['stages']['surface_refinement']={'passes':1,'accepted':accepted,'continuity':new_cont,'contacts':new_contact,'surface':trial_surface}
+                    if accepted:b=trial;chosen=out/'animation-refined';manifest['stages']['surface']=trial_surface;manifest['stages']['continuity']=new_cont
+        # Publish an immutable byte-identical copy of the evaluated candidate.
+        shutil.copytree(chosen,out/'animation');h=bundle_hash(out/'animation');manifest['bundle_hash']=h;save()
+        plan=presentation(b,sp,quality,camera);from .qa.framing import measure as framing
+        manifest['stages']['framing']=framing(plan);(out/'camera-plan.json').write_text(json.dumps(plan,indent=2))
+        preflight(config['ffmpeg'],plan['resolution'],timeline['fps'],out/'outputs/encode-preflight.mp4',out/'logs/encode-preflight.log')
+        if quality=='final':
+            log('FINAL preflight: whole-clip preview')
+            render(out/'animation',out/'preview-frames',config,timeline['fps'],out/'logs/preview-blender.log',camera_plan=out/'camera-plan.json')
+            encode(out/'preview-frames',video,timeline,config['ffmpeg'],out/'outputs/preview.mp4',out/'logs/preview-encode.log')
+            manifest['stages']['preview_verification']=verify(out/'outputs/preview.mp4',timeline,PRESETS['preview']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/preview-decode.log')
+        log('RENDER '+quality)
+        manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log',quality=quality,camera_plan=out/'camera-plan.json')
         rendered=json.loads((out/'frames/manifest.json').read_text());assert rendered['bundle_hash']==h
         manifest['stages']['render']=rendered;save()
-        output=out/'outputs/video.mp4';encode(out/'frames',video,timeline,config['ffmpeg'],output,out/'logs/encode.log')
-        manifest['verification']=verify(output,timeline,sp['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/full-decode.log')
-        if channels=='full':
-            manifest['diagnostic_videos']={}
-            for view in ('face','hand_l','hand_r'):
-                directory=out/(view+'-frames');render(out/'animation',directory,config,timeline['fps'],out/'logs'/(view+'-blender.log'),view=view)
-                destination=out/'outputs'/(view+'.mp4');encode(directory,video,timeline,config['ffmpeg'],destination,out/'logs'/(view+'-encode.log'))
-                verification=verify(destination,timeline,sp['diagnostic_views'][view]['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs'/(view+'-decode.log'))
-                manifest['diagnostic_videos'][view]={'path':str(destination),'bundle_hash':json.loads((directory/'manifest.json').read_text())['bundle_hash'],'verification':verification}
-        manifest['output_sha256']=file_hash(output);manifest['outputs']={'video':str(output),'bundle':str(out/'animation'),'observations':str(out/'observations'),'manifest':str(out/'manifest.json')}
-        for key,path in [('video',video),('character',config['character_asset']),('scene',config['scene_asset']),('pose_model',config['pose_model'])]:
-            assert file_hash(path)==manifest['input_hashes'][key],'Input changed: '+key
-        manifest['status']='rendered_pending_visual_review';manifest['exit_status']=0
-        (out/'limitations.md').write_text('# Baseline preview limitations\n\n'+'\n'.join('- '+x for x in manifest['limitations'])+'\n')
+        destination=out/'outputs/video.mp4';encode(out/'frames',video,timeline,config['ffmpeg'],destination,out/'logs/encode.log')
+        manifest['verification']=verify(destination,timeline,plan['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/full-decode.log')
+        if face_closeup:
+            def closeup():
+                render(out/'animation',out/'face-frames',config,timeline['fps'],out/'logs/face-blender.log',view='face',quality=quality)
+                close=out/'outputs/face.mp4';encode(out/'face-frames',video,timeline,config['ffmpeg'],close,out/'logs/face-encode.log')
+                checked=verify(close,timeline,sp['diagnostic_views']['face']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/face-decode.log');return {'path':str(close),'bundle_hash':h,'verification':checked}
+            result=optional('face close-up',closeup);manifest['diagnostic_videos']={'face':result} if result else {}
+        manifest['output_sha256']=file_hash(destination);manifest['outputs']={'video':str(destination),'bundle':str(out/'animation'),'observations':str(out/'observations'),'manifest':str(out/'manifest.json')}
+        if output:
+            output=Path(output).resolve();output.parent.mkdir(parents=True,exist_ok=True)
+            # Exclusive create prevents accidental replacement, including races.
+            with destination.open('rb') as source,output.open('xb') as target:shutil.copyfileobj(source,target)
+            manifest['outputs']['video']=str(output)
+        manifest.update(status='rendered_pending_visual_review',exit_status=0,result_exit_code=0,quality_accepted=False);save()
         from .assembly.compare import compare
-        from .qa.run_report import quality
-        comparison=compare(video,out,out/'comparison',config)
-        manifest['performance']['subprocesses']={str(x.relative_to(out)):json.loads(x.read_text()) for x in out.rglob('*.runtime.json')}
-        manifest['performance']['blender']=manifest['stages']['render_process']
-        save()
-        q=quality(out);manifest['status']=q['status'];manifest['result_exit_code']=q['exit_code']
-        manifest['outputs'].update(compare=str(comparison),quality=str(out/'report/quality.json'),report=str(out/'report/report.html'))
+        comparison=optional('comparison video',lambda:compare(video,out,out/'comparison',config))
+        if comparison:manifest['outputs']['compare']=str(comparison)
+        (out/'limitations.md').write_text('\n'.join('- '+x for x in manifest['limitations']+manifest['warnings']))
+        from .qa.run_report import quality as measure_quality
+        q=measure_quality(out);manifest['quality_status']=q['status'];manifest['outputs'].update(quality=str(out/'report/quality.json'),report=str(out/'report/report.html'))
+        log('VIDEO '+manifest['outputs']['video']);log('BUNDLE '+str(out/'animation'));log('QUALITY '+q['status']+' (rendered candidate; visual acceptance pending)')
     except Exception as error:
-        status='needs_input' if isinstance(error,NeedsInput) else 'failed'
-        manifest.update(status=status,exit_status=EXIT_CODES[status],result_exit_code=EXIT_CODES[status],error=str(error));(out/'logs/error.log').write_text(traceback.format_exc());save()
-        if status=='failed':raise
+        manifest.update(status='failed',exit_status=1,result_exit_code=1,error=str(error));(out/'logs/error.log').write_text(traceback.format_exc());log('ERROR '+str(error)+' | diagnostics: '+str(out/'logs/error.log'))
     finally:
         manifest['seconds']=time.monotonic()-began;save()
         from .qa.run_report import write_report
-        comparison=out/'comparison/compare.mp4'
-        write_report(out,out/'report',comparison if comparison.exists() else None)
+        write_report(out,out/'report',out/'comparison/compare.mp4' if (out/'comparison/compare.mp4').exists() else None)
     return out

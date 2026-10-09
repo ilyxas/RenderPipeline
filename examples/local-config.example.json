@@ -1,0 +1,12 @@
+{
+  "blender": "/Applications/Blender.app/Contents/MacOS/Blender",
+  "ffmpeg": "/opt/homebrew/bin/ffmpeg",
+  "ffprobe": "/opt/homebrew/bin/ffprobe",
+  "pose_model": "/absolute/path/pose_landmarker_heavy.task",
+  "face_model": "/absolute/path/face_landmarker.task",
+  "hand_model": "/absolute/path/hand_landmarker.task",
+  "character_asset": "/absolute/path/Xandra_Animations.blend",
+  "scene_asset": "/absolute/path/clip02_scene.blend",
+  "character_profile": "/absolute/path/RenderPipeline/profiles/characters/xandra/v3",
+  "scene_profile": "/absolute/path/RenderPipeline/profiles/scenes/bedroom/v3/scene.json"
+}

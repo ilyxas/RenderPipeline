@@ -21,3 +21,5 @@ asset_store/
 *.flac
 frames/
 
+
+.xms/

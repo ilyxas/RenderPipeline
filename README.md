@@ -27,13 +27,106 @@ MP4 -> observations -> solver -> AnimationBundle -> Blender adapter -> rendered 
 - `docs/development/` — architecture and implementation stages.
 - `docs/research/` — reports about legacy attempts and reusable findings.
 
-## Current state
+## Run a new video
 
-Stages 0–7 are implemented as a development baseline. Stage 6 includes actual
-body/head/face/hand renders through one AnimationBundle. Stage 7 freezes three
-source baselines, calibration artifacts and acceptance criteria. Work is stopped
-for engineering review before Stage 8; motion-quality gates are not all passing.
+The current machine's Xandra, bedroom, tracker models, Blender and FFmpeg are
+registered in `.xms/config.json` (local, ignored by Git). No intermediate commands
+are required. From this repository:
 
-See the [Stages 5–7 handoff and artifacts](docs/development/STAGES_5_7_HANDOFF.md)
-and the preserved [Stages 0–4 checkpoint](docs/development/STAGES_0_4_HANDOFF.md).
-Temporal optimization, contacts and collision correction remain later work.
+```sh
+./xms run input.mp4 --character xandra --quality preview
+./xms run input.mp4 --start 3 --end 8 --output runs/my-xandra.mp4
+./xms run input.mp4 --solver temporal --quality preview --face-closeup
+./xms run input.mp4 --quality final --output runs/my-final.mp4
+```
+
+For the exact `xms` command, add this repository to your shell path:
+
+```sh
+export PATH="$PWD:$PATH"
+xms run input.mp4 --character xandra --quality preview
+```
+
+Omitting `--start`/`--end` processes the whole video. Every run gets a unique
+`runs/<id>/` directory with `outputs/video.mp4`, immutable `animation/`, observations,
+`manifest.json`, solver diagnostics, logs, comparison video and an HTML report.
+`--output` copies the main MP4 to a chosen path and refuses to overwrite it.
+The terminal prints both MP4 and bundle paths. A successful render exits 0;
+motion/surface/visual acceptance is reported separately and can remain `needs_review`.
+
+`video` is the default: the preserved baseline body with improved video face/head,
+short hand gaps and conservative audio assistance. `--solver baseline` uses the
+preserved baseline backend. `--solver temporal` adds experimental overlapping body
+optimization and contact/collision costs; it uses SciPy, reports exhausted-window
+baseline fallbacks, and has **not passed motion-quality acceptance**. Version 3
+profiles bound optimizer increments to 5° and 3cm; this helps retain the initializer's
+fast movement but does not establish reconstruction accuracy.
+
+Useful options:
+
+- `--channels body`: skip face/hand tracking for a faster body experiment.
+- `--surface-qa sampled` (default), `all`, or `off`: evaluated hand–garment checks.
+  Sampled coverage is diagnostic. One bounded refinement can be attempted;
+  `--no-refine` keeps the initial reconstruction. Unresolved defects are retained.
+- `--audio off|envelope|speech|singing`: envelope is a low-confidence energy cue.
+  Speech optionally uses Rhubarb; singing optionally uses a separate Demucs runtime.
+  Missing/failing backends fall back and log warnings. Original audio is the soundtrack.
+- `--camera fixed`: keep the registered camera; default `fit` frames the whole
+  skeletal trajectory with a stable FOV. The solver calibration camera is unchanged.
+- `--face-closeup`: optional same-bundle face video; its failure does not discard
+  the main MP4. Diagnostic views do not run by default.
+
+Preview is 540×960/16 EEVEE samples. Final is a **render-quality candidate** at
+1080×1920/64 samples, preceded by a whole-clip preview and codec/timing verification;
+these sample counts have not passed flicker/artistic acceptance. Existing bedroom
+lighting, material and exposure defaults are preserved.
+
+## Setup on another machine
+
+Use a new compatible runtime, the recorded dependency locks in `environments/`,
+and your own registered asset/model paths. Do not reuse protected legacy environments
+or animated GLB files. The package provides a standard console script after install:
+
+```sh
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -e '.[tracking,temporal]'
+mkdir -p .xms
+cp examples/local-config.example.json .xms/config.json
+# Edit the absolute paths in .xms/config.json to your registered assets and binaries.
+./xms run input.mp4 --quality preview
+```
+
+You can also pass `--config /absolute/path/config.json` or set `XMS_CONFIG`.
+No models or large assets are downloaded automatically. Source assets are read-only.
+Missing input, model, asset or codec errors identify the path or log to fix.
+
+## Working and experimental features
+
+Working: source PTS/segment mapping, body/face/hand observations, baseline reconstruction,
+AnimationBundle contracts, Blender adapter, original soundtrack, preview encoding,
+comparison/report, default asset configuration and optional close-up. New policies
+have focused functional checks and one fresh end-to-end demonstration.
+
+Experimental/partial: temporal motion quality, monocular contact/floor estimates,
+proxy collision correction, bilateral palms, audio articulation and bounded surface
+refinement. Surface QA covers declared hand–top/shorts pairs, not the whole character;
+hair, finger–finger and other skin intersections remain unchecked. Long tracking gaps
+fall back to neutral; arbitrary occlusion, kneeling and complex posture recognition
+are outside scope. Long/full-resolution videos use temporary disk-backed RGB decoding
+and can require substantial disk/render time. No Stage 17–21 cache, scheduler or resume.
+
+[Stages 9–16 record](docs/development/STAGES_9_16_HANDOFF.md) distinguishes functional
+verification from acceptance and records the remaining work. Frozen benchmark
+thresholds and version 2 profiles remain unchanged. The [Stage 8 handoff](docs/development/STAGE8_HANDOFF.md)
+retains its failed gesture/continuity evidence.
+
+Representative demonstration on this machine:
+
+```sh
+./xms run /Users/ilya/codex/clip02_blender_kit/input/sing.mp4 \
+  --start 2 --end 4.5 --quality preview --face-closeup \
+  --output runs/stage16/xandra-demo.mp4 --runs-root runs/stage16/jobs
+```
+
+The demonstrated output is [Xandra MP4](runs/stage16/xandra-demo.mp4).
+Use a different output filename to repeat it.

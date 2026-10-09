@@ -1,0 +1,7 @@
+#!/bin/sh
+XMS_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ ! -x "$XMS_ROOT/.venv/bin/python" ]; then
+  echo "xms: runtime missing at $XMS_ROOT/.venv; see README setup" >&2
+  exit 2
+fi
+PYTHONPATH="$XMS_ROOT/src${PYTHONPATH:+:$PYTHONPATH}" exec "$XMS_ROOT/.venv/bin/python" -m xms.cli "$@"
