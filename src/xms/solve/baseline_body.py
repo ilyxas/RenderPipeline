@@ -19,21 +19,20 @@ def align(a,b,limit):
     return quat_matrix(np.r_[axis*np.sin(angle/2),np.cos(angle/2)])
 
 
-def solve(observations,timeline,profile,rig):
+def solve(observations,timeline,profile,rig,calibration=None):
     meta,obs=observations;indices=np.array(timeline['output_observation_indices']);times=np.array(timeline['output_times_s'])
     b=neutral(profile,rig,times,timeline['source_time_map']);a=b.arrays;names=profile['joint_names'];lookup={n:i for i,n in enumerate(names)}
     rest=evaluate(b,0);world=obs['world_landmarks_raw'][indices]*[1,-1,-1];image=obs['image_landmarks_raw'][indices];valid=obs['landmark_validity'][indices];confidence=np.minimum(obs['visibility'][indices],obs['presence'][indices])
-    aspect=meta['width']/meta['height'];hip=(image[:,23,:2]+image[:,24,:2])/2
+    from .calibration import calibrate,validate_calibration
+    calibration=calibrate(observations,timeline,profile,rig) if calibration is None else validate_calibration(calibration,observations,timeline,profile)
+    aspect=calibration['reference_camera']['display_aspect'];hip=(image[:,23,:2]+image[:,24,:2])/2
     reliable=valid[:,23]&valid[:,24]&valid[:,11]&valid[:,12]
     if not reliable.any():raise ValueError('No reliable torso observations for baseline root estimate')
-    shoulder=np.linalg.norm((image[:,11,:2]-image[:,12,:2])*[aspect,1],axis=1)
-    target_width=np.linalg.norm(rest[lookup['upperarm_l'],:3,3]-rest[lookup['upperarm_r'],:3,3])
-    scale=float(target_width/max(float(np.median(shoulder[reliable])),.05));origin=np.median(hip[reliable],axis=0)
-    calibration={'schema_version':'xms.baseline_calibration.v1','image_plane_metres_per_normalized_height':scale,'hip_image_origin':origin.tolist(),'estimation':'clip-median reliable hips and shoulders; no neutral-pose assumption','root_depth':'unobserved_fixed_zero','camera':'orthographic image-plane translation approximation; no metric calibration'}
+    scale=calibration['image_plane_metres_per_normalized_height'];origin=np.array(calibration['hip_image_origin'])
     for i in range(len(times)):
         if reliable[i]:
             a['root_translation'][i,:2]=(hip[i]-origin)*[aspect,-1]*scale
-            a['root_validity'][i]=True;a['root_confidence'][i]=.3*min(confidence[i,[23,24]]);a['root_provenance'][i]=2
+            a['root_validity'][i]=True;a['root_confidence'][i]=calibration['confidence']*min(confidence[i,[23,24]]);a['root_provenance'][i]=2
     segments={}
     for side,shoulder_id,elbow,wrist,hip_id,knee,ankle,heel,toe in [('l',11,13,15,23,25,27,29,31),('r',12,14,16,24,26,28,30,32)]:
         for bone,child,s,e,cap in [('upperarm','lowerarm',shoulder_id,elbow,160),('lowerarm','hand',elbow,wrist,155),('thigh','calf',hip_id,knee,110),('calf','foot',knee,ankle,145),('foot','ball',heel,toe,70)]:segments[bone+'_'+side]=(child+'_'+side,[s,e],cap)

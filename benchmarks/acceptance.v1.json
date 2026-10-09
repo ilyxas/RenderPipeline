@@ -1,0 +1,63 @@
+{
+  "schema_version": "xms.acceptance.v1",
+  "status": "frozen_before_stage7_measurements_and_any_temporal_comparison",
+  "frozen_at": "2026-10-09 Asia/Jerusalem",
+  "threshold_policy": "No automatic relaxation. Failures remain failures; unavailable never passes. A future revision requires explicit review, reason and new version.",
+  "splits_sha256": "7601b898bb5df9494c5e5b2c231d2fe99f022f8107acafd4b14b7c700c54efab",
+  "profile_hash": "f6af56f693fdff82007a626848a91b6db1c889105eff43e7a08329d8ce79fc39",
+  "final_architecture_goals": {
+    "quaternion_norm_max_error": 0.0001,
+    "duration_error_output_frames": 1,
+    "av_skew_output_frames": 1,
+    "foot_skating_median_max_drift_m": 0.02,
+    "foot_skating_p95_drift_m": 0.04,
+    "surface_penetration_p95_m": 0.002,
+    "surface_penetration_max_m": 0.005,
+    "visible_face_coverage_min": 0.9,
+    "lip_event_median_error_s": 0.08,
+    "lip_event_p95_error_s": 0.16,
+    "unexplained_hand_side_swaps_max": 0,
+    "uncropped_head_support_frames_fraction": 1.0
+  },
+  "stage8_regression": {
+    "normalized_reprojection_median_max_ratio": 1.05,
+    "normalized_reprojection_median_additive_tolerance": 0.002,
+    "normalized_reprojection_p95_max_ratio": 1.1,
+    "normalized_reprojection_p95_additive_tolerance": 0.005,
+    "body_angular_acceleration_p95_improvement_min_fraction": 0.1,
+    "joint_limit_violation_fraction_increase_max": 0.0,
+    "annotated_fast_gesture_amplitude_loss_max_degrees": 5.0,
+    "annotated_fast_gesture_peak_time_error_output_frames": 1,
+    "foot_bone_drift_proxy_regression_max_m": 0.01
+  },
+  "continuity": {
+    "observed_adjacent_rotation_jump_max_degrees": 45.0,
+    "root_adjacent_step_max_m": 0.1,
+    "quaternion_unit_error_max": 0.0001,
+    "repeat_solve_array_atol": 1e-10
+  },
+  "performance_budget": {
+    "scope": "one 2\u20134 second Stage8 body optimization window, one worker; budgets, not measured temporal performance",
+    "solver_wall_s_max": 120.0,
+    "python_solver_peak_rss_bytes_max": 2147483648,
+    "single_blender_peak_memory_footprint_bytes_max": 8589934592,
+    "basis": {
+      "stage5_manifest": "runs/stage5/measured-runs/20261009-183300-4fa096c4/manifest.json",
+      "stage5_manifest_sha256": "038a3ef522af7f9e4be4b244c42240ac546531760c64080a7f4010df5a12e1d6",
+      "tracking_python_rss_bytes": 342343680,
+      "blender_rss_bytes": 1717927936,
+      "blender_footprint_bytes": 4524641736,
+      "body_solve_wall_s": 0.03831804101355374,
+      "rationale": "2 GiB Python is about 6x Stage5 tracking RSS; 8 GiB renderer footprint reserves roughly half of the 16 GiB target machine. 120s is an explicit bounded experiment cap, not an ETA."
+    }
+  },
+  "unavailable_policy": {
+    "missing_annotations": "unavailable; never infer ground truth from the solver being evaluated",
+    "contacts": "foot-bone drift is a proxy; production sole skating remains unavailable without verified contact geometry",
+    "depth": "monocular/world estimates are not metric ground truth",
+    "surface_collision": "unavailable until surface geometry QA",
+    "lip_sync": "requires independently annotated open/closure transition events; video-only scores do not establish audio synchronization",
+    "holdout": "must be a distinct source hash; no thresholds or calibration heuristics tuned on holdout",
+    "quality_gain": "not demonstrated by baseline measurements alone; requires future frozen comparison"
+  }
+}

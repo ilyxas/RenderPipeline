@@ -1,0 +1,106 @@
+{
+  "stage": 7,
+  "status": "baseline_frozen_needs_engineering_review",
+  "stage8_started": false,
+  "verification": {
+    "sing": {
+      "calibration_binding": "pass",
+      "reject_mismatched_source": "pass",
+      "bundle_validation": "pass",
+      "repeat_arrays_max_difference": 0.0
+    },
+    "dance": {
+      "calibration_binding": "pass",
+      "reject_mismatched_source": "pass",
+      "bundle_validation": "pass",
+      "repeat_arrays_max_difference": 0.0
+    },
+    "non_neutral": {
+      "calibration_binding": "pass",
+      "reject_mismatched_source": "pass",
+      "bundle_validation": "pass",
+      "repeat_arrays_max_difference": 0.0
+    }
+  },
+  "stage4_inventory_unchanged": true,
+  "stage6_inventory_unchanged": true,
+  "acceptance_sha256": "1c4346a7c90a7e0c9b1854caaebc1266097a95438fcc7ef76145bc4e01af221c",
+  "split_sha256": "7601b898bb5df9494c5e5b2c231d2fe99f022f8107acafd4b14b7c700c54efab",
+  "runtime": {
+    "python": "3.13.15 (main, Aug  5 2026, 12:25:43) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "numpy": "2.5.3",
+      "mediapipe": "1.1.0",
+      "Pillow": "12.3.0"
+    }
+  },
+  "code_sha256": {
+    "src/xms/config.py": "9367e01481b585505f193ac4cb5373de17d2b25d6db33428d6d923eb5bc2aa88",
+    "src/xms/__init__.py": "e332e7e239d63916f9d3de7191ded249a78e0bd9f90cd4e4417c27523104cf32",
+    "src/xms/cli.py": "09cad22b13591a41789db7ddbf514fa10aaba901d2190ba18b038ed509756990",
+    "src/xms/pipeline.py": "a915e1e0a612463bcd75b38d0fe5f470009548cb7e12cbc0f1937dad0f897db2",
+    "src/xms/solve/baseline_face.py": "e7a0870a5b2ada1c7ee91ed05679c1ccb011a8a8b0c61cbac9d9f4d2d10df12f",
+    "src/xms/solve/interface.py": "cbc9444df31fcd6d62c1f57f7e6eb17a2f3fa3e49d8456bc9c23c41ffae10c74",
+    "src/xms/solve/baseline_hands.py": "05db7b2ea662e7888039675f6a31547f6cb36e79f92d70ba7ea893ac39f6e68a",
+    "src/xms/solve/baseline_full.py": "42310777dc90c3277b0928a5ce2c322f20069ae4acfeff140279cffc3c19e235",
+    "src/xms/solve/head.py": "fc3cda00d40f61c7ad00f279e2e94251d1c548a5d350cc5f264527dbd084099a",
+    "src/xms/solve/baseline_body.py": "befc482fe94cd4465005c7dea9ef53ce64e46e35562415b1733c2b03dbc9c214",
+    "src/xms/solve/calibration.py": "7e6214ea265ef9a5741459e5ab1057ae0ad2fa476667324a0c6c20432eb05ba7",
+    "src/xms/assembly/encode.py": "9d98b67a71de3ed6274e898a7c4d525819482dbe46cc3556457275fe1a7ab15d",
+    "src/xms/assembly/compare.py": "f69142a2cba91b71343e4943a7087214a12188c95889338291a0df52dfe5a044",
+    "src/xms/ingest/timeline.py": "c531c197e13c0e0d57c0675025def8732cd26ada4b5260f030aa3b7e9ec5c84e",
+    "src/xms/ingest/probe.py": "c5561d0ba6aaac6d9a129f8f749b5d98f7d437c9d60a6e7a0f2f12122fbe29dd",
+    "src/xms/ingest/decode.py": "76fdfd38a42e65def8eb4e376ec2cbf8dfaf8512ff2dc01d0c223b6160547819",
+    "src/xms/render/blender_adapter.py": "8ece9762355b00dc5669c98d492981c43016d729174e31361b39a2ba4cb88e0a",
+    "src/xms/render/process.py": "6d02416a545e873ad83451ae973cb716d36ef743ff6b98624cd31676b86fa88d",
+    "src/xms/animation/bundle.py": "1fa79dd1f2cc942f7d19af81a0529ab7f180bfd61f045b39aafbbf49e4c2b96b",
+    "src/xms/animation/compose.py": "48a2dde688b25ea2d0c6e789c1b50c00b1759223b06d2f44cf65b3fdfe48a7c0",
+    "src/xms/animation/io.py": "bd6e2dd2be53e11eece367e753894253b6bbffe2184a64d4c13634e5d4310a5f",
+    "src/xms/animation/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/xms/animation/validate.py": "fac12ffae040ad2d16712a1a80a881a378d5c77fff3f5fd315a9163fb6fe742f",
+    "src/xms/animation/fk.py": "885a5d6ef7330e50dc828b538c11ff3cd0d0715a0c06b72c52e5567a047a7e6e",
+    "src/xms/animation/sample.py": "99546a1ab157cb05574823f4e90e3b6fd89ddbbf46953853795ae0dc2c3b6c9c",
+    "src/xms/qa/run_report.py": "be4ebc71e96a262689b9c648e293ae4230ac54db58c20b0f61c0f675f5d44c87",
+    "src/xms/qa/kinematics.py": "830ab05c4d2306c0211af81ed6a0eed150501dd8dd4b7671e38aeb7c8a431b4e",
+    "src/xms/qa/coverage.py": "ff00a0a1daa56be0a5fe17a7744f77fe4e65d56192440b21c628373adefec4a6",
+    "src/xms/qa/timing.py": "cd55fcb95772fd270262afe4d11246052d7c77a343f7df7cf12c10e2771450d8",
+    "src/xms/qa/pose.py": "ee00e92c9b2821321714e89d74334cac5815a383f1d287eb38be3d529605f955",
+    "src/xms/qa/contract.py": "d78885a2c2297ce7d427bc37efafebfff89ad55c27afba50752813da2f2442dc",
+    "src/xms/report/html.py": "9a26a33638c4b7315a3fbbc69588fc077399dc47923a2cb013f607653eba0c2f",
+    "src/xms/observations/hands_mediapipe.py": "9a7c5f35d4745c785a069a3c6ab425772933d3b369074052beb709789469d19b",
+    "src/xms/observations/io.py": "aa7210365ef1a47a7854c183625e22c1bf705ad45f2cccd5e6e5fbda1e25ec79",
+    "src/xms/observations/details_io.py": "31b77e4feb518e5604a1c770a3c8106a9cff3100a6cbb973d9662b87de965ebc",
+    "src/xms/observations/details.py": "09fa666d0826a013cd46988c93f4421b5930940a4400f15f8d708bc77274bc25",
+    "src/xms/observations/face_mediapipe.py": "fac47e171e004df45f62c33310ee74d8a27c63244a148c724a03d50c9753ee58",
+    "src/xms/observations/pose_mediapipe.py": "1607f3714c05d8f00cdb0f9d2c8cf76421a21427b525b629049590dddffff9af",
+    "src/xms/observations/contract.py": "809a013fdcbdcbb364404a51474133de47a3fe0b627635b3e4891e1893da5de0",
+    "src/xms/profiles/scene.py": "31fd97a06330aaffae1f0ddc6023bbfa1a49ab1da583c9a33de2143a3c86b7b3",
+    "src/xms/profiles/character.py": "a25686cb321c802b0542602fb59e884b6be794bae585dd27beb20c9195403b30",
+    "blender/register_character.py": "52d8e909c41f0d85be568d0094bbbc1c908b0a0e326c1a2242c81668436664ea",
+    "blender/render_frames.py": "f941785c7f1f4bc36a251921fe2264b69875845a3c0722177e853ad8ae46c9be",
+    "blender/apply_bundle.py": "8f6bddf7012e4de3027d2a0a635b977795be275be3f038d821e8836ce5065e0f",
+    "benchmarks/run_baseline.py": "7cf1be90443b39231dbc41b2fe6bdcd2adb430d1ccebe966d5f5f1b188cc8a73",
+    "benchmarks/make_media_fixtures.py": "d1171c82d1d11627866024135726ae2aa7159be0ec62390f7d46c4a66e0b21f8"
+  },
+  "frozen_artifact_sha256": {
+    "benchmarks/baseline/non_neutral/calibration.json": "bc622f3d0a776037f73f3a8de74adc89c118429b0f601ace3480c123a7e6ad30",
+    "benchmarks/baseline/non_neutral/measurements.json": "3c07f32d11d325645176d77bdd6343e76c8cffdf3571bffee5b799c0876a664e",
+    "benchmarks/baseline/non_neutral/root_trajectory.json": "ab35a197a5403f1f8eefae8ff053ac05086105bfb8e04b5a7f17f15f5843d40d",
+    "benchmarks/baseline/dance/calibration.json": "71e8b665512082bbb13437faa04c17d6c5a52bcb991415875a5c70cf626af49f",
+    "benchmarks/baseline/dance/measurements.json": "723e58fd817a8bb27a6c102f70e406c1146ab8fe6b340093bd7556841ffc2e74",
+    "benchmarks/baseline/dance/root_trajectory.json": "60efe3195d15b85d62c3964dbe4a60c0e8ba455962d795c66f77ead62b6d1561",
+    "benchmarks/baseline/sing/calibration.json": "ace56ab00f7a2a4d8834f61da3f44fe6b8b55d89c95b3a41eb75293da975bba6",
+    "benchmarks/baseline/sing/measurements.json": "bccf5ad5b743f966ef6a6d4ce18c45a59b5beb9f5d2c2ddc112d497373a4f57d",
+    "benchmarks/baseline/sing/root_trajectory.json": "92e4418239ae00908989b872ed7c8b3a1b5c294a109980dc2ced012039277c58"
+  },
+  "unavailable": {
+    "hand_side_swaps": "Synthetic association verified; no independently annotated real-video swap count",
+    "uncropped_head_support": "Visual samples reviewed; exhaustive support-frame coverage not measured",
+    "flight_intervals": "No confidently observed flight in selected clips",
+    "lip_sync": "No independent audio event correspondence",
+    "metric_depth": "No metric 3D ground truth",
+    "sole_skating_and_penetration": "No surface/contact geometry QA"
+  },
+  "known_failure": "All three baselines exceed frozen 45 degree observed adjacent rotation jump gate. Threshold unchanged."
+}

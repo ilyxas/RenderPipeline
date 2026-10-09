@@ -1,0 +1,486 @@
+{
+  "schema_version": "xms.baseline_measurements.v1",
+  "id": "dance",
+  "split": "tuning",
+  "status": "needs_review",
+  "metrics": {
+    "normalized_reprojection_median": {
+      "status": "measured",
+      "value": 0.04173660573067036,
+      "unit": "visible skeletal height"
+    },
+    "normalized_reprojection_p95": {
+      "status": "measured",
+      "value": 0.10027547776333515,
+      "unit": "visible skeletal height"
+    },
+    "metric_depth_error": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "m",
+      "reason": "No metric 3D ground truth"
+    },
+    "body_angular_velocity_p95": {
+      "status": "measured",
+      "value": 820.2222663329528,
+      "unit": "degrees/s"
+    },
+    "body_angular_acceleration_p95": {
+      "status": "measured",
+      "value": 20348.331070744538,
+      "unit": "degrees/s^2"
+    },
+    "observed_adjacent_rotation_jump_max": {
+      "status": "measured",
+      "value": 177.21912605570358,
+      "unit": "degrees"
+    },
+    "root_adjacent_step_max": {
+      "status": "measured",
+      "value": 0.06323512930332767,
+      "unit": "m"
+    },
+    "joint_limit_violation_fraction": {
+      "status": "measured",
+      "value": 0.0,
+      "unit": "fraction of scalar-cap samples"
+    },
+    "anatomical_joint_limits": {
+      "status": "unavailable",
+      "value": null,
+      "unit": null,
+      "reason": "Scalar swing caps are baseline constraints, not validated anatomical joint limits"
+    },
+    "foot_bone_drift_proxy_median": {
+      "status": "measured",
+      "value": 0.20187380834282465,
+      "unit": "m"
+    },
+    "foot_bone_drift_proxy_p95": {
+      "status": "measured",
+      "value": 0.21398855202240025,
+      "unit": "m"
+    },
+    "foot_skating": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "m",
+      "reason": "No verified sole contact geometry; foot-bone drift is only a proxy"
+    },
+    "surface_penetration": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "m",
+      "reason": "Surface geometry QA is scheduled later"
+    },
+    "root_speed_p95": {
+      "status": "measured",
+      "value": 0.9350630167278112,
+      "unit": "m/s"
+    },
+    "visible_face_coverage": {
+      "status": "pass",
+      "value": 0.9333333333333333,
+      "unit": "fraction"
+    },
+    "left_hand_coverage": {
+      "status": "measured",
+      "value": 0.43333333333333335,
+      "unit": "fraction"
+    },
+    "right_hand_coverage": {
+      "status": "measured",
+      "value": 0.6166666666666667,
+      "unit": "fraction"
+    },
+    "head_face_owned_fraction": {
+      "status": "measured",
+      "value": 0.9333333333333333,
+      "unit": "fraction"
+    },
+    "lip_sync": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "s",
+      "reason": "Audio event correspondence and geometric lip closure not measured"
+    },
+    "mouth_event_channel_proxy_median_error": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "s",
+      "reason": "No independently annotated speech/closure events"
+    }
+  },
+  "continuity_gates": {
+    "observed_adjacent_rotation_jump_max": {
+      "status": "fail",
+      "value": 177.21912605570358,
+      "threshold": 45.0
+    },
+    "root_adjacent_step_max": {
+      "status": "pass",
+      "value": 0.06323512930332767,
+      "threshold": 0.1
+    }
+  },
+  "repeat_solve": {
+    "status": "pass",
+    "maximum_array_difference": 0.0,
+    "atol": 1e-10
+  },
+  "performance": {
+    "solve_wall_s": 4.328821584000252,
+    "python_peak_rss_bytes": 42434560
+  },
+  "calibration_confidence": 0.4499847784638405,
+  "missing_face_intervals": [
+    {
+      "start_source_s": 2.1666666666666665,
+      "end_source_s": 2.3333333333333335
+    }
+  ],
+  "missing_hand_intervals": {
+    "left": [
+      {
+        "start_source_s": 2.375,
+        "end_source_s": 2.4166666666666665
+      },
+      {
+        "start_source_s": 2.5,
+        "end_source_s": 2.5833333333333335
+      },
+      {
+        "start_source_s": 2.625,
+        "end_source_s": 2.7083333333333335
+      },
+      {
+        "start_source_s": 2.75,
+        "end_source_s": 2.8333333333333335
+      },
+      {
+        "start_source_s": 2.875,
+        "end_source_s": 3.1666666666666665
+      },
+      {
+        "start_source_s": 3.2083333333333335,
+        "end_source_s": 3.4583333333333335
+      },
+      {
+        "start_source_s": 3.5,
+        "end_source_s": 3.5416666666666665
+      },
+      {
+        "start_source_s": 3.5833333333333335,
+        "end_source_s": 3.625
+      },
+      {
+        "start_source_s": 3.8333333333333335,
+        "end_source_s": 3.9166666666666665
+      },
+      {
+        "start_source_s": 3.9583333333333335,
+        "end_source_s": 4.333333333333333
+      },
+      {
+        "start_source_s": 4.416666666666667,
+        "end_source_s": 4.458333333333333
+      }
+    ],
+    "right": [
+      {
+        "start_source_s": 2.0416666666666665,
+        "end_source_s": 2.375
+      },
+      {
+        "start_source_s": 2.4166666666666665,
+        "end_source_s": 2.5
+      },
+      {
+        "start_source_s": 2.5833333333333335,
+        "end_source_s": 2.625
+      },
+      {
+        "start_source_s": 2.8333333333333335,
+        "end_source_s": 2.875
+      },
+      {
+        "start_source_s": 3.1666666666666665,
+        "end_source_s": 3.2083333333333335
+      },
+      {
+        "start_source_s": 3.6666666666666665,
+        "end_source_s": 3.8333333333333335
+      },
+      {
+        "start_source_s": 4.083333333333333,
+        "end_source_s": 4.166666666666667
+      },
+      {
+        "start_source_s": 4.25,
+        "end_source_s": 4.291666666666667
+      },
+      {
+        "start_source_s": 4.333333333333333,
+        "end_source_s": 4.416666666666667
+      },
+      {
+        "start_source_s": 4.458333333333333,
+        "end_source_s": 4.5
+      }
+    ]
+  },
+  "mouth_events": [],
+  "pose": {
+    "metrics": {
+      "normalized_reprojection_median": {
+        "status": "measured",
+        "value": 0.04173660573067036,
+        "unit": "visible skeletal height"
+      },
+      "normalized_reprojection_p95": {
+        "status": "measured",
+        "value": 0.10027547776333515,
+        "unit": "visible skeletal height"
+      },
+      "metric_depth_error": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "m",
+        "reason": "No metric 3D ground truth"
+      }
+    },
+    "per_joint": {
+      "left_shoulder": {
+        "median": 0.06350167284856842,
+        "p95": 0.09051055302529588,
+        "samples": 60
+      },
+      "right_shoulder": {
+        "median": 0.06112611391748998,
+        "p95": 0.08499924983244889,
+        "samples": 60
+      },
+      "left_elbow": {
+        "median": 0.048217760542905476,
+        "p95": 0.06549076278220992,
+        "samples": 32
+      },
+      "right_elbow": {
+        "median": 0.06165646297193388,
+        "p95": 0.11062342641617208,
+        "samples": 55
+      },
+      "left_wrist": {
+        "median": 0.06931630082715057,
+        "p95": 0.19790486649546649,
+        "samples": 46
+      },
+      "right_wrist": {
+        "median": 0.07078824703408057,
+        "p95": 0.11863506488776478,
+        "samples": 60
+      },
+      "left_hip": {
+        "median": 0.02194223185075185,
+        "p95": 0.035750800273251136,
+        "samples": 60
+      },
+      "right_hip": {
+        "median": 0.02255114416389341,
+        "p95": 0.03634077082351984,
+        "samples": 60
+      },
+      "left_knee": {
+        "median": 0.03909761900208974,
+        "p95": 0.05777645808119215,
+        "samples": 53
+      },
+      "right_knee": {
+        "median": 0.022637834606041397,
+        "p95": 0.03945637439244031,
+        "samples": 59
+      },
+      "left_ankle": {
+        "median": 0.04312285851293888,
+        "p95": 0.07254042413414931,
+        "samples": 50
+      },
+      "right_ankle": {
+        "median": 0.027919758933613828,
+        "p95": 0.06549951866080843,
+        "samples": 59
+      }
+    },
+    "normalizer_source_image_height_fraction": 0.9209426239132881,
+    "normalizer_policy": "p95 visible skeletal vertical span; proxy, not person mesh height",
+    "full_body_normalization_available": true,
+    "reference_camera": {
+      "model": "orthographic_prior",
+      "metres_per_normalized_image_height": 2.1016869508362794,
+      "display_aspect": 0.7391304347826086,
+      "image_anchor": [
+        0.526718333363533,
+        0.48849689960479736
+      ],
+      "world_anchor_m": [
+        -7.896317092474946e-33,
+        0.9259094794263802,
+        0.017957292393804503
+      ],
+      "world_to_camera_rotation": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "frozen": true,
+      "limitations": "Camera is a rest-regularized prior, not an optimized projection or metric camera calibration"
+    }
+  },
+  "kinematics": {
+    "metrics": {
+      "body_angular_velocity_p95": {
+        "status": "measured",
+        "value": 820.2222663329528,
+        "unit": "degrees/s"
+      },
+      "body_angular_acceleration_p95": {
+        "status": "measured",
+        "value": 20348.331070744538,
+        "unit": "degrees/s^2"
+      },
+      "observed_adjacent_rotation_jump_max": {
+        "status": "measured",
+        "value": 177.21912605570358,
+        "unit": "degrees"
+      },
+      "root_adjacent_step_max": {
+        "status": "measured",
+        "value": 0.06323512930332767,
+        "unit": "m"
+      },
+      "joint_limit_violation_fraction": {
+        "status": "measured",
+        "value": 0.0,
+        "unit": "fraction of scalar-cap samples"
+      },
+      "anatomical_joint_limits": {
+        "status": "unavailable",
+        "value": null,
+        "unit": null,
+        "reason": "Scalar swing caps are baseline constraints, not validated anatomical joint limits"
+      },
+      "foot_bone_drift_proxy_median": {
+        "status": "measured",
+        "value": 0.20187380834282465,
+        "unit": "m"
+      },
+      "foot_bone_drift_proxy_p95": {
+        "status": "measured",
+        "value": 0.21398855202240025,
+        "unit": "m"
+      },
+      "foot_skating": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "m",
+        "reason": "No verified sole contact geometry; foot-bone drift is only a proxy"
+      },
+      "surface_penetration": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "m",
+        "reason": "Surface geometry QA is scheduled later"
+      },
+      "root_speed_p95": {
+        "status": "measured",
+        "value": 0.9350630167278112,
+        "unit": "m/s"
+      }
+    },
+    "stance_intervals": [
+      {
+        "side": "l",
+        "start_source_s": 2.75,
+        "end_source_s": 3.0,
+        "confidence": 0.85,
+        "note": "Single supporting foot while opposite knee is raised",
+        "bone_proxy": "foot_l",
+        "max_horizontal_drift_m": 0.2153346346534642
+      },
+      {
+        "side": "r",
+        "start_source_s": 3.5,
+        "end_source_s": 3.75,
+        "confidence": 0.85,
+        "note": "Support during opposite knee lift",
+        "bone_proxy": "foot_r",
+        "max_horizontal_drift_m": 0.18841298203218507
+      }
+    ],
+    "fast_gesture_reference": [
+      {
+        "label": "arms rise then lower",
+        "joint": "upperarm_l",
+        "amplitude_degrees": 128.26580929752225,
+        "peak_source_s": 2.5833333333333335
+      },
+      {
+        "label": "arms rise then lower",
+        "joint": "upperarm_r",
+        "amplitude_degrees": 97.23297404770486,
+        "peak_source_s": 2.2083333333333335
+      },
+      {
+        "label": "arms rise then lower",
+        "joint": "lowerarm_l",
+        "amplitude_degrees": 170.18769016017262,
+        "peak_source_s": 2.5
+      },
+      {
+        "label": "arms rise then lower",
+        "joint": "lowerarm_r",
+        "amplitude_degrees": 122.4472944828562,
+        "peak_source_s": 2.5416666666666665
+      }
+    ],
+    "policy": "Derivative metrics exclude missing endpoints; no interpolation. Foot drift is a horizontal bone-head proxy. Scalar caps are not anatomical validation."
+  },
+  "provenance": {
+    "source_sha256": "a36905c295b7035e11581670643d361898b133cac6f3526811c46e5ff38b7772",
+    "body_observations_digest": "2a915042f57eac3517fff8b9a67916290a471ac1798cc9d004ca1452542eb209",
+    "face_observations_digest": "65f9869da0084f277a14124a07be49736f7cc0733a6727eb2639c23da7cc8e18",
+    "hand_observations_digest": "bc945e48d891b4eb2cdc6f3ea730a48ef3a9fea9cc75002ece07f2e72c2789bf",
+    "character_profile_hash": "f6af56f693fdff82007a626848a91b6db1c889105eff43e7a08329d8ce79fc39",
+    "bundle_hash": "5004e8dcdf0aa51e9707b5030ec4f86c7e0d300a7e298411590a2fc8b995a494",
+    "calibration_sha256": "71e8b665512082bbb13437faa04c17d6c5a52bcb991415875a5c70cf626af49f",
+    "annotations_sha256": "561986ee0f0915462abaffcbbeca292e5c7405b8f35f7c6b46c36f7290f75d5d",
+    "acceptance_sha256": "1c4346a7c90a7e0c9b1854caaebc1266097a95438fcc7ef76145bc4e01af221c",
+    "source_observations_path": "/Users/ilya/codex/RenderPipeline/runs/stage7/dance/observations"
+  },
+  "limitations": [
+    "No temporal optimization, foot anchoring, contact solve or collision correction.",
+    "Occluded/low-confidence segments fall back to local rest; this can cause discontinuities.",
+    "Root depth is unobserved and fixed; image-plane translation uses shoulder-scale and a clip-median origin.",
+    "Single-person input only; no temporal identity recovery or shot-cut handling.",
+    "Preview materials use natural canonical teeth; hair/shadow noise and clipping remain possible.",
+    "Body directions remain an unfiltered baseline.",
+    "Facial expressions and head are video-only; no audio articulation fusion or lip constraints.",
+    "Face confidence uses availability/ROI size; hand confidence uses handedness/body-wrist association proxies.",
+    "Missing face frames use neutral expression/body head prior; missing hands/fingers use rest. No gap interpolation.",
+    "Hand association is frame-local; temporal L/R identity recovery, contact and finger collisions are not implemented.",
+    "Reference camera and source landmarks are monocular priors/proxies, not ground truth.",
+    "No temporal solver has been compared; measured baseline does not establish quality gain."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "xms.benchmarks.v1",
+  "sources": [
+    {
+      "id": "sing",
+      "path": "/Users/ilya/codex/clip02_blender_kit/input/sing.mp4",
+      "sha256": "20c16af4c286190b9a2e2fd33780f71000c885cf3c835a377f41dd6dae3ce8cb",
+      "split": "tuning",
+      "size_bytes": 6536693,
+      "config": "benchmarks/configs/sing.json"
+    },
+    {
+      "id": "dance",
+      "path": "/Users/ilya/codex/dance/pipeline/test/imagine_dance.mp4",
+      "sha256": "a36905c295b7035e11581670643d361898b133cac6f3526811c46e5ff38b7772",
+      "split": "tuning",
+      "size_bytes": 4305064,
+      "config": "benchmarks/configs/dance.json"
+    },
+    {
+      "id": "non_neutral",
+      "path": "/Users/ilya/codex/RenderPipeline/examples/video_example/non_neutral_pose.mp4",
+      "sha256": "9a49e0006cd86f2eed44fd14a5e8093981f4070a476d6512b1d4996db3fb79d0",
+      "split": "holdout",
+      "size_bytes": 7585498,
+      "config": "benchmarks/configs/non_neutral.json"
+    }
+  ],
+  "split_policy": "Frozen source-level split before calibration/thresholds; same-source media derivatives are technical tests only",
+  "dance_provenance": "/Users/ilya/codex/dance/pipeline/test/reference/Dance_Imagine01.notes.json",
+  "media_fixture_generator": "benchmarks/make_media_fixtures.py"
+}

@@ -8,12 +8,13 @@ from xms.ingest.probe import probe
 from xms.ingest.timeline import make_timeline
 from xms.ingest.decode import decode
 from xms.animation.io import file_hash
+from xms.qa.contract import NeedsInput
 
 
 def pack_detection(result):
     image=np.zeros((33,3));world=np.zeros((33,3));visibility=np.zeros(33);presence=np.zeros(33)
     if not result.pose_landmarks:return image,world,visibility,presence,False
-    if len(result.pose_landmarks)!=1:raise ValueError('Ambiguous multi-person frame; subject selection required')
+    if len(result.pose_landmarks)!=1:raise NeedsInput('Ambiguous multi-person frame; subject selection required')
     for i,(a,b) in enumerate(zip(result.pose_landmarks[0],result.pose_world_landmarks[0])):
         image[i]=[a.x,a.y,a.z];world[i]=[b.x,b.y,b.z];visibility[i]=a.visibility;presence[i]=a.presence
     return image,world,visibility,presence,True

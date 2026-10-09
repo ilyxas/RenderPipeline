@@ -1,0 +1,77 @@
+{
+  "schema_version": "xms.annotations.v1",
+  "annotation_method": "manual visual review of source-only contact sheets, before numerical baseline measurement; confidence denotes annotator judgment, not tracker probability",
+  "mouth_events": [
+    {
+      "kind": "closure",
+      "start_source_s": 3.0833333333333335,
+      "end_source_s": 3.125,
+      "confidence": 0.8
+    },
+    {
+      "kind": "open",
+      "start_source_s": 3.2083333333333335,
+      "end_source_s": 3.25,
+      "confidence": 0.85
+    }
+  ],
+  "stance_intervals": [
+    {
+      "side": "l",
+      "start_source_s": 3.0,
+      "end_source_s": 3.25,
+      "confidence": 0.85,
+      "note": "Forefoot support visible; high-heel pivots make bone drift only a proxy"
+    },
+    {
+      "side": "r",
+      "start_source_s": 3.0,
+      "end_source_s": 3.25,
+      "confidence": 0.85,
+      "note": "Forefoot support visible; high-heel pivots make bone drift only a proxy"
+    }
+  ],
+  "flight_intervals": [],
+  "fast_gestures": [
+    {
+      "label": "right hand opens outward",
+      "start_source_s": 3,
+      "end_source_s": 4.4,
+      "joints": [
+        "upperarm_r",
+        "lowerarm_r"
+      ]
+    }
+  ],
+  "source_sha256": "20c16af4c286190b9a2e2fd33780f71000c885cf3c835a377f41dd6dae3ce8cb",
+  "full_body_visible": true,
+  "confident_joints": [
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle"
+  ],
+  "visible_face_intervals": [
+    [
+      3,
+      5.5
+    ]
+  ],
+  "flight_note": "No clearly airborne interval in reviewed slice",
+  "mouth_event_evidence": "runs/stage7/sing-mouth-event-detail.jpg",
+  "mouth_proxy_policy": {
+    "channel": "jawOpen",
+    "closure_threshold": 0.1,
+    "open_threshold": 0.2,
+    "note": "Channel-crossing proxy only; does not measure audio sync or geometric lip closure"
+  },
+  "evidence": "runs/stage7/sing-mouth-source.jpg"
+}

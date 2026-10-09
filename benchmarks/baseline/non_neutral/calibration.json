@@ -1,0 +1,151 @@
+{
+  "schema_version": "xms.calibration.v1",
+  "policy": "reliable_windows_rest_regularized_v1",
+  "source_sha256": "9a49e0006cd86f2eed44fd14a5e8093981f4070a476d6512b1d4996db3fb79d0",
+  "observations_digest": "7725898841998fba2487a120b4eb1e63f9f62fafd3156c8069069fb2edb222a8",
+  "character_profile_hash": "f6af56f693fdff82007a626848a91b6db1c889105eff43e7a08329d8ce79fc39",
+  "output_times_s": [
+    0.0,
+    0.041666666666666664,
+    0.08333333333333333,
+    0.125,
+    0.16666666666666666,
+    0.20833333333333334,
+    0.25,
+    0.2916666666666667,
+    0.3333333333333333,
+    0.375,
+    0.4166666666666667,
+    0.4583333333333333,
+    0.5,
+    0.5416666666666666,
+    0.5833333333333334,
+    0.625,
+    0.6666666666666666,
+    0.7083333333333334,
+    0.75,
+    0.7916666666666666,
+    0.8333333333333334,
+    0.875,
+    0.9166666666666666,
+    0.9583333333333334,
+    1.0,
+    1.0416666666666667,
+    1.0833333333333333,
+    1.125,
+    1.1666666666666667,
+    1.2083333333333333,
+    1.25,
+    1.2916666666666667,
+    1.3333333333333333,
+    1.375,
+    1.4166666666666667,
+    1.4583333333333333,
+    1.5,
+    1.5416666666666667,
+    1.5833333333333333,
+    1.625,
+    1.6666666666666667,
+    1.7083333333333333,
+    1.75,
+    1.7916666666666667,
+    1.8333333333333333,
+    1.875,
+    1.9166666666666667,
+    1.9583333333333333,
+    2.0,
+    2.0416666666666665,
+    2.0833333333333335,
+    2.125,
+    2.1666666666666665,
+    2.2083333333333335,
+    2.25,
+    2.2916666666666665,
+    2.3333333333333335,
+    2.375,
+    2.4166666666666665,
+    2.4583333333333335
+  ],
+  "selected_windows": [
+    {
+      "start_s": 0.0,
+      "end_s": 0.5833333333333334,
+      "representative_sample": 0,
+      "torso_confidence": 0.9999972581863403
+    },
+    {
+      "start_s": 0.625,
+      "end_s": 1.2083333333333333,
+      "representative_sample": 15,
+      "torso_confidence": 0.999997615814209
+    },
+    {
+      "start_s": 1.25,
+      "end_s": 1.8333333333333333,
+      "representative_sample": 37,
+      "torso_confidence": 0.9999929666519165
+    },
+    {
+      "start_s": 1.875,
+      "end_s": 2.4583333333333335,
+      "representative_sample": 45,
+      "torso_confidence": 0.9999960660934448
+    }
+  ],
+  "neutral_sample_indices": [],
+  "first_frame_required_neutral": false,
+  "confidence": 0.29249882318079473,
+  "confidence_limitations": [
+    "Monocular depth and physical camera are not identifiable",
+    "No neutral pose: rest geometry regularization, reduced confidence"
+  ],
+  "fixed_target_skeleton_height_m": 1.440381472192481,
+  "image_plane_metres_per_normalized_height": 1.96961647780239,
+  "segment_scale_estimate": 1.96961647780239,
+  "full_height_scale_estimate": null,
+  "hip_image_origin": [
+    0.4479625076055527,
+    0.5883426368236542
+  ],
+  "global_orientation_prior_xyzw": [
+    0,
+    0.14784437195272093,
+    0,
+    0.9890106378001733
+  ],
+  "orientation_application": "Saved camera-frame prior for temporal solver; baseline directions already camera-aligned, so do not apply twice",
+  "root_depth": "unobserved_fixed_zero",
+  "reference_camera": {
+    "model": "orthographic_prior",
+    "metres_per_normalized_image_height": 1.96961647780239,
+    "display_aspect": 0.5625,
+    "image_anchor": [
+      0.4479625076055527,
+      0.5883426368236542
+    ],
+    "world_anchor_m": [
+      -7.896317092474946e-33,
+      0.9259094794263802,
+      0.017957292393804503
+    ],
+    "world_to_camera_rotation": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "frozen": true,
+    "limitations": "Camera is a rest-regularized prior, not an optimized projection or metric camera calibration"
+  }
+}

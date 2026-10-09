@@ -15,5 +15,7 @@ def probe(path,ffprobe):
     if not pts or any(b<=a for a,b in zip(pts,pts[1:])):raise ValueError('Missing/nonmonotonic decoded PTS')
     rotation=next((int(s['rotation']) for s in v.get('side_data_list',[]) if 'rotation' in s),int(v.get('tags',{}).get('rotate',0)))
     if rotation%90:raise ValueError('Only orthogonal source rotation supported')
-    fps=v['avg_frame_rate'] if Fraction(v['avg_frame_rate'])>0 else v['r_frame_rate']
-    return {'video':v,'audio':audio,'pts':pts,'time_base':v['time_base'],'fps':fps,'rotation_degrees':rotation,'sample_aspect_ratio':v.get('sample_aspect_ratio','1:1'),'format':data['format']}
+    deltas={b-a for a,b in zip(pts,pts[1:])}
+    is_vfr=len(deltas)>1 and max(deltas)-min(deltas)>1
+    fps='30' if is_vfr else v['avg_frame_rate'] if Fraction(v['avg_frame_rate'])>0 else v['r_frame_rate']
+    return {'video':v,'audio':audio,'pts':pts,'time_base':v['time_base'],'fps':fps,'is_vfr':is_vfr,'fps_policy':'30 for VFR; source CFR otherwise','rotation_degrees':rotation,'sample_aspect_ratio':v.get('sample_aspect_ratio','1:1'),'format':data['format']}
