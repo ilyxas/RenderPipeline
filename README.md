@@ -57,6 +57,9 @@ motion/surface/visual acceptance is reported separately and can remain `needs_re
 `video` is the default: image-guided two-bone arm fitting, hip/torso rotation,
 camera-facing torso clearance, stationary-foot anchors, forearm pronation, hinge finger curls and time-based
 SO(3) stabilization. Short gaps are bridged; longer gaps fade rather than snap.
+Stationary feet use the registered rest stance on the Y=0 floor, with level soles
+and a shared pelvis reach correction (up to 12cm). Moving feet are not pinned;
+slopes, stairs and uncertain support remain unsupported. Foot corrections are logged.
 Ambiguous palm flips and excessive rotation rates use diagnosed bounded fallbacks
 (arms 900°/s, wrists/forearm roll 720°/s, fingers 1200°/s). Ordinary coherent gestures retain timing.
 Monocular depth and complex occlusion remain estimates; this is not broad visual acceptance. `--solver baseline` uses the

@@ -2,10 +2,21 @@ import unittest
 import numpy as np
 from scipy.spatial.transform import Rotation
 from xms.solve.stability import rotations,angle
-from xms.solve.video_body import two_bone,clearance
+from xms.solve.video_body import two_bone,clearance,foot_orientation,support_root_drop
 
 
 class MotionStability(unittest.TestCase):
+    def test_planted_foot_keeps_sole_level_and_rest_ankle_offset(self):
+        # A yawed heel-to-toe observation must not pitch the ankle-to-ball bone
+        # (which slopes down to the toe) onto the horizontal sole direction.
+        rest=np.array([.02,-.065,.13]);forward=np.array([.6,.1,.8])
+        r=foot_orientation(forward,rest,np.eye(3),planted=True)
+        self.assertAlmostEqual((r@rest)[1],rest[1])
+        self.assertTrue(np.allclose(r@[0,1,0],[0,1,0]))
+        delta=support_root_drop(np.array([[0,.92,0],[.1,.90,0]]),np.array([[0,.075,0],[.1,.075,0]]),[.82,.82])
+        self.assertAlmostEqual(delta,.025)
+        self.assertEqual(support_root_drop(np.array([[0,1.3,0]]),np.array([[0,.075,0]]),[.82]),.12)
+
     def test_isolated_orientation_spike_is_repaired(self):
         times=np.arange(7)/24;q=Rotation.from_euler('x',np.array([0,0,0,170,0,0,0])[:,None],degrees=True).as_quat()
         repaired,v,c,estimated=rotations(q,np.ones(7,bool),np.ones(7),times)
