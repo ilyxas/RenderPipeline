@@ -12,7 +12,7 @@ from .assembly.encode import preflight,encode,verify
 from .qa.contract import self_peak_bytes
 
 
-def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True):
+def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False):
     out=Path(runs_root).resolve()/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
     manifest={'schema_version':'xms.run.v1','quality':'development_candidate','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':quality,'solver':solver,'channels':channels,'audio':audio_mode,'surface_qa':surface_qa,'camera':camera},'config':config,'python':sys.version,'limitations':[],'warnings':[],'stages':{}}
     began=time.monotonic()
@@ -63,7 +63,7 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             b=solve_full(body,detail_face,detail_hands,timeline,p,rig,face,solver,audio)
         else:
             if solver=='temporal':from .solve.windows import solve
-            else:from .solve.baseline_body import solve
+            else:from .solve.video_body import solve
             b=solve(body,timeline,p,rig)
         b.metadata['observations_arrays_sha256']=file_hash(out/'observations/body/arrays.npz')
         if channels=='full':
@@ -94,6 +94,14 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
                     if accepted:b=trial;chosen=out/'animation-refined';manifest['stages']['surface']=trial_surface;manifest['stages']['continuity']=new_cont
         # Publish an immutable byte-identical copy of the evaluated candidate.
         shutil.copytree(chosen,out/'animation');h=bundle_hash(out/'animation');manifest['bundle_hash']=h;save()
+        # This inexpensive gate prevents known catastrophic motion from entering
+        # a costly final render. It is separate from frozen quality benchmarks.
+        from .stability_gate import reasons as motion_reasons
+        blockers=motion_reasons(b,manifest['stages'].get('surface'))
+        manifest['stages']['motion_gate']={'blocked_final':bool(blockers),'reasons':blockers,'override':allow_degraded_final};save()
+        for reason in blockers:log('MOTION WARNING '+reason)
+        if quality=='final' and blockers and not allow_degraded_final:
+            raise ValueError('Final render blocked by motion defects: '+ '; '.join(blockers)+'. Use --quality preview to inspect, or --allow-degraded-final to explicitly override. Bundle: '+str(out/'animation'))
         plan=presentation(b,sp,quality,camera);from .qa.framing import measure as framing
         manifest['stages']['framing']=framing(plan);(out/'camera-plan.json').write_text(json.dumps(plan,indent=2))
         preflight(config['ffmpeg'],plan['resolution'],timeline['fps'],out/'outputs/encode-preflight.mp4',out/'logs/encode-preflight.log')

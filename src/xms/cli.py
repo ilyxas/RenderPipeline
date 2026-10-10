@@ -11,7 +11,8 @@ def main():
     o=sub.add_parser('observe');o.add_argument('input');o.add_argument('--start',type=float,required=True);o.add_argument('--end',type=float,required=True);o.add_argument('--out',required=True);o.add_argument('--config')
     r=sub.add_parser('run');r.add_argument('input',nargs='?');r.add_argument('--start',type=float);r.add_argument('--end',type=float);r.add_argument('--config');r.add_argument('--job');r.add_argument('--runs-root',default='runs');r.add_argument('--output','--out',dest='output')
     r.add_argument('--channels',choices=['body','full'],default='full');r.add_argument('--character',choices=['xandra'],default='xandra');r.add_argument('--scene',choices=['bedroom'],default='bedroom');r.add_argument('--quality',choices=['preview','final'],default='preview')
-    r.add_argument('--solver',choices=['baseline','video','temporal'],default='video',help='video: baseline body with improved video face/hands (default); temporal: experimental bounded window optimizer; baseline: preserved backend')
+    r.add_argument('--solver',choices=['baseline','video','temporal'],default='video',help='video: stable torso/arm retarget and video face/hands (default); temporal: experimental bounded window optimizer; baseline: preserved backend')
+    r.add_argument('--allow-degraded-final',action='store_true',help='Explicitly render final even when the motion defect gate fails')
     r.add_argument('--face-closeup',action='store_true');r.add_argument('--audio',choices=['off','envelope','speech','singing'],default='envelope');r.add_argument('--surface-qa',choices=['off','sampled','all'],default='sampled');r.add_argument('--no-refine',action='store_true');r.add_argument('--camera',choices=['fit','fixed'],default='fit')
     rr=sub.add_parser('render');rr.add_argument('bundle');rr.add_argument('--config');rr.add_argument('--out',required=True);rr.add_argument('--fps',required=True);rr.add_argument('--frame-indices');rr.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r']);rr.add_argument('--quality',choices=['preview','final'],default='preview')
     rep=sub.add_parser('report');rep.add_argument('run');rep.add_argument('--out',required=True);rep.add_argument('--config')
@@ -42,7 +43,7 @@ def main():
             if args.solver=='temporal':
                 import importlib.util
                 if not importlib.util.find_spec('scipy'):p.error('Temporal solver needs SciPy. Install the temporal dependency group or use --solver video.')
-            result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine)
+            result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final)
             print('RUN MANIFEST',result/'manifest.json');raise SystemExit(json.loads((result/'manifest.json').read_text()).get('result_exit_code',1))
     except (ValueError,FileNotFoundError,KeyError) as error:p.error(str(error))
 

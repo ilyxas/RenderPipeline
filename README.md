@@ -54,8 +54,12 @@ Omitting `--start`/`--end` processes the whole video. Every run gets a unique
 The terminal prints both MP4 and bundle paths. A successful render exits 0;
 motion/surface/visual acceptance is reported separately and can remain `needs_review`.
 
-`video` is the default: the preserved baseline body with improved video face/head,
-short hand gaps and conservative audio assistance. `--solver baseline` uses the
+`video` is the default: image-guided two-bone arm fitting, hip/torso rotation,
+camera-facing torso clearance, stationary-foot anchors, forearm pronation, hinge finger curls and time-based
+SO(3) stabilization. Short gaps are bridged; longer gaps fade rather than snap.
+Ambiguous palm flips and excessive rotation rates use diagnosed bounded fallbacks
+(arms 900°/s, wrists/forearm roll 720°/s, fingers 1200°/s). Ordinary coherent gestures retain timing.
+Monocular depth and complex occlusion remain estimates; this is not broad visual acceptance. `--solver baseline` uses the
 preserved baseline backend. `--solver temporal` adds experimental overlapping body
 optimization and contact/collision costs; it uses SciPy, reports exhausted-window
 baseline fallbacks, and has **not passed motion-quality acceptance**. Version 3
@@ -64,6 +68,9 @@ fast movement but does not establish reconstruction accuracy.
 
 Useful options:
 
+- `--allow-degraded-final`: explicitly override the catastrophic motion gate.
+  Without it, large rotation jumps or deep collisions stop `final` before rendering;
+  the AnimationBundle and diagnostics remain available. Preview remains available.
 - `--channels body`: skip face/hand tracking for a faster body experiment.
 - `--surface-qa sampled` (default), `all`, or `off`: evaluated hand–garment checks.
   Sampled coverage is diagnostic. One bounded refinement can be attempted;

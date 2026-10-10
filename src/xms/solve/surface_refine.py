@@ -2,7 +2,6 @@
 import copy
 import numpy as np
 from xms.animation.fk import evaluate
-from .parameterization import quaternions_to_rotvec,rotvec_to_quaternions
 
 
 def refine(bundle,report):
@@ -18,12 +17,10 @@ def refine(bundle,report):
         ids=[lookup[x+'_'+side] for x in ('upperarm','lowerarm','hand')]
         if not b.arrays['rotation_validity'][i,ids].all():
             skipped.append({'sample':i,'side':side,'reason':'Unobserved arm/wrist channels; bounded correction unavailable'});continue
-        initial=b.arrays['local_rotation_delta'][i,ids].copy();v=quaternions_to_rotvec(initial);wrist=lookup['hand_'+side];target=evaluate(b,i)[wrist,:3,3]+normal*min(depth+.002,.03)
+        initial=b.arrays['local_rotation_delta'][i,ids].copy();wrist=lookup['hand_'+side];target=evaluate(b,i)[wrist,:3,3]+normal*min(depth+.002,.03)
         def cost(x):
-            from .parameterization import cap_rotvec
-            adjusted=v+x.reshape(3,3)
-            for k,cap in enumerate((160,155,95)):adjusted[k]=cap_rotvec(adjusted[k],cap)
-            b.arrays['local_rotation_delta'][i,ids]=rotvec_to_quaternions(adjusted);return np.r_[(evaluate(b,i)[wrist,:3,3]-target)*10,x*.1]
+            from scipy.spatial.transform import Rotation
+            b.arrays['local_rotation_delta'][i,ids]=(Rotation.from_quat(initial)*Rotation.from_rotvec(x.reshape(3,3))).as_quat();return np.r_[(evaluate(b,i)[wrist,:3,3]-target)*10,x*.1]
         limit=np.deg2rad(5)/np.sqrt(3);result=least_squares(cost,np.zeros(9),bounds=(-limit,limit),max_nfev=12);cost(result.x)
         logs.append({'sample':i,'side':side,'surface_depth_before_m':depth,'max_correction_degrees':float(np.degrees(np.linalg.norm(result.x.reshape(3,3),axis=1).max()))})
     b.metadata['surface_refinement']={'passes':int(bool(logs)),'max_passes':1,'angular_budget_degrees':5,'translation_target_budget_m':.03,'samples':logs,'skipped_samples':skipped,'quality_accepted':False}

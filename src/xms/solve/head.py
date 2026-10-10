@@ -13,7 +13,7 @@ def local_delta_for_world(target,parent_world,rest_rotation):
     return matrix_quat((rotation(parent_world)@quat_matrix(rest_rotation)).T@target)
 
 
-def solve_head(body,face,timeline):
+def solve_head(body,face,timeline,stable=False):
     m,a=face;indices=np.array(timeline['output_observation_indices']);j=body.metadata['joint_names'].index('head');parent=body.arrays['parent_indices'][j]
     # Face canonical neutral faces +Z; matrix is camera x-right/y-up/z-toward-viewer.
     from xms.animation.bundle import AnimationBundle
@@ -26,4 +26,8 @@ def solve_head(body,face,timeline):
         q=local_delta_for_world(target,parent_world,body.arrays['rest_rotation'][j]);angle=2*np.arccos(np.clip(q[3],-1,1))
         if angle>np.deg2rad(80):q=slerp(np.array([0.,0,0,1]),q,np.deg2rad(80)/angle)
         values[i]=q
-    return {'index':j,'rotations':values,'face_validity':valid,'confidence':a['confidence'][indices]}
+    confidence=a['confidence'][indices].copy()
+    if stable:
+        from .stability import rotations
+        values,valid,confidence,_=rotations(values,valid,confidence,body.arrays['sample_times_s'],tau=.055)
+    return {'index':j,'rotations':values,'face_validity':valid,'confidence':confidence}
