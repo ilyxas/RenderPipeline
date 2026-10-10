@@ -65,6 +65,9 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             if solver=='temporal':from .solve.windows import solve
             else:from .solve.video_body import solve
             b=solve(body,timeline,p,rig)
+        if 'grounding_diagnostics' in b.metadata:
+            g=b.metadata['grounding_diagnostics']
+            log(f"GROUND support={len(g['support_sample_indices'])}, flight={len(g['flight_sample_indices'])}, unavailable={g['unsupported_samples']}, bounded={g['correction_bound_samples']}, floor_error={g['max_support_floor_error_m']:.4f}m")
         b.metadata['observations_arrays_sha256']=file_hash(out/'observations/body/arrays.npz')
         if channels=='full':
             b.metadata['face_observations_sha256']=file_hash(out/'observations/face/arrays.npz');b.metadata['hand_observations_sha256']=file_hash(out/'observations/hands/arrays.npz')

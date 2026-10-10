@@ -39,5 +39,8 @@ def constraints(bundle):
     flight=np.ones(len(times),bool)
     for side in ('l','r'):
         j=names.index('foot_'+side);flight&=(world[:,j,1,3]-rest_world[j,1,3]>.08)&(a['rotation_confidence'][:,names.index('calf_'+side)]>=.5)
+    if 'grounding_diagnostics' in bundle.metadata:
+        flight[:]=False
+        flight[bundle.metadata['grounding_diagnostics']['flight_sample_indices']]=True
     bundle.metadata['events']=[{'time_s':float(times[start]),'kind':'jump','channels':['foot_l','foot_r']} for start,end in spans(flight)]
     return terms

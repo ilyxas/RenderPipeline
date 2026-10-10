@@ -174,46 +174,9 @@ def solve(observations,timeline,profile,rig):
     stabilize_bundle(b,[lookup['foot_'+s] for s in ('l','r')])
     # Root jitter is tracked image jitter, not intentional depth translation.
     for d in range(2):a['root_translation'][:,d]=median_filter(a['root_translation'][:,d],size=3,mode='nearest')
-    # A stationary visible foot in the source is an anchor, not a noisy 3D
-    # direction prior. Moving or occluded feet do not qualify for this fallback.
-    planted={};poses=np.array([evaluate(b,i) for i in range(len(t))])
-    for side,landmarks,heel,toe in [('l',[27,31],29,31),('r',[28,32],30,32)]:
-        mask=raw['landmark_validity'][idx][:,landmarks].all(axis=1)
-        if mask.mean()<.9:continue
-        xy=image[:,landmarks,:2]*[aspect,1]*scale;origin=np.median(xy[mask],axis=0)
-        if np.percentile(np.linalg.norm(xy[mask]-origin,axis=-1),95)>.025:continue
-        foot=lookup['foot_'+side];anchor=np.median(poses[mask,foot,:3,3],axis=0)
-        direction_mask=valid[:,[heel,toe]].all(axis=1)
-        if not direction_mask.any():continue
-        direction=np.median(world[direction_mask,toe]-world[direction_mask,heel],axis=0)
-        try:orientation=foot_orientation(direction,rest[lookup['ball_'+side],:3,3]-rest[foot,:3,3],rotation(rest[foot]),planted=True)
-        except ValueError:continue
-        # Registered canonical rest stance is on Y=0. Keep the ankle's sole
-        # offset; anchoring a noisy reconstructed height would lock in levitation.
-        anchor[1]=rest[foot,1,3]
-        planted[side]=(anchor,orientation)
-    root_drops=[]
-    if planted:
-        for i in range(len(t)):
-            fk=evaluate(b,i);hips=[];anchors=[];lengths=[]
-            for side,(anchor,_) in planted.items():
-                hip,knee,foot=(lookup[x+'_'+side] for x in ('thigh','calf','foot'))
-                hips.append(fk[hip,:3,3]);anchors.append(anchor)
-                lengths.append(np.linalg.norm(rest[knee,:3,3]-rest[hip,:3,3])+np.linalg.norm(rest[foot,:3,3]-rest[knee,:3,3])-.005)
-            drop=support_root_drop(np.asarray(hips),np.asarray(anchors),lengths);root_drops.append(drop)
-            if drop:
-                a['root_translation'][i,1]-=drop
-                if not a['root_validity'][i]:a['root_validity'][i]=True;a['root_confidence'][i]=.05
-                a['root_provenance'][i]=2
-            for side,(anchor,foot_rotation) in planted.items():
-                hip,knee,foot=(lookup[x+'_'+side] for x in ('thigh','calf','foot'));fk=evaluate(b,i)
-                l1=np.linalg.norm(rest[knee,:3,3]-rest[hip,:3,3]);l2=np.linalg.norm(rest[foot,:3,3]-rest[knee,:3,3])
-                knee_target,foot_target=two_bone(fk[hip,:3,3],anchor,fk[knee,:3,3],l1,l2)
-                set_direction(b,i,hip,knee,knee_target-fk[hip,:3,3]);set_direction(b,i,knee,foot,foot_target-knee_target)
-                fk=evaluate(b,i);a['local_rotation_delta'][i,foot]=local_delta_for_world(foot_rotation,fk[a['parent_indices'][foot]],a['rest_rotation'][foot])
-                for j in (hip,knee,foot):a['rotation_validity'][i,j]=True;a['rotation_confidence'][i,j]=.5;a['rotation_provenance'][i,j]=2
-    b.metadata['stationary_foot_diagnostics']={'anchored_sides':list(planted),'policy':'Ankle and toe at least 90% visible; image displacement p95 <2.5cm; horizontal soles at registered rest floor Y=0; shared root reach correction <=12cm; moving feet excluded','max_root_drop_m':max(root_drops,default=0.),'root_drop_bound_samples':sum(x>=.12 for x in root_drops),'quality_accepted':False}
-    b.metadata['solver'].update(backend='video_body',version='2',arm_fit='image-guided analytic two-bone IK; fixed rest lengths; camera-facing torso clearance')
+    from .grounding import ground
+    ground(b,image,raw['landmark_validity'][idx],scale)
+    b.metadata['solver'].update(backend='video_body',version='3',arm_fit='image-guided analytic two-bone IK; fixed rest lengths; camera-facing torso clearance')
     b.metadata['body_stability_diagnostics']={'bridged_landmark_samples':estimated,'repaired_rotation_samples':repairs,'clearance_target_samples':corrections,'unreachable_target_samples':unreachable,'arm_image_scale':float(scale),'arm_fallback_samples':arm_repairs,'max_arm_rate_deg_s':900,'quality_accepted':False}
     b.metadata['limitations']=['Monocular arm depth is a prior; wrists projected onto the torso use camera-facing clearance.','Two-bone reach clamps unreachable image targets; arbitrary occlusions and complex posture remain unsupported.']
     return validate(b)
