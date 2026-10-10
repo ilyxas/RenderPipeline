@@ -9,9 +9,11 @@ def observe_face(frames,timeline,transform,model,out,source_hash,body):
     options=mp.tasks.vision.FaceLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path=str(model)),running_mode=mp.tasks.vision.RunningMode.VIDEO,num_faces=1,output_face_blendshapes=True,output_facial_transformation_matrixes=True)
     retry_options=mp.tasks.vision.FaceLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path=str(model)),num_faces=1,output_face_blendshapes=True,output_facial_transformation_matrixes=True)
     retries=0
+    from .progress import report
     from .face_quality import assess,geometry_score
     with mp.tasks.vision.FaceLandmarker.create_from_options(options) as detector, mp.tasks.vision.FaceLandmarker.create_from_options(retry_options) as retry:
         for i,frame in enumerate(frames):
+            report('face',i,n)
             h,w=frame.shape[:2];points=body['image_landmarks_raw'][i,:,:2]*[w,h]
             usable=body['landmark_validity'][i,[0,2,5,7,8]]
             if usable.any():
@@ -37,6 +39,7 @@ def observe_face(frames,timeline,transform,model,out,source_hash,body):
             roi[i]=np.ptp(landmarks[i,:,:2],axis=0)*[frame.shape[1],frame.shape[0]]
             # Availability and projected ROI size only; expression intensity is not confidence.
             valid[i]=min(roi[i])>=32;confidence[i]=min(.9,min(roi[i])/160)*max(.25,quality)*geometry_score(matrices[i]) if valid[i] else 0;scores.append(observed)
+    report('face',n,n)
     if names is None:names=[]
     weights=np.array([[0. if row is None else row[k] for k in names] for row in scores],dtype=float).reshape(n,len(names))
     a={'source_pts':np.array(timeline['source_pts'],dtype=np.int64),'source_times_s':np.array(timeline['source_times_s']),'crop_transforms':transforms,'landmarks_raw':landmarks,'blendshapes_raw':weights,'face_matrix_raw':matrices,'validity':valid,'confidence':confidence,'roi_size_px':roi}

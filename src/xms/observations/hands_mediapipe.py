@@ -24,8 +24,10 @@ def observe_hands(frames,timeline,transform,body,model,out,source_hash):
     previous=np.full((2,2),np.nan);previous_time=np.full(2,-np.inf)
     retry_options=mp.tasks.vision.HandLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path=str(model)),num_hands=1)
     retries=0
+    from .progress import report
     with mp.tasks.vision.HandLandmarker.create_from_options(options) as detector, mp.tasks.vision.HandLandmarker.create_from_options(retry_options) as retry:
         for i,frame in enumerate(frames):
+            report('hands',i,n)
             result=detector.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB,data=np.ascontiguousarray(frame)),round((timeline['source_times_s'][i]-timeline['source_times_s'][0])*1000))
             wrists=np.array([[h[0].x,h[0].y] for h in result.hand_landmarks]);previous[timeline['source_times_s'][i]-previous_time>.2]=np.nan
             assignment=assign(wrists,body['image_landmarks_raw'][i,[15,16],:2],body['landmark_validity'][i,[15,16]],previous)
@@ -45,6 +47,7 @@ def observe_hands(frames,timeline,transform,body,model,out,source_hash):
                 image[i,side]=[[p.x,p.y,p.z] for p in candidate.hand_landmarks[0]];image[i,side,:,0]=(image[i,side,:,0]*(x1-x0)+x0)/w;image[i,side,:,1]=(image[i,side,:,1]*(y1-y0)+y0)/h;image[i,side,:,2]*=(x1-x0)/w
                 if np.linalg.norm(image[i,side,0,:2]-body['image_landmarks_raw'][i,landmark,:2])>.2:continue
                 world[i,side]=[[p.x,p.y,p.z] for p in candidate.hand_world_landmarks[0]];valid[i,side]=True;confidence[i,side]=min(candidate.handedness[0][0].score,body['visibility'][i,landmark]);association[i,side]=1;previous[side]=image[i,side,0,:2];previous_time[side]=timeline['source_times_s'][i]
+    report('hands',n,n)
     a={'source_pts':np.array(timeline['source_pts'],dtype=np.int64),'source_times_s':np.array(timeline['source_times_s']),'crop_transforms':np.tile(transform,(n,1,1)),'image_landmarks_raw':image,'world_landmarks_raw':world,'validity':valid,'confidence':confidence,'raw_handedness':raw,'association_source':association}
     m={'schema_version':'xms.hand_observations.v1','sides':['left','right'],'landmark_names':['wrist']+[f'{finger}_{part}' for finger in ['thumb','index','middle','ring','pinky'] for part in ['base','proximal','distal','tip']],'source_sha256':source_hash,'model_sha256':file_hash(model),'backend_version':mp.__version__,'mirrored':False,'subject_id':'single_person_0','coordinate_system':'tracker camera x-right,y-down,z-away; hip/wrist-relative estimates, not metric truth','association_policy':'one-to-one nearest reliable body wrist within 0.2 normalized image distance; ambiguous/unassociated detections invalid; no temporal identity recovery','raw_handedness_codes':{'unavailable':-1,'left':0,'right':1},'association_codes':{'unobserved':0,'body_wrist':1},'confidence_policy':'min handedness classification score and body wrist visibility; baseline proxy, not landmark confidence','crop_transform_semantics':'normalized source image -> display-oriented full frame','raw_vs_cleaned':'raw only'}
     m['association_policy']='Body wrist plus temporal continuity, ≤200ms history; weak hands get one wrist ROI retry'

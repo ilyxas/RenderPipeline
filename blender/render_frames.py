@@ -10,6 +10,7 @@ from xms.profiles.scene import load_scene
 p=argparse.ArgumentParser()
 for n in ('bundle','profile','scene','scene-profile','out'):p.add_argument('--'+n,required=True)
 p.add_argument('--quality',choices=['preview','final'],default='preview');p.add_argument('--camera-plan')
+p.add_argument('--resolution')
 p.add_argument('--fps',required=True);p.add_argument('--frame-indices')
 p.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r'])
 a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);out=Path(a.out);out.mkdir(parents=True,exist_ok=False)
@@ -19,6 +20,9 @@ if not np.allclose(times,np.arange(len(times))/float(fps),atol=1e-8):raise Value
 b,profile,face=apply_bundle(a.bundle,a.profile,times,fps=float(fps));sp=load_scene(a.scene_profile);sc=setup_scene(a.scene,sp,a.profile)
 from xms.render.camera import PRESETS
 sc.render.resolution_x,sc.render.resolution_y=PRESETS[a.quality]['resolution'];sc.eevee.taa_render_samples=PRESETS[a.quality]['samples']
+if a.resolution:
+    from xms.render.camera import parse_resolution
+    sc.render.resolution_x,sc.render.resolution_y=parse_resolution(a.resolution)
 if a.camera_plan:
     plan=json.loads(Path(a.camera_plan).read_text());sc.camera.location=plan['camera']['position_blender_m'];sc.camera.data.angle_y=math.radians(plan['camera']['vertical_fov_degrees'])
 diagnostic=sp.get('diagnostic_views',{}).get(a.view)

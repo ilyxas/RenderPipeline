@@ -6,8 +6,16 @@ from xms.animation.fk import evaluate
 PRESETS={'preview':{'resolution':[540,960],'samples':16},'final':{'resolution':[1080,1920],'samples':64}}
 
 
-def presentation(bundle,scene,quality='preview',mode='fit'):
-    preset=PRESETS[quality];camera=dict(scene['camera']);names=bundle.metadata['joint_names'];ids=[names.index(n) for n in ('head','foot_l','foot_r','hand_l','hand_r','lowerarm_l','lowerarm_r','pelvis')]
+def parse_resolution(value):
+    try:
+        width,height=map(int,value.lower().split('x'))
+        if min(width,height)<64 or max(width,height)>8192 or width%2 or height%2:raise ValueError
+    except (ValueError,AttributeError):raise ValueError('Resolution must be WIDTHxHEIGHT, even dimensions between 64 and 8192 (e.g. 1080x1920)')
+    return [width,height]
+
+
+def presentation(bundle,scene,quality='preview',mode='fit',resolution=None):
+    preset={**PRESETS[quality],'resolution':resolution or PRESETS[quality]['resolution']};camera=dict(scene['camera']);names=bundle.metadata['joint_names'];ids=[names.index(n) for n in ('head','foot_l','foot_r','hand_l','hand_r','lowerarm_l','lowerarm_r','pelvis')]
     bounds=[]
     for i in range(len(bundle.arrays['sample_times_s'])):
         pos=evaluate(bundle,i)[ids,:3,3];bounds.append(np.r_[pos.min(axis=0)-.12,pos.max(axis=0)+.12])

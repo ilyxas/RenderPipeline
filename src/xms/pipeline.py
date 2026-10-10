@@ -12,7 +12,7 @@ from .assembly.encode import preflight,encode,verify
 from .qa.contract import self_peak_bytes
 
 
-def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False):
+def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False,resolution=None):
     out=Path(runs_root).resolve()/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
     manifest={'schema_version':'xms.run.v1','quality':'development_candidate','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':quality,'solver':solver,'channels':channels,'audio':audio_mode,'surface_qa':surface_qa,'camera':camera},'config':config,'python':sys.version,'limitations':[],'warnings':[],'stages':{}}
     began=time.monotonic()
@@ -102,7 +102,7 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         for reason in blockers:log('MOTION WARNING '+reason)
         if quality=='final' and blockers and not allow_degraded_final:
             raise ValueError('Final render blocked by motion defects: '+ '; '.join(blockers)+'. Use --quality preview to inspect, or --allow-degraded-final to explicitly override. Bundle: '+str(out/'animation'))
-        plan=presentation(b,sp,quality,camera);from .qa.framing import measure as framing
+        plan=presentation(b,sp,quality,camera,resolution);manifest['parameters']['resolution']=plan['resolution'];from .qa.framing import measure as framing
         manifest['stages']['framing']=framing(plan);(out/'camera-plan.json').write_text(json.dumps(plan,indent=2))
         preflight(config['ffmpeg'],plan['resolution'],timeline['fps'],out/'outputs/encode-preflight.mp4',out/'logs/encode-preflight.log')
         if quality=='final':
@@ -111,13 +111,14 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             encode(out/'preview-frames',video,timeline,config['ffmpeg'],out/'outputs/preview.mp4',out/'logs/preview-encode.log')
             manifest['stages']['preview_verification']=verify(out/'outputs/preview.mp4',timeline,PRESETS['preview']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/preview-decode.log')
         log('RENDER '+quality)
-        manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log',quality=quality,camera_plan=out/'camera-plan.json')
+        manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log',quality=quality,camera_plan=out/'camera-plan.json',resolution=plan['resolution'])
         rendered=json.loads((out/'frames/manifest.json').read_text());assert rendered['bundle_hash']==h
         manifest['stages']['render']=rendered;save()
-        destination=out/'outputs/video.mp4';encode(out/'frames',video,timeline,config['ffmpeg'],destination,out/'logs/encode.log')
+        log('ENCODE main video');destination=out/'outputs/video.mp4';encode(out/'frames',video,timeline,config['ffmpeg'],destination,out/'logs/encode.log')
         manifest['verification']=verify(destination,timeline,plan['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/full-decode.log')
         if face_closeup:
             def closeup():
+                log('RENDER face close-up')
                 render(out/'animation',out/'face-frames',config,timeline['fps'],out/'logs/face-blender.log',view='face',quality=quality)
                 close=out/'outputs/face.mp4';encode(out/'face-frames',video,timeline,config['ffmpeg'],close,out/'logs/face-encode.log')
                 checked=verify(close,timeline,sp['diagnostic_views']['face']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/face-decode.log');return {'path':str(close),'bundle_hash':h,'verification':checked}
@@ -130,6 +131,7 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             manifest['outputs']['video']=str(output)
         manifest.update(status='rendered_pending_visual_review',exit_status=0,result_exit_code=0,quality_accepted=False);save()
         from .assembly.compare import compare
+        log('COMPARE source and render')
         comparison=optional('comparison video',lambda:compare(video,out,out/'comparison',config))
         if comparison:manifest['outputs']['compare']=str(comparison)
         (out/'limitations.md').write_text('\n'.join('- '+x for x in manifest['limitations']+manifest['warnings']))

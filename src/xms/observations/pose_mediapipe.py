@@ -30,12 +30,15 @@ def observe(video,start,end,out,model,ffmpeg,ffprobe,fps=None):
     n=len(frames);image=np.zeros((n,33,3));world=np.zeros_like(image);vis=np.zeros((n,33));pres=np.zeros_like(vis);valid=np.zeros(n,dtype=bool)
     options=mp.tasks.vision.PoseLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path=str(model)),running_mode=mp.tasks.vision.RunningMode.VIDEO,num_poses=2)
     with mp.tasks.vision.PoseLandmarker.create_from_options(options) as detector:
+        from .progress import report
         last=-1
         for i,frame in enumerate(frames):
+            report('pose',i,n)
             timestamp=round((timeline['source_times_s'][i]-timeline['source_times_s'][0])*1000)
             if timestamp<=last:raise ValueError('PTS cannot be represented as unique MediaPipe milliseconds')
             result=detector.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB,data=np.ascontiguousarray(frame)),timestamp)
             image[i],world[i],vis[i],pres[i],valid[i]=pack_detection(result);last=timestamp
+        report('pose',n,n)
     arrays={'image_landmarks_raw':image,'world_landmarks_raw':world,'visibility':vis,'presence':pres,'landmark_validity':(vis>=.5)&(pres>=.5)&valid[:,None],'frame_validity':valid,'source_pts':np.array(timeline['source_pts'],dtype=np.int64),'source_times_s':np.array(timeline['source_times_s']),'crop_transforms':np.tile(transform,(n,1,1))}
     metadata={'schema_version':'xms.observations.v1','landmark_names':LANDMARKS,'backend':'mediapipe_pose','backend_version':mp.__version__,'model_sha256':file_hash(model),'source_sha256':file_hash(video),'source_time_base':timeline['source_time_base'],'subject_id':'single_person_0','identity_policy':'single-person-only; reject multiple detections; no temporal re-identification','mirrored':False,'coordinate_systems':{'image':'display-oriented normalized x-right/y-down; z tracker-relative','world':'MediaPipe hip-centred estimate x-right/y-down/z-away; not metric ground truth'},'crop_transform_semantics':'normalized source image -> display-oriented full frame','raw_vs_cleaned':'raw only; no cleaning performed','width':frames.shape[2],'height':frames.shape[1],'sample_aspect_ratio':info['sample_aspect_ratio']}
     write_observations(out/'body',metadata,arrays)

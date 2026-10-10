@@ -29,6 +29,37 @@ MP4 -> observations -> solver -> AnimationBundle -> Blender adapter -> rendered 
 
 ## Run a new video
 
+### Graphical launcher
+
+On macOS, double-click **Xandra Studio.command** in the repository, or run:
+
+```sh
+./xms gui
+```
+
+The local interface opens in your browser. Select a video through the system file
+dialog, then choose the start time and duration (5 seconds by default; **Весь ролик**
+selects the remaining video). You can preview and seek the source before running.
+Resolution (540×960 through 2160×3840) and render quality are independent.
+The interface exposes solver selection and every Useful option below, including
+body-only processing, surface checks, refinement, audio cues, camera mode and face
+close-up. Optional output and asset configuration paths are under additional settings.
+
+**Run** starts the existing pipeline. Progress shows actual completed frames for
+tracking and rendering; stages without frame counts show an indeterminate bar.
+**Stop** terminates the CLI and its Blender/FFmpeg descendants; partial files and
+logs remain in the run folder. Buttons open the video, comparison, report and bundle.
+Keep the launcher terminal open; Ctrl+C shuts down the server and any active run.
+The server listens only on 127.0.0.1 and requires no new dependencies.
+
+Custom resolution also works from the command line:
+
+```sh
+./xms run input.mp4 --start 0 --end 5 --quality preview --resolution 720x1280
+```
+
+### Command line
+
 The current machine's Xandra, bedroom, tracker models, Blender and FFmpeg are
 registered in `.xms/config.json` (local, ignored by Git). No intermediate commands
 are required. From this repository:
