@@ -29,7 +29,7 @@ for i in indices:
         verts,source_tri,source_tree,_=meshes[source];target_verts,target_tri,tree,closed=meshes[target];row.update(source_vertices=len(verts),target_triangles=len(target_tri),target_watertight=closed)
         # All visible source vertices are queried. Open cloth admits only a
         # local-normal candidate sign; coverage cannot imply surface acceptance.
-        row['signed_interior_available']=closed;row['worst_evidence']=None
+        row['signed_interior_available']=closed;row['worst_evidence']=None;row['sign_disagreements']=0;row['ambiguous_candidate_depths_m']=[]
         for point in verts:
             location,normal,index,distance=tree.find_nearest(point)
             if location is None:continue
@@ -43,6 +43,11 @@ for i in indices:
                 else:row['signed_interior_available']=False
                 is_inside=hits%2==1
             else:is_inside=(point-location).dot(normal)<0 and distance<.1
+            if is_inside and closed and (point-location).dot(normal)>1e-5:
+                # Ray parity can disagree with the closest outward face on
+                # self-intersecting/deformed cloth. Preserve the evidence but
+                # do not report this as certified interior penetration.
+                row['signed_interior_available']=False;row['sign_disagreements']+=1;row['ambiguous_candidate_depths_m'].append(float(distance));continue
             if is_inside:
                 row['candidate_depths_m'].append(float(distance))
                 if row['worst_evidence'] is None or distance>row['worst_evidence']['depth_m']:row['worst_evidence']={'depth_m':float(distance),'point_blender_m':list(point),'normal_blender':list(normal)}

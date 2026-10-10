@@ -25,6 +25,16 @@ def quality(run):
         for j,side in enumerate(('left','right')):metrics[side+'_hand_missing_intervals']=metric(missing_intervals(ha['validity'][:,j],ha['source_times_s']),'source seconds')
         metrics['visible_face_coverage']=metric(reason='Visible-face denominator requires independent annotation; all-frame tracking fraction is only a proxy')
         metrics['hand_identity_swaps']=metric(reason='Frame-local body-wrist association checked synthetically; no temporal identity ground truth')
+    from .continuity import measure as continuity
+    motion=continuity(b)
+    metrics['max_rotation_step']=metric(motion['max_rotation_step_deg'],'degrees/sample',passed=motion['max_rotation_step_deg']<=90)
+    surface=m['stages'].get('surface')
+    if surface:
+        metrics['sampled_surface_depth']=metric(surface.get('max_candidate_depth_m'),'metres',passed=surface.get('status')=='passed')
+        metrics['surface_sample_coverage']=metric(surface.get('sample_coverage'),'fraction of frames')
+    proxy=b.metadata.get('collision_proxy_diagnostics',{})
+    if proxy.get('max_proxy_depth_m') is not None:
+        metrics['forearm_torso_proxy_depth']=metric(proxy['max_proxy_depth_m'],'metres',passed=proxy['max_proxy_depth_m']<=.005)
     status='needs_review' if any(v['status'] in ('fail','unavailable') for v in metrics.values()) else 'warnings' if any(v['status']=='measured' for v in metrics.values()) else 'success'
     runtime={'python':m['python'],'versions':m.get('versions',{}),'blender':m['stages']['render']['blender_version']}
     return {'schema_version':'xms.quality.v1','quality':m.get('quality','development_candidate'),'status':status,'exit_code':EXIT_CODES[status],'metrics':metrics,'limitations':m.get('limitations',[]),'provenance':{'run_manifest_sha256':file_hash(run/'manifest.json'),'input_hashes':m['input_hashes'],'character_profile_hash':m['character_profile_hash'],'scene_profile_hash':m['scene_profile_hash'],'bundle_hash':bundle_hash(run/'animation'),'runtime':runtime,'runtime_hash':hashlib.sha256(json.dumps(runtime,sort_keys=True).encode()).hexdigest()},'performance':m.get('performance',{})}
