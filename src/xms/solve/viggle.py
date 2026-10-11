@@ -43,6 +43,9 @@ def retarget(world,pelvis,rest_pelvis,times,source_times,profile,rig,spec):
     # Root: Viggle pelvis scaled by rest pelvis height, as a world offset of Xandra's pelvis.
     rest_pose=evaluate(neutral(profile,rig,times[:1]),0);root=profile['root_carrier_index']
     scale=float(rest_pose[root,1,3]/rest_pelvis[1]);a['root_translation'][:]=scale*np.asarray(pelvis)-rest_pose[root,:3,3]
+    # Viggle's world origin is not the subject's spot (about 1.6 m behind in practice):
+    # horizontal travel is kept relative to the first sample, height stays absolute.
+    a['root_translation'][:,[0,2]]=scale*(np.asarray(pelvis)[:,[0,2]]-np.asarray(pelvis)[0,[0,2]])
     a['root_validity'][:]=True;a['root_confidence'][:]=.6;a['root_provenance'][:]=1
     # One floor shift per clip: the median lowest sole proxy goes to Y=0.
     from .grounding import sole_proxies,sole_positions
