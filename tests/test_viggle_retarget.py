@@ -47,6 +47,11 @@ class ViggleRetarget(unittest.TestCase):
             if self.names[i]=='upperarm_r' or parents[i] in arm:arm.add(i)
         others=[i for i in range(len(self.names)) if i not in arm]
         self.assertLess(np.abs(pose[others,:3,3]-self.rest[others,:3,3]).max(),1e-6)
+    def test_root_drift_is_held_on_the_floor(self):
+        # A camera moving down reads as a sinking pelvis; soles must stay on the floor.
+        world,pelvis=self.posed_in_xandra_rest(48);rest_pelvis=pelvis[0].copy();pelvis=pelvis.copy();pelvis[:,1]-=np.linspace(0,.13,48)
+        b,root=self.run_retarget(world,pelvis,rest_pelvis)
+        self.assertLess(max(abs(x) for x in root['lowest_sole_after_m']),.005)
     @unittest.skipUnless(SAMPLE.exists(),'real Viggle sample not cached')
     def test_real_viggle_rest_is_a_t_posed_xandra(self):
         from xms.animation.gltf import Skeleton

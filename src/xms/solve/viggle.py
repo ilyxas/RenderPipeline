@@ -47,11 +47,14 @@ def retarget(world,pelvis,rest_pelvis,times,source_times,profile,rig,spec):
     # horizontal travel is kept relative to the first sample, height stays absolute.
     a['root_translation'][:,[0,2]]=scale*(np.asarray(pelvis)[:,[0,2]]-np.asarray(pelvis)[0,[0,2]])
     a['root_validity'][:]=True;a['root_confidence'][:]=.6;a['root_provenance'][:]=1
-    # One floor shift per clip: the median lowest sole proxy goes to Y=0.
+    # Per-frame support: the lowest sole proxy goes to Y=0 each sample, lightly smoothed.
+    # This absorbs camera-induced root drift; airborne phases (jumps) are not modelled.
+    from scipy.ndimage import gaussian_filter1d
     from .grounding import sole_proxies,sole_positions
-    points=sole_proxies(b,rest_pose);lowest=np.array([sole_positions(evaluate(b,i),points)[:,:,1].min() for i in range(n)]);shift=-float(np.median(lowest))
-    a['root_translation'][:,1]+=shift
-    return b,{'scale':scale,'floor_shift_m':shift,'lowest_sole_after_m':[float((lowest+shift).min()),float((lowest+shift).max())]}
+    points=sole_proxies(b,rest_pose);lowest=np.array([sole_positions(evaluate(b,i),points)[:,:,1].min() for i in range(n)])
+    fps=1/float(np.median(np.diff(times))) if n>1 else 24.;shift=gaussian_filter1d(-lowest,max(.05*fps,.01),mode='nearest')
+    a['root_translation'][:,1]+=shift;after=lowest+shift
+    return b,{'scale':scale,'floor_policy':'per-frame lowest sole at Y=0, 50 ms smoothing, no flight','floor_shift_range_m':[float(shift.min()),float(shift.max())],'lowest_sole_after_m':[float(after.min()),float(after.max())]}
 
 
 def solve(glb,timeline,profile,rig,source_sha256=None,spec_path=SPEC):
@@ -75,9 +78,9 @@ def solve(glb,timeline,profile,rig,source_sha256=None,spec_path=SPEC):
     keys=max((len(t) for t,_ in skeleton.channels.values()),default=0);fps=(keys-1)/skeleton.duration if skeleton.duration else None
     if source_sha256:b.metadata['observations_source_sha256']=source_sha256
     b.metadata.update(solver={'backend':'viggle_metahuman_body','version':'1','channels':'body'},
-        calibration={'schema_version':'xms.calibration.v1','policy':'external_viggle_metahuman_body','source_glb_sha256':file_hash(glb),'image_plane_metres_per_normalized_height':None,'root_scale':root['scale'],'floor_shift_m':root['floor_shift_m']},
+        calibration={'schema_version':'xms.calibration.v1','policy':'external_viggle_metahuman_body','source_glb_sha256':file_hash(glb),'image_plane_metres_per_normalized_height':None,'root_scale':root['scale'],'floor_policy':root['floor_policy']},
         viggle_diagnostics={'source_glb':str(glb),'source_glb_sha256':file_hash(glb),'source_joints':len(skeleton.names),'mapped_joints':len(index),'source_fps':fps,'source_duration_s':skeleton.duration,
             'clip_end_s':float(source[-1]),'clip_beyond_source_s':float(max(0.,source[-1]-skeleton.duration)),**root,
             'arm_limits_not_applied_would_trigger':{s:{k:v for k,v in probe.get(s,{}).items() if k.endswith('samples')} for s in ('l','r')},'quality_accepted':False},
-        limitations=['External Viggle extraction (MetaHuman body); fingers, face and hands are not retargeted with channels=body.','Root height uses one floor shift per clip; contacts are not enforced.','Arm anatomical limits are reported, not applied, in this comparison backend.'])
+        limitations=['External Viggle extraction (MetaHuman body); fingers, face and hands are not retargeted with channels=body.','Root height keeps the lowest sole on the floor every sample; jumps and horizontal foot locking are not modelled.','Arm anatomical limits are reported, not applied, in this comparison backend.'])
     return validate(b)
