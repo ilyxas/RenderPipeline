@@ -2,6 +2,8 @@
 
 Read this first in every session. If anything here disagrees with the code, the code wins — then fix this file.
 
+**Then open [`docs/status/`](docs/status/README.md)** — current status (`STATUS.md`), confirmed problems to fix with evidence (`TODO.md`) and per-session logs (`sessions/`). At the end of every session add `sessions/YYYY-MM-DD.md` and update `STATUS.md` / `TODO.md`.
+
 ## What this is and why
 
 An offline macOS pipeline: a source MP4 of a real person → the same motion performed by **Xandra** (a professionally built, anatomically detailed rigged character) → rendered MP4.
@@ -76,6 +78,7 @@ Critical asset. Used both for **regression** (nothing that worked may break) and
 
 ## Where to look
 
+- `docs/status/` — status, TODO with evidence, session logs (start here).
 - `README.md` — commands and current solver behaviour (most up to date).
 - `docs/development/ARCHITECTURE.md`, `STAGES.md` — design and stage plan. **Status headers there are stale.**
 - `docs/development/*HANDOFF*.md` — per-stage results; the `video` solver is not described in any handoff.
