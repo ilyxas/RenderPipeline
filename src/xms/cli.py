@@ -15,6 +15,8 @@ def main():
     r.add_argument('--allow-degraded-final',action='store_true',help='Explicitly render final even when the motion defect gate fails')
     r.add_argument('--face-closeup',action='store_true');r.add_argument('--audio',choices=['off','envelope','speech','singing'],default='envelope');r.add_argument('--surface-qa',choices=['off','sampled','all'],default='sampled');r.add_argument('--no-refine',action='store_true');r.add_argument('--camera',choices=['fit','fixed'],default='fit')
     r.add_argument('--resolution',help='Even WIDTHxHEIGHT; independent of render quality (e.g. 720x1280)')
+    r.add_argument('--keep-frames',action='store_true',help='Keep the PNG frame sequences after a successful encode (removed by default)')
+    cl=sub.add_parser('clean',help='Remove regenerable PNG frames from run folders (dry run unless --apply)');cl.add_argument('--runs-root',default='runs');cl.add_argument('--apply',action='store_true',help='Move frame PNGs to the Trash');cl.add_argument('--delete',action='store_true',help='With --apply: delete permanently instead of moving to the Trash')
     g=sub.add_parser('gui',help='Open the local graphical pipeline launcher');g.add_argument('--port',type=int,default=0);g.add_argument('--no-browser',action='store_true')
     rr=sub.add_parser('render');rr.add_argument('bundle');rr.add_argument('--config');rr.add_argument('--out',required=True);rr.add_argument('--fps',required=True);rr.add_argument('--frame-indices');rr.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r']);rr.add_argument('--quality',choices=['preview','final'],default='preview')
     rep=sub.add_parser('report');rep.add_argument('run');rep.add_argument('--out',required=True);rep.add_argument('--config')
@@ -23,6 +25,9 @@ def main():
         if args.command=='gui':
             from .gui import serve
             serve(args.port,not args.no_browser)
+        elif args.command=='clean':
+            from .clean import clean
+            clean(args.runs_root,args.apply,args.delete)
         elif args.command=='bundle':read_bundle(args.path,args.profile_hash);print('Valid AnimationBundle:',bundle_hash(args.path))
         elif args.command=='observe':
             from .observations.pose_mediapipe import observe
@@ -54,7 +59,7 @@ def main():
                 if not importlib.util.find_spec('scipy'):p.error('Temporal solver needs SciPy. Install the temporal dependency group or use --solver video.')
             from .render.camera import parse_resolution
             resolution=parse_resolution(args.resolution) if args.resolution else None
-            try:result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final,resolution)
+            try:result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final,resolution,args.keep_frames)
             except KeyboardInterrupt:print('RUN CANCELLED',flush=True);raise SystemExit(130)
             print('RUN MANIFEST',result/'manifest.json');raise SystemExit(json.loads((result/'manifest.json').read_text()).get('result_exit_code',1))
     except (ValueError,FileNotFoundError,KeyError) as error:p.error(str(error))
