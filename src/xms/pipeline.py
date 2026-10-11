@@ -25,7 +25,6 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
     save();log('RUN '+str(out))
     try:
         if not Path(video).is_file():raise ValueError('Input MP4 does not exist: '+str(video))
-        if solver=='viggle' and channels!='body':raise ValueError('--solver viggle currently supports --channels body only')
         if output and Path(output).exists():raise ValueError('Output already exists: '+str(output)+'; choose a new --output path')
         p,rig,face=load_character(config['character_profile']);sp=load_scene(config['scene_profile'])
         from .ingest.probe import probe
@@ -56,7 +55,11 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             # Experimental external mocap; MediaPipe body observations still define the timeline.
             from .observations.viggle import fetch
             from .solve.viggle import solve as viggle_solve
-            b=viggle_solve(fetch(video,float(Fraction(timeline['fps'])),log),timeline,p,rig,body[0]['source_sha256'])
+            glb=fetch(video,float(Fraction(timeline['fps'])),log)
+            if channels=='full':
+                from .solve.viggle import solve_full as viggle_full
+                b=viggle_full(glb,detail_face,timeline,p,rig,face,audio,body[0]['source_sha256'])
+            else:b=viggle_solve(glb,timeline,p,rig,body[0]['source_sha256'])
         elif solver=='baseline':
             if channels=='full':
                 from .solve.baseline_full import solve_full

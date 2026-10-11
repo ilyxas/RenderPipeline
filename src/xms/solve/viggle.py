@@ -7,7 +7,7 @@ orientation, so Viggle's own rest (a T-pose) becomes a T-posed Xandra; unmapped
 bones (correctives, extra twist, fingers for channels=body) keep their rest
 local transform. Local channels are derived once, down the Xandra hierarchy.
 """
-import copy,json
+import copy,json,re
 from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -57,12 +57,18 @@ def retarget(world,pelvis,rest_pelvis,times,source_times,profile,rig,spec):
     return b,{'scale':scale,'floor_policy':'per-frame lowest sole at Y=0, 50 ms smoothing, no flight','floor_shift_range_m':[float(shift.min()),float(shift.max())],'lowest_sole_after_m':[float(after.min()),float(after.max())]}
 
 
-def solve(glb,timeline,profile,rig,source_sha256=None,spec_path=SPEC):
+FINGER=re.compile(r'^(thumb|index|middle|ring|pinky)_(metacarpal|\d\d)_[lr]$')
+
+
+def solve(glb,timeline,profile,rig,source_sha256=None,fingers=False,spec_path=SPEC):
     spec=json.loads(Path(spec_path).read_text());skeleton=Skeleton(glb)
+    if fingers:spec['body_joints']=spec['body_joints']+[x for x in skeleton.names if FINGER.match(x) and x in profile['joint_names']]
     missing=[x for x in spec['body_joints'] if x not in skeleton.names]
     if missing:raise ValueError('Viggle GLB lacks mapped joints: '+', '.join(missing[:5]))
     times=np.array(timeline['output_times_s']);source=np.array(timeline['source_time_map'])
-    rotations,positions=skeleton.world(source);_,rest_positions=skeleton.world()
+    # Viggle samples the whole file from its first frame; timeline source times are stream-absolute.
+    viggle_times=source-float(timeline.get('video_start_s',0.))
+    rotations,positions=skeleton.world(viggle_times);_,rest_positions=skeleton.world()
     index={x:skeleton.names.index(x) for x in spec['body_joints']};pelvis=index['pelvis']
     world={x:rotations[:,i] for x,i in index.items()}
     b,root=retarget(world,positions[:,pelvis],rest_positions[0,pelvis],times,source,profile,rig,spec)
@@ -77,10 +83,27 @@ def solve(glb,timeline,profile,rig,source_sha256=None,spec_path=SPEC):
     distribute(b);probe=arm_limits(copy.deepcopy(b),profile).metadata.get('arm_limit_diagnostics',{})
     keys=max((len(t) for t,_ in skeleton.channels.values()),default=0);fps=(keys-1)/skeleton.duration if skeleton.duration else None
     if source_sha256:b.metadata['observations_source_sha256']=source_sha256
-    b.metadata.update(solver={'backend':'viggle_metahuman_body','version':'1','channels':'body'},
+    b.metadata.update(solver={'backend':'viggle_metahuman_body','version':'1','channels':'body_fingers' if fingers else 'body'},
         calibration={'schema_version':'xms.calibration.v1','policy':'external_viggle_metahuman_body','source_glb_sha256':file_hash(glb),'image_plane_metres_per_normalized_height':None,'root_scale':root['scale'],'floor_policy':root['floor_policy']},
         viggle_diagnostics={'source_glb':str(glb),'source_glb_sha256':file_hash(glb),'source_joints':len(skeleton.names),'mapped_joints':len(index),'source_fps':fps,'source_duration_s':skeleton.duration,
-            'clip_end_s':float(source[-1]),'clip_beyond_source_s':float(max(0.,source[-1]-skeleton.duration)),**root,
+            'clip_end_s':float(viggle_times[-1]),'clip_beyond_source_s':float(max(0.,viggle_times[-1]-skeleton.duration)),**root,
             'arm_limits_not_applied_would_trigger':{s:{k:v for k,v in probe.get(s,{}).items() if k.endswith('samples')} for s in ('l','r')},'quality_accepted':False},
-        limitations=['External Viggle extraction (MetaHuman body); fingers, face and hands are not retargeted with channels=body.','Root height keeps the lowest sole on the floor every sample; jumps and horizontal foot locking are not modelled.','Arm anatomical limits are reported, not applied, in this comparison backend.'])
+        limitations=['External Viggle extraction (MetaHuman body); '+('fingers are retargeted from Viggle.' if fingers else 'fingers, face and hands are not retargeted with channels=body.'),'Root height keeps the lowest sole on the floor every sample; jumps and horizontal foot locking are not modelled.','Arm anatomical limits are reported, not applied, in this comparison backend.'])
     return validate(b)
+
+
+def solve_full(glb,face_obs,timeline,profile,rig,face_map,audio=None,source_sha256=None):
+    """Viggle body, head and fingers; ARKit face morphs (and audio lip cues) from the video face pipeline."""
+    from xms.animation.compose import compose
+    from .face import solve_face
+    b=solve(glb,timeline,profile,rig,source_sha256,fingers=True);face=solve_face(face_obs,timeline,profile,face_map)
+    if audio is not None:
+        from .lips import fuse
+        face=fuse(face,audio,profile['face_channel_names'])
+    # The Viggle head is kept: the compositor sees no face-driven head samples.
+    head={'index':profile['joint_names'].index('head'),'face_validity':np.zeros(len(timeline['output_times_s']),bool)};hands={'indices':[]}
+    result=compose(b,face,head,hands)
+    result.metadata.update(face_diagnostics=face['diagnostics'],lip_diagnostics=face.get('lip_diagnostics',{}))
+    result.metadata['solver']['channels']='viggle_body_head_fingers_video_face'
+    result.metadata['limitations']=result.metadata['limitations']+['Face morphs come from the video face tracker; head orientation comes from Viggle.']
+    return validate(result)
