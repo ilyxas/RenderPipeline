@@ -4,6 +4,7 @@ Image-plane landmarks determine visible motion. Tracker depth supplies only a
 smoothed sign/depth prior. World-delta rotations are converted to local channels
 once, after the hierarchy has been solved; there is no downstream arm swivel.
 """
+import os
 import numpy as np
 from scipy.ndimage import gaussian_filter1d,median_filter
 from scipy.spatial.transform import Rotation
@@ -50,6 +51,9 @@ def solve(observations,timeline,profile,rig):
     from .contacts import spans
     windows=[(s,e) for s,e in spans(eligible,2) if times[e-1]-times[s]>=.10]
     chosen=np.arange(windows[0][0],min(windows[0][1],windows[0][0]+max(3,round(.25*fps)))) if windows else np.array([],int)
+    # Experiment switch: hands and head read the same (then empty) neutral samples.
+    neutral_enabled=os.environ.get('XMS_NEUTRAL_CALIBRATION','1')!='0'
+    if not neutral_enabled:chosen=np.array([],int)
     calibration=calibrate(observations,timeline,profile,rig);calibrated=len(chosen)>0
     torso_height=np.linalg.norm(xy[:,[11,12]].mean(axis=1)-hipxy,axis=1);target_height=np.linalg.norm((H['upperarm_l']+H['upperarm_r']-H['thigh_l']-H['thigh_r'])/2)
     scale=target_height/max(float(np.median(torso_height[chosen] if calibrated else torso_height)),.05)
@@ -126,7 +130,7 @@ def solve(observations,timeline,profile,rig):
     origin=np.median(hipxy[chosen],axis=0) if calibrated else np.median(hipxy,axis=0);a['root_translation'][:,:2]=(hipxy-origin)*scale;a['root_validity'][:]=True;a['root_confidence'][:]=.5;a['root_provenance'][:]=2
     calibration.update(policy='image_neutral_world_delta_v1',neutral_sample_indices=chosen.tolist(),image_plane_metres_per_normalized_height=float(scale),hip_image_origin=(origin/[aspect,-1]).tolist())
     calibration['reference_camera'].update(metres_per_normalized_image_height=float(scale),image_anchor=(origin/[aspect,-1]).tolist())
-    b.metadata.update(observations_source_sha256=meta['source_sha256'],calibration=calibration,solver={'backend':'image_body','version':'1','channels':'body'},image_retarget_diagnostics={'neutral_calibrated':calibrated,'neutral_sample_indices':chosen.tolist(),'image_scale':scale,'depth':'calibrated, length-constrained prior','rotation_policy':'single world-delta hierarchy conversion','quality_accepted':False},limitations=['Fixed-camera, upright single-person retarget; depth remains an estimate.','No verified camera motion: flight is not inferred from shared image translation.','Unobserved finger/pose details remain bounded estimates.'])
+    b.metadata.update(observations_source_sha256=meta['source_sha256'],calibration=calibration,solver={'backend':'image_body','version':'1','channels':'body'},image_retarget_diagnostics={'neutral_calibrated':calibrated,'neutral_calibration_enabled':neutral_enabled,'neutral_sample_indices':chosen.tolist(),'image_scale':scale,'depth':'calibrated, length-constrained prior','rotation_policy':'single world-delta hierarchy conversion','quality_accepted':False},limitations=['Fixed-camera, upright single-person retarget; depth remains an estimate.','No verified camera motion: flight is not inferred from shared image translation.','Unobserved finger/pose details remain bounded estimates.'])
     from .grounding import ground
     ground(b,image,valid,scale)
     return validate(b)
