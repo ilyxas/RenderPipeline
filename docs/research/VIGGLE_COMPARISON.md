@@ -73,7 +73,7 @@ clip triggered the motion gate for either solver.
 | `--resolution` | works | 720×1280 output |
 | `--camera fit` / `fixed` | works | recorded and rendered |
 | `--output` | works | copied to the requested path |
-| `--face-closeup` | works with `full` | face.mp4 rendered; ignored with `body` (no face) |
+| `--face-closeup` | works with `full` | face.mp4 rendered; not tested with `body` (neutral face expected; the GUI disables it there) |
 | `--audio off` / `envelope` | works | lip cues from the audio envelope with `full` |
 | `--audio speech` / `singing` | falls back | Rhubarb / Demucs are not installed here; warning, envelope used |
 | `--surface-qa off` / `sampled` / `all`, `--no-refine` | run | hand–garment checks only; reported "unavailable" on these clips |
