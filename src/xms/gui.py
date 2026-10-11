@@ -32,7 +32,16 @@ def video_info(path,config_path=None):
     v=videos[0];duration=float(v.get('duration',data['format'].get('duration',0)))
     if not math.isfinite(duration) or duration<=0:raise ValueError('Не удалось определить длительность видео')
     rate=v.get('avg_frame_rate','0/1');fps=float(Fraction(rate)) if rate!='0/0' else 0
-    return {'path':str(path),'name':path.name,'duration':duration,'width':v['width'],'height':v['height'],'fps':fps,'audio':any(s['codec_type']=='audio' for s in data['streams'])}
+    from .observations.viggle import cache_dir
+    viggle_cached=bool(fps) and (cache_dir(path,fps)/'metahuman_body.glb').exists()
+    return {'path':str(path),'name':path.name,'duration':duration,'width':v['width'],'height':v['height'],'fps':fps,'audio':any(s['codec_type']=='audio' for s in data['streams']),'viggle_cached':viggle_cached,'viggle_key':bool(os.environ.get('VIGGLE_API_KEY'))}
+
+
+def env_for(settings,base):
+    """Child environment; only an explicit tick allows the paid Viggle upload for this run."""
+    env=dict(base);env.pop('XMS_VIGGLE_ALLOW_UPLOAD',None)
+    if settings.get('solver')=='viggle' and settings.get('viggle_upload') is True:env['XMS_VIGGLE_ALLOW_UPLOAD']='1'
+    return env
 
 
 def command_for(settings,runs_root,config_path=None):
@@ -43,7 +52,7 @@ def command_for(settings,runs_root,config_path=None):
     if not math.isfinite(start) or not math.isfinite(duration) or start<0 or duration<=0:raise ValueError('Проверьте начало и длительность фрагмента')
     resolution=settings.get('resolution','540x960');parse_resolution(resolution)
     quality=settings.get('quality','preview');solver=settings.get('solver','video');audio=settings.get('audio','envelope');surface=settings.get('surface_qa','sampled')
-    for value,choices in [(quality,('preview','final')),(solver,('video','baseline','temporal')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
+    for value,choices in [(quality,('preview','final')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
         if value not in choices:raise ValueError('Неизвестная настройка: '+str(value))
     cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
     if not settings.get('to_end'):cmd+=['--end',str(start+duration)]
@@ -70,7 +79,7 @@ class Runner:
             config_path=settings.get('config','').strip() or None
             cmd=command_for(settings,self.runs_root,config_path)
             if self.command_prefix:cmd=self.command_prefix+cmd[4:]
-            env=os.environ.copy();env['PYTHONPATH']=str(ROOT/'src')+os.pathsep+env.get('PYTHONPATH','');env['PYTHONUNBUFFERED']='1'
+            env=env_for(settings,os.environ);env['PYTHONPATH']=str(ROOT/'src')+os.pathsep+env.get('PYTHONPATH','');env['PYTHONUNBUFFERED']='1'
             self.runs_root.mkdir(parents=True,exist_ok=True)
             self.process=subprocess.Popen(cmd,cwd=ROOT,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1,start_new_session=True)
             self.cancelled=False;self.run_dir=None;self.logs.clear();self.log_offsets={};self.phase='prepare';self.completed=None;self.total=None
