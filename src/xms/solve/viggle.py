@@ -51,7 +51,7 @@ def retarget(world,pelvis,rest_pelvis,times,source_times,profile,rig,spec):
     return b,{'scale':scale,'floor_shift_m':shift,'lowest_sole_after_m':[float((lowest+shift).min()),float((lowest+shift).max())]}
 
 
-def solve(glb,timeline,profile,rig,spec_path=SPEC):
+def solve(glb,timeline,profile,rig,source_sha256=None,spec_path=SPEC):
     spec=json.loads(Path(spec_path).read_text());skeleton=Skeleton(glb)
     missing=[x for x in spec['body_joints'] if x not in skeleton.names]
     if missing:raise ValueError('Viggle GLB lacks mapped joints: '+', '.join(missing[:5]))
@@ -70,6 +70,7 @@ def solve(glb,timeline,profile,rig,spec_path=SPEC):
             if not a['rotation_validity'][0,j]:a['rotation_validity'][:,j]=True;a['rotation_confidence'][:,j]=.5;a['rotation_provenance'][:,j]=2
     distribute(b);probe=arm_limits(copy.deepcopy(b),profile).metadata.get('arm_limit_diagnostics',{})
     keys=max((len(t) for t,_ in skeleton.channels.values()),default=0);fps=(keys-1)/skeleton.duration if skeleton.duration else None
+    if source_sha256:b.metadata['observations_source_sha256']=source_sha256
     b.metadata.update(solver={'backend':'viggle_metahuman_body','version':'1','channels':'body'},
         calibration={'schema_version':'xms.calibration.v1','policy':'external_viggle_metahuman_body','source_glb_sha256':file_hash(glb),'image_plane_metres_per_normalized_height':None,'root_scale':root['scale'],'floor_shift_m':root['floor_shift_m']},
         viggle_diagnostics={'source_glb':str(glb),'source_glb_sha256':file_hash(glb),'source_joints':len(skeleton.names),'mapped_joints':len(index),'source_fps':fps,'source_duration_s':skeleton.duration,

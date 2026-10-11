@@ -120,6 +120,14 @@ baseline fallbacks, and has **not passed motion-quality acceptance**. Version 3
 profiles bound optimizer increments to 5° and 3cm; this helps retain the initializer's
 fast movement but does not establish reconstruction accuracy.
 
+`--solver viggle --channels body` (experimental, R&D comparison only) retargets an
+external Viggle Motion 3D extraction (MetaHuman-body rig) onto Xandra by rotations.
+The key is read only from `VIGGLE_API_KEY`. Each source video is extracted once and
+cached by content hash and fps in `~/.cache/xms/viggle/` (`XMS_VIGGLE_CACHE` to
+override); a cache miss uploads the video to a paid external service and therefore
+fails unless `XMS_VIGGLE_ALLOW_UPLOAD=1` is set. Fingers and face are not retargeted;
+arm limits are reported, not applied. It has **not passed motion-quality acceptance**.
+
 Useful options:
 
 - `--allow-degraded-final`: explicitly override the catastrophic motion gate.
