@@ -55,7 +55,12 @@ def fetch(video,fps,log=print,poll_s=5,timeout_s=1800):
     if state.exists():motion=json.loads(state.read_text());log(f"VIGGLE resume {motion['id']}")
     else:
         body,headers=multipart({'type':'glb','target_fps':f'{fps:g}','task_id':task_id(video,fps)},{'motion_video':video})
-        motion=request('POST','/motions',key,body,headers);state.write_text(json.dumps(motion,indent=2));log(f"VIGGLE submitted {motion['id']}")
+        try:motion=request('POST','/motions',key,body,headers);log(f"VIGGLE submitted {motion['id']}")
+        except RuntimeError as error:
+            # The local cache was cleared but Viggle still holds this paid job: reuse it.
+            if 'ID_ALREADY_EXISTS' not in str(error):raise
+            motion=request('GET','/motions/mot_'+task_id(video,fps),key);log(f"VIGGLE reusing existing job {motion['id']}")
+        state.write_text(json.dumps(motion,indent=2))
     deadline=time.monotonic()+timeout_s
     while motion['status'] not in ('ready','failed'):
         if time.monotonic()>deadline:raise RuntimeError(f"Viggle job {motion['id']} not ready after {timeout_s}s; rerun to resume")

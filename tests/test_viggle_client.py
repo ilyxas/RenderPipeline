@@ -20,6 +20,16 @@ class ViggleCache(unittest.TestCase):
     def test_request_fields_fit_viggle_columns(self):
         self.assertLessEqual(len(viggle.task_id(self.video,23.976)),50)
         body,_=viggle.multipart({'type':'glb'},{'motion_video':self.video});self.assertIn(b'filename="source.mp4"',body)
+    def test_existing_remote_job_is_reused_after_cache_loss(self):
+        os.environ.update(XMS_VIGGLE_ALLOW_UPLOAD='1',VIGGLE_API_KEY='k');calls=[]
+        def fake(method,path,key,body=None,headers=None):
+            calls.append((method,path))
+            if method=='POST':raise RuntimeError('Viggle POST /motions: HTTP 409 ID_ALREADY_EXISTS')
+            if path.startswith('/motions/') and '/export' not in path:return {'id':path.split('/')[-1],'status':'failed','error':'stop here'}
+        with mock.patch.object(viggle,'request',side_effect=fake):
+            with self.assertRaisesRegex(RuntimeError,'failed'):viggle.fetch(self.video,24,log=lambda m:None)
+        self.assertEqual(calls[1],('GET','/motions/mot_'+viggle.task_id(self.video,24)))
+        os.environ.pop('XMS_VIGGLE_ALLOW_UPLOAD');os.environ.pop('VIGGLE_API_KEY')
     def test_miss_refuses_paid_upload_without_permission(self):
         with mock.patch.object(viggle,'request',side_effect=AssertionError('network used')):
             with self.assertRaisesRegex(RuntimeError,'XMS_VIGGLE_ALLOW_UPLOAD'):viggle.fetch(self.video,24,log=lambda m:None)
