@@ -17,6 +17,9 @@ class ViggleCache(unittest.TestCase):
     def test_cache_key_depends_on_content_and_fps(self):
         a=viggle.cache_dir(self.video,24);self.assertNotEqual(a,viggle.cache_dir(self.video,25))
         self.video.write_bytes(b'other content');self.assertNotEqual(a,viggle.cache_dir(self.video,24))
+    def test_request_fields_fit_viggle_columns(self):
+        self.assertLessEqual(len(viggle.task_id(self.video,23.976)),50)
+        body,_=viggle.multipart({'type':'glb'},{'motion_video':self.video});self.assertIn(b'filename="source.mp4"',body)
     def test_miss_refuses_paid_upload_without_permission(self):
         with mock.patch.object(viggle,'request',side_effect=AssertionError('network used')):
             with self.assertRaisesRegex(RuntimeError,'XMS_VIGGLE_ALLOW_UPLOAD'):viggle.fetch(self.video,24,log=lambda m:None)

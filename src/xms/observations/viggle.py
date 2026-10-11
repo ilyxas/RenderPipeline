@@ -30,11 +30,16 @@ def request(method,path,key,body=None,headers=None):
         raise RuntimeError(f'Viggle {method} {path}: HTTP {error.code} {error.read()[:300]!r}') from None
 
 
+def task_id(video,fps):
+    # Viggle stores task_id (and the upload filename) in 50-character columns.
+    return f'xms-{file_hash(video)[:32]}-{fps:g}'
+
+
 def multipart(fields,files):
     boundary=uuid.uuid4().hex;parts=[]
     for name,value in fields.items():parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{value}\r\n'.encode())
     for name,path in files.items():
-        parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"; filename="{Path(path).name}"\r\nContent-Type: video/mp4\r\n\r\n'.encode()+Path(path).read_bytes()+b'\r\n')
+        parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"; filename="source{Path(path).suffix}"\r\nContent-Type: video/mp4\r\n\r\n'.encode()+Path(path).read_bytes()+b'\r\n')
     return b''.join(parts)+f'--{boundary}--\r\n'.encode(),{'Content-Type':'multipart/form-data; boundary='+boundary}
 
 
@@ -49,7 +54,7 @@ def fetch(video,fps,log=print,poll_s=5,timeout_s=1800):
     folder.mkdir(parents=True,exist_ok=True);state=folder/'motion.json'
     if state.exists():motion=json.loads(state.read_text());log(f"VIGGLE resume {motion['id']}")
     else:
-        body,headers=multipart({'type':'glb','target_fps':f'{fps:g}','task_id':'xms-'+folder.name[:48]},{'motion_video':video})
+        body,headers=multipart({'type':'glb','target_fps':f'{fps:g}','task_id':task_id(video,fps)},{'motion_video':video})
         motion=request('POST','/motions',key,body,headers);state.write_text(json.dumps(motion,indent=2));log(f"VIGGLE submitted {motion['id']}")
     deadline=time.monotonic()+timeout_s
     while motion['status'] not in ('ready','failed'):
