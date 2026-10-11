@@ -16,6 +16,7 @@ asset_store/
 *.glb
 *.gltf
 *.mp4
+!/base video/*.mp4
 *.mov
 *.wav
 *.flac
