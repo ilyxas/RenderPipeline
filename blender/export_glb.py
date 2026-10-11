@@ -12,7 +12,6 @@ from fractions import Fraction
 from xms.animation.io import read_bundle,bundle_hash,file_hash
 from xms.render.blender_adapter import apply_bundle
 
-EXPORT=['F4_Head','F4_Torso','F4_Legs_Nude.001','F4_Hands','F4_Feet','Hair 2_Back.001','Yuki_Bangs','Earrings_CircleDrop','Xandra_Top','Xandra_Shorts']
 ARKIT_KEYS=52
 p=argparse.ArgumentParser()
 for n in ('bundle','profile','out','fps','name'):p.add_argument('--'+n,required=True)
@@ -23,6 +22,9 @@ bpy.app.handlers.save_pre.append(blocked)
 started=time.monotonic();fps=Fraction(a.fps);times=read_bundle(a.bundle).arrays['sample_times_s']
 b,profile,face=apply_bundle(a.bundle,a.profile,times,fps=float(fps))
 arm=bpy.data.objects[profile['armature']];head=bpy.data.objects['F4_Head'];log={'source_asset':bpy.data.filepath}
+# Export what the render shows: render-visible meshes skinned to the character armature.
+EXPORT=sorted(o.name for o in bpy.data.objects if o.type=='MESH' and not o.hide_render and o.find_armature()==arm)
+if 'F4_Head' not in EXPORT:raise ValueError('F4_Head is not a render-visible skinned mesh')
 
 # Face: keep the ARKit block the bundle drives; the exporter needs one morph target list.
 keys=head.data.shape_keys.key_blocks;kept={k.name for k in keys[1:ARKIT_KEYS+1]}
@@ -50,7 +52,8 @@ for n in EXPORT:
 hidden={}
 for n in ('F4_Torso','F4_Legs_Nude.001','F4_Head'):
     o=bpy.data.objects[n];group=o.vertex_groups.get('Clothes_Hidden')
-    if not group:continue
+    # Only an enabled render mask hides skin; some looks keep skin under sheer clothing.
+    if not group or not any(m.type=='MASK' and m.vertex_group=='Clothes_Hidden' and m.show_render for m in o.modifiers):continue
     for m in list(o.modifiers):
         if m.type=='MASK' and m.vertex_group=='Clothes_Hidden':o.modifiers.remove(m)
     weights={v.index:g.weight for v in o.data.vertices for g in v.groups if g.group==group.index}
