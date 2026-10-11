@@ -27,4 +27,4 @@ def render(bundle,out,config,fps,log,indices=None,view='main',quality='preview',
             stop_tree(process.pid);raise
     if returncode:raise RuntimeError(f'Blender exit {returncode}; see {log}')
     match=re.search(r'(\d+)\s+maximum resident set size',Path(log).read_text())
-    return {'exit_status':r.returncode,'seconds':time.monotonic()-start,'peak_rss_bytes':int(match.group(1)) if match else None,'command':cmd}
+    return {'exit_status':returncode,'seconds':time.monotonic()-start,'peak_rss_bytes':int(match.group(1)) if match else None,'command':cmd}
