@@ -20,9 +20,15 @@ def solve_head(body,face,timeline,stable=False):
     import copy
     rest=copy.deepcopy(body);rest.arrays['local_rotation_delta'][:]=[0,0,0,1];rest.arrays['root_translation'][:]=0
     neutral_rotation=rotation(evaluate(rest,0)[j]);values=body.arrays['local_rotation_delta'][:,j].copy();valid=a['validity'][indices]&(a['confidence'][indices]>=.2)
+    origin=np.eye(3)
+    selected=np.array(body.metadata.get('image_retarget_diagnostics',{}).get('neutral_sample_indices',[]),int)
+    selected=selected[valid[selected]] if len(selected) else selected
+    if len(selected):
+        from scipy.spatial.transform import Rotation
+        origin=Rotation.from_matrix(np.array([rotation(a['face_matrix_raw'][indices[i]]) for i in selected])).mean().as_matrix()
     for i,source_i in enumerate(indices):
         if not valid[i]:continue
-        parent_world=evaluate(body,i)[parent];target=rotation(a['face_matrix_raw'][source_i])@neutral_rotation
+        parent_world=evaluate(body,i)[parent];target=rotation(a['face_matrix_raw'][source_i])@origin.T@neutral_rotation
         q=local_delta_for_world(target,parent_world,body.arrays['rest_rotation'][j]);angle=2*np.arccos(np.clip(q[3],-1,1))
         if angle>np.deg2rad(80):q=slerp(np.array([0.,0,0,1]),q,np.deg2rad(80)/angle)
         values[i]=q

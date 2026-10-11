@@ -17,3 +17,10 @@ class Timeline(unittest.TestCase):
         from xms.observations.pose_mediapipe import pack_detection
         image,world,vis,pres,valid=pack_detection(SimpleNamespace(pose_landmarks=[]))
         self.assertFalse(valid);self.assertEqual(vis.sum()+pres.sum(),0)
+
+    def test_float_source_endpoint_does_not_duplicate_last_frame(self):
+        p={'fps':'24','time_base':'1/12288','pts':[i*512 for i in range(145)],'audio':None,'rotation_degrees':0,'sample_aspect_ratio':'1:1'}
+        for end in (float(Fraction(145,24)),6.041667):
+            t=make_timeline(p,0,end)
+            self.assertEqual(t['frame_count'],145)
+            self.assertEqual(t['output_observation_indices'],list(range(145)))

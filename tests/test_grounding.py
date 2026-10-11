@@ -44,10 +44,18 @@ class Grounding(unittest.TestCase):
     def test_source_jump_survives_and_events_use_source_evidence(self):
         b,image,valid=self.setup_bundle();b.arrays['root_translation'][12:25,1]+=.25
         image[12:25,[31,32],1]=.7;image[12:25,[23,24],1]=.3
-        ground(b,image,valid,1.7);constraints(b)
+        ground(b,image,valid,1.7,verified_static_camera=True);constraints(b)
         self.assertGreater(self.heights(b)[18].min(),.20);self.assertTrue(b.metadata['events'])
         self.assertLess(abs(self.heights(b)[3].min()),.003)
 
     def test_missing_feet_do_not_invent_support(self):
         b,image,valid=self.setup_bundle();valid[:,[27,28,31,32]]=False;before=b.arrays['root_translation'].copy();ground(b,image,valid,1.7)
         self.assertTrue(np.array_equal(before,b.arrays['root_translation']));self.assertEqual(b.metadata['grounding_diagnostics']['unsupported_samples'],40)
+
+    def test_shared_image_translation_is_not_flight_evidence(self):
+        from xms.solve.grounding import source_support
+        b,image,valid=self.setup_bundle()
+        image[12:25,:,1]-=.2
+        reliable,flight=source_support(image,valid,b.arrays['sample_times_s'],1.7)
+        self.assertTrue(reliable.all())
+        self.assertFalse(flight.any())

@@ -10,12 +10,12 @@ from .contacts import spans
 from .head import rotation,local_delta_for_world
 
 
-def source_support(image,valid,times,scale):
+def source_support(image,valid,times,scale,verified_static_camera=False):
     n=len(times);feet=image[:,[31,32],1];visible=valid[:,[27,28]] & valid[:,[31,32]]
     reliable=visible.any(axis=1);flight=np.zeros(n,bool)
     # Fixed-camera flat floor prior. Both feet AND hips must rise; a bent knee
     # or tracker depth noise alone cannot turn support into a jump.
-    if visible.all(axis=1).any():
+    if verified_static_camera and visible.all(axis=1).any():
         floor=float(np.percentile(np.max(feet[visible.all(axis=1)],axis=1),90))
         hips=image[:,[23,24],1].mean(axis=1);hip_ok=valid[:,[23,24]].all(axis=1)
         hip_base=float(np.percentile(hips[hip_ok],80)) if hip_ok.any() else 0
@@ -46,11 +46,11 @@ def sole_positions(fk,points):
     return np.array([[fk[j,:3,3]+fk[j,:3,:3]@p for j,p in points[s]] for s in ('l','r')])
 
 
-def ground(bundle,image,valid,scale):
+def ground(bundle,image,valid,scale,verified_static_camera=False):
     from .video_body import foot_orientation,set_direction,two_bone,support_root_drop
     a=bundle.arrays;names=bundle.metadata['joint_names'];ids={n:i for i,n in enumerate(names)};t=a['sample_times_s'];n=len(t)
     neutral=copy.deepcopy(bundle);neutral.arrays['local_rotation_delta'][:]=[0,0,0,1];neutral.arrays['root_translation'][:]=0;rest=evaluate(neutral,0)
-    points=sole_proxies(bundle,rest);reliable,flight=source_support(image,valid,t,scale);supported=reliable&~flight
+    points=sole_proxies(bundle,rest);reliable,flight=source_support(image,valid,t,scale,verified_static_camera);supported=reliable&~flight
     # Bounded short dropout holds the last floor correction, then leaves motion
     # untouched and diagnoses the unsupported samples.
     corrections=np.zeros(n);known=np.flatnonzero(supported);heights=[];bounded=0
@@ -87,8 +87,8 @@ def ground(bundle,image,valid,scale):
             anchor=np.median(pos[start:end],axis=0);records.append({'side':side,'start':start,'end':end,'anchor_world_m':anchor.tolist()})
             for i in range(start,end):
                 fk=evaluate(bundle,i);target=fk[foot,:3,3].copy();ramp=min(1,(t[i]-t[start]+.02)/.08,(t[end-1]-t[i]+.02)/.08);target[[0,2]]+=(anchor[[0,2]]-target[[0,2]])*ramp
-                drop=support_root_drop(fk[hip,:3,3][None],target[None],[l1+l2-.005]);a['root_translation'][i,1]-=drop;fk=evaluate(bundle,i)
-                desired=rotation(fk[foot]);elbow,reach=two_bone(fk[hip,:3,3],target,fk[knee,:3,3],l1,l2);unreachable+=int(np.linalg.norm(reach-target)>.003)
+                drop=support_root_drop(fk[hip,:3,3][None],target[None],[l1+l2-.0001]);a['root_translation'][i,1]-=drop;fk=evaluate(bundle,i)
+                desired=rotation(fk[foot]);elbow,reach=two_bone(fk[hip,:3,3],target,fk[knee,:3,3],l1,l2,reach_margin=.0001);unreachable+=int(np.linalg.norm(reach-target)>.003)
                 set_direction(bundle,i,hip,knee,elbow-fk[hip,:3,3]);set_direction(bundle,i,knee,foot,reach-elbow);fk=evaluate(bundle,i)
                 a['local_rotation_delta'][i,foot]=local_delta_for_world(desired,fk[a['parent_indices'][foot]],a['rest_rotation'][foot])
                 for j in (hip,knee,foot):a['rotation_validity'][i,j]=True;a['rotation_confidence'][i,j]=.5;a['rotation_provenance'][i,j]=2
@@ -97,6 +97,6 @@ def ground(bundle,image,valid,scale):
     for i in known:
         height=float(sole_positions(evaluate(bundle,i),points)[:,:,1].min());a['root_translation'][i,1]-=np.clip(height,-.12,.12)
     actual=np.array([sole_positions(evaluate(bundle,i),points)[:,:,1].min() for i in known]);errors=np.abs(actual)
-    bundle.metadata['grounding_diagnostics']={'policy':'flat floor; source flight evidence; per-frame sole/root alignment; local support IK','support_sample_indices':known.tolist(),'flight_sample_indices':np.flatnonzero(flight).tolist(),'unsupported_samples':int((~reliable).sum()),'correction_bound_samples':bounded,'max_root_correction_m':float(np.abs(corrections).max(initial=0)),'contact_segments':records,'unreachable_anchor_samples':unreachable,'max_support_floor_error_m':float(errors.max(initial=0)),'p95_support_floor_error_m':float(np.percentile(errors,95)) if len(errors) else None,'sole_geometry':'rest-derived heel/ball skeletal proxies; skin sole unverified','quality_accepted':False}
+    bundle.metadata['grounding_diagnostics']={'policy':'flat floor; source flight evidence; per-frame sole/root alignment; local support IK','support_sample_indices':known.tolist(),'flight_sample_indices':np.flatnonzero(flight).tolist(),'unsupported_samples':int((~reliable).sum()),'flight_observability':'verified static camera' if verified_static_camera else 'unavailable: shared image translation is not jump evidence','correction_bound_samples':bounded,'max_root_correction_m':float(np.abs(corrections).max(initial=0)),'contact_segments':records,'unreachable_anchor_samples':unreachable,'max_support_floor_error_m':float(errors.max(initial=0)),'p95_support_floor_error_m':float(np.percentile(errors,95)) if len(errors) else None,'sole_geometry':'rest-derived heel/ball skeletal proxies; skin sole unverified','quality_accepted':False}
     bundle.metadata['stationary_foot_diagnostics']={'anchored_sides':sorted({r['side'] for r in records}),'policy':'local support intervals; replaced whole-clip stationary locking','quality_accepted':False}
     return bundle

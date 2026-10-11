@@ -19,9 +19,15 @@ def solve_full(body_obs,face_obs,hand_obs,timeline,profile,rig,face_map,solver='
     if audio is not None:
         from .lips import fuse
         face=fuse(face,audio,profile['face_channel_names'])
-    head=solve_head(body,face_obs,timeline,stable=True);hands=solve_hands(body,hand_obs,timeline);result=compose(body,face,head,hands)
-    try:palm_correction(result)
-    except ImportError:result.metadata['palm_diagnostics']={'status':'unavailable','reason':'Optional SciPy missing'}
+    head=solve_head(body,face_obs,timeline,stable=True)
+    if solver=='video':
+        from .image_hands import solve as calibrated_hands
+        hands=calibrated_hands(body,hand_obs,timeline)
+    else:hands=solve_hands(body,hand_obs,timeline)
+    result=compose(body,face,head,hands)
+    if solver=='temporal':
+        try:palm_correction(result)
+        except ImportError:result.metadata['palm_diagnostics']={'status':'unavailable','reason':'Optional SciPy missing'}
     from .contacts import constraints
     from xms.qa.contacts import measure
     constraints(result);result.metadata['contact_diagnostics']=measure(result)
@@ -29,4 +35,4 @@ def solve_full(body_obs,face_obs,hand_obs,timeline,profile,rig,face_map,solver='
     if profile.get('collision_proxies'):
         from xms.qa.collision_proxy import measure as proxy_measure
         result.metadata['collision_proxy_diagnostics']=proxy_measure(result,profile['collision_proxies'])
-    result.metadata['solver']['channels']='video_face_head_temporal_hands';return validate(result)
+    result.metadata['solver']['channels']='calibrated_body_face_head_hands' if solver=='video' else 'video_face_head_temporal_hands';return validate(result)

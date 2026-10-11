@@ -8,6 +8,9 @@ def make_timeline(probe,start,end,fps=None):
     if start<0 or end<=start:raise ValueError('Invalid [start,end) interval')
     rate=Fraction(fps or probe['fps']);tb=Fraction(probe['time_base']);pts=probe['pts'];origin=Fraction(pts[0])*tb
     if rate<=0:raise ValueError('Invalid FPS')
+    # Float conversion of an exact source endpoint must not add a duplicate frame.
+    source_end=Fraction(pts[-1])*tb+1/rate-origin
+    if abs(end-source_end)<=Fraction(1,1000000):end=source_end
     absolute_start=origin+start;absolute_end=origin+end
     if absolute_end>Fraction(pts[-1])*tb+1/rate+Fraction(1,1000000):raise ValueError('Interval extends beyond source')
     selected=[i for i,t in enumerate(pts) if absolute_start<=t*tb<absolute_end]
