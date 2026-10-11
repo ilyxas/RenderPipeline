@@ -115,8 +115,9 @@ root drift). Arm limits are reported, not applied.
   uploaded once — the whole file, about $0.05 per second — and the result is cached by
   content hash and fps in `~/.cache/xms/viggle/` (`XMS_VIGGLE_CACHE` to override).
 - A cache miss uploads to an external paid service and therefore fails unless
-  `XMS_VIGGLE_ALLOW_UPLOAD=1` is set (the GUI tick does this for one run). Deleting the
-  cache means paying again for those videos.
+  `XMS_VIGGLE_ALLOW_UPLOAD=1` is set (the GUI tick does this for one run). If the cache
+  was deleted, the client re-downloads the already paid job from Viggle (same video and
+  fps give the same job id) at no charge, as long as Viggle still keeps it.
 
 **`video`** (default) uses calibrated image-plane joint trajectories, a smoothed
 bone-length depth prior and one world-to-local rotation conversion across the rig. A

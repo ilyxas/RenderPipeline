@@ -24,7 +24,7 @@
 - Профиль `v3` — топ и шорты: `blender/Xandra_Animations.blend` (Git LFS, sha256 `b20530fe…`).
 - Скелет у v3 и v4 одинаковый (341 кость, rest идентичен) → бандлы, пределы руки и карта Viggle подходят к обоим.
 - Сцена спальни: `~/codex/clip02_blender_kit/blend/clip02_scene.blend` — внешняя зависимость от старой папки Codex.
-- Кэш Viggle: `~/.cache/xms/viggle/<sha256 видео>-fps24/` (удалить = платить снова). Сейчас там 3 видео: `sing.mp4` и два ролика из uploads (спиной к столу; в розовом платье).
+- Кэш Viggle: `~/.cache/xms/viggle/<sha256 видео>-fps24/`. Удалённый кэш клиент восстанавливает бесплатно из уже оплаченной задачи на стороне Viggle (`6f93dee`). Сейчас в кэше: 8 базовых клипов, `sing.mp4` и два ролика из uploads (спиной к столу; в розовом платье).
 - Окружение: `.venv` на Python 3.13 по lock-файлу `environments/stage0-macos-arm64.txt` + scipy 1.18.1. Blender 4.5.13 LTS, Apple M4 (Metal).
 
 ## Рендер
