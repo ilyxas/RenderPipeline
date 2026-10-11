@@ -1,0 +1,25 @@
+{
+  "schema_version": "xms.skin_witnesses.v1",
+  "rig_sha256": "d35acb5da7262b1d97d54a00b8928c41a71d9c0794d5b67ee46ac662d3749bd3",
+  "binding": "registered skeleton (profile files rig.npz); skin regions come from each asset's own vertex weights",
+  "meshes": ["F4_Torso", "F4_Hands"],
+  "note": "Each skin vertex belongs to the region of its dominant weight. Side from the bone suffix _l/_r; unmatched bones are body. Clothes_Hidden masks are ignored for witnesses: the skin under clothing is the collision surface (cloth thickness is not modelled in v1).",
+  "regions": {
+    "forearm_hand": "^(lowerarm|hand|wrist|thumb|index|middle|ring|pinky)",
+    "upperarm": "^upperarm"
+  },
+  "targets": {
+    "body": ["body"],
+    "arm_l": ["upperarm_l", "forearm_hand_l"],
+    "arm_r": ["upperarm_r", "forearm_hand_r"]
+  },
+  "pairs": [
+    ["forearm_hand_l", "body"],
+    ["forearm_hand_r", "body"],
+    ["forearm_hand_l", "arm_r"],
+    ["forearm_hand_r", "arm_l"]
+  ],
+  "margin_m": 0.003,
+  "candidate_radius_m": 0.15,
+  "inside_test": "generalized winding number |w| > 0.5 on the open target region"
+}

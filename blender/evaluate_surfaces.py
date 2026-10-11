@@ -66,5 +66,57 @@ for i in indices:
             crossings+=int(crossed)
         row['triangle_intersections']=crossings
         row['geometry']='evaluated skin/cloth BVH; ray-parity sign when watertight, edge/triangle intersections';records.append(row)
+# Skin witnesses: forearm/hand skin against body skin and against the other arm.
+import re
+from xms.geometry.winding import winding_numbers
+skin_path=Path(a.profile).parent/'skin_witnesses.v1.json';skin=json.loads(skin_path.read_text()) if skin_path.exists() else None
+if skin and skin['rig_sha256']!=profile['files']['rig.npz']:skin=None
+if skin:
+    arm=bpy.data.objects[profile['armature']];bones=set(arm.data.bones.keys())
+    def region_of(bone):
+        side=re.search(r'_([lr])$',bone)
+        if side:
+            for region,pattern in skin['regions'].items():
+                if re.match(pattern,bone):return region+'_'+side.group(1)
+        return 'body'
+    regions=[]
+    for name in skin['meshes']:
+        o=bpy.data.objects[name];groups={g.index:g.name for g in o.vertex_groups}
+        for v in o.data.vertices:
+            weights={}
+            for g in v.groups:
+                bone=groups.get(g.group)
+                if bone in bones:weights[region_of(bone)]=weights.get(region_of(bone),0)+g.weight
+            regions.append(max(weights,key=weights.get) if weights else 'none')
+    regions=np.array(regions)
+    masks=[(m,m.show_viewport) for name in skin['meshes'] for m in bpy.data.objects[name].modifiers if m.type=='MASK']
+    for i in indices:
+        sc=bpy.context.scene;sc.frame_set(i+1)
+        for m,_ in masks:m.show_viewport=False
+        graph=bpy.context.evaluated_depsgraph_get();vertices=[];triangles=[];offset=0
+        for name in skin['meshes']:
+            e=bpy.data.objects[name].evaluated_get(graph);mesh=e.to_mesh();mesh.calc_loop_triangles()
+            vertices+= [list(e.matrix_world@v.co) for v in mesh.vertices];triangles+=[[k+offset for k in t.vertices] for t in mesh.loop_triangles];offset=len(vertices);e.to_mesh_clear()
+        for m,state in masks:m.show_viewport=state
+        vertices=np.array(vertices);triangles=np.array(triangles)
+        if len(vertices)!=len(regions):raise RuntimeError('Evaluated skin topology differs from the registered mesh')
+        triangle_region=regions[triangles[:,0]]
+        for source,target in skin['pairs']:
+            side=source[-1];query=np.flatnonzero(regions==source);tri=triangles[np.isin(triangle_region,skin['targets'][target])]
+            tree=BVHTree.FromPolygons([Vector(v) for v in vertices],tri.tolist(),all_triangles=True)
+            row={'sample':i,'source':'skin:'+source,'target':'skin:'+target,'kind':'skin_witness','candidate_depths_m':[],'worst_evidence':None,'signed_interior_available':True,'intersection_coverage_complete':True,'sign_method':'generalized_winding_number','query_points':int(len(query)),'target_triangles':int(len(tri))}
+            near=[];found=[]
+            for k in query:
+                location,normal,_,distance=tree.find_nearest(Vector(vertices[k]))
+                if location is not None and distance<skin['candidate_radius_m']:near.append(k);found.append((location,distance))
+            if near:
+                w=np.abs(winding_numbers(vertices[near],vertices,tri))
+                for k,(location,distance),wk in zip(near,found,w):
+                    if wk>.5 and distance>skin['margin_m']:
+                        row['candidate_depths_m'].append(float(distance))
+                        if row['worst_evidence'] is None or distance>row['worst_evidence']['depth_m']:
+                            push=(location-Vector(vertices[k])).normalized()
+                            row['worst_evidence']={'depth_m':float(distance),'point_blender_m':list(vertices[k]),'normal_blender':list(push),'side':side,'pair':f'{source}->{target}'}
+            records.append(row)
 result=assess(records,planned,indices);result.update(bundle_hash=bundle_hash(a.bundle),blender_version=bpy.app.version_string,blender_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 (out/'quality.json').write_text(json.dumps(result,indent=2))

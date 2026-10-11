@@ -11,7 +11,7 @@ def refine(bundle,report):
         evidence=row.get('worst_evidence')
         if not row.get('signed_interior_available') or not evidence or evidence['depth_m']<=.005:continue
         i=row['sample'];world=evaluate(b,i);point=np.array(evidence['point_blender_m'])[[0,2,1]]*[1,1,-1];normal=np.array(evidence['normal_blender'])[[0,2,1]]*[1,1,-1]
-        side=min(('l','r'),key=lambda s:np.linalg.norm(world[lookup['hand_'+s],:3,3]-point));key=(i,side)
+        side=evidence.get('side') or min(('l','r'),key=lambda s:np.linalg.norm(world[lookup['hand_'+s],:3,3]-point));key=(i,side)
         if key not in targets or targets[key][1]<evidence['depth_m']:targets[key]=(normal,evidence['depth_m'])
     for (i,side),(normal,depth) in targets.items():
         ids=[lookup[x+'_'+side] for x in ('upperarm','lowerarm','hand')]
