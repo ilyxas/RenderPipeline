@@ -50,3 +50,35 @@ clip triggered the motion gate for either solver.
 - Viggle has no arm twist bones; arm roll is distributed by `xms.solve.twist`.
   Arm limits would not have triggered on any clip (reported, not applied).
 - Head-yaw clips cannot be judged from stills; front video review is needed.
+
+## Follow-up (same day)
+
+- **Foot support:** the arm-overhead "pelvis drop" is the source camera moving down.
+  Viggle roots now keep the lowest sole on the floor every sample (50 ms smoothing):
+  061c1113 and 690b4562 went from −13.1 / +11.2 cm to ±0.1 cm. Jumps are not modelled.
+- **`--channels full`:** Viggle body, head and fingers; ARKit face morphs and audio lip
+  cues from the existing video face pipeline (MediaPipe hands are not used).
+- **Known, not addressed:** arms intersect each other when crossed (no arm–arm collision
+  anywhere in the pipeline; surface QA only samples hand–garment pairs); the knee raise
+  (619b1b62) over-flexes the right knee to 146° in Viggle's own estimate.
+
+### `xms run --solver viggle` flags (checked on cached clips)
+
+| Flag | Status | Evidence |
+|---|---|---|
+| `--channels body` / `full` | works | body: neutral fingers/face; full: 28/51 face channels active, fingers animated |
+| `--start` / `--end` | works | segment frame 0 equals the whole-clip pose at 2.0 s (0.000°) |
+| `--quality preview` / `final` | works | final: whole-clip 540×960 preflight, then 1080×1920 |
+| `--allow-degraded-final` | works | override recorded in the motion gate |
+| `--resolution` | works | 720×1280 output |
+| `--camera fit` / `fixed` | works | recorded and rendered |
+| `--output` | works | copied to the requested path |
+| `--face-closeup` | works with `full` | face.mp4 rendered; ignored with `body` (no face) |
+| `--audio off` / `envelope` | works | lip cues from the audio envelope with `full` |
+| `--audio speech` / `singing` | falls back | Rhubarb / Demucs are not installed here; warning, envelope used |
+| `--surface-qa off` / `sampled` / `all`, `--no-refine` | run | hand–garment checks only; reported "unavailable" on these clips |
+| `--job` | works | `xms.baseline_job.v1` with `"solver": "viggle"` |
+| `xms gui` | works | "Viggle · внешний мокап" option, cache status, explicit paid-upload tick |
+
+Uploads need `VIGGLE_API_KEY` and `XMS_VIGGLE_ALLOW_UPLOAD=1` (or the GUI tick);
+cached results need neither.
