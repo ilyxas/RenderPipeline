@@ -3,7 +3,10 @@ import math
 import numpy as np
 from xms.animation.fk import evaluate
 
-PRESETS={'preview':{'resolution':[540,960],'samples':16},'final':{'resolution':[1080,1920],'samples':64}}
+# Shadow rays/steps are Blender's defaults; the asset scenes ship 4/16, which cost ~1.5x per
+# frame without a visible difference once TAA accumulates. Final 32 samples was compared with
+# 64 on a full 720p clip (same look, ~2.8x faster; docs/research/RENDER_SETTINGS.md).
+PRESETS={'preview':{'resolution':[540,960],'samples':16,'shadow_ray_count':1,'shadow_step_count':6},'final':{'resolution':[1080,1920],'samples':32,'shadow_ray_count':1,'shadow_step_count':6}}
 
 
 def parse_resolution(value):

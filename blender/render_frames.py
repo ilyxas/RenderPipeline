@@ -19,7 +19,7 @@ fps=Fraction(a.fps);original=read_bundle(a.bundle);times=original.arrays['sample
 if not np.allclose(times,np.arange(len(times))/float(fps),atol=1e-8):raise ValueError('Render grid differs from bundle support')
 b,profile,face=apply_bundle(a.bundle,a.profile,times,fps=float(fps));sp=load_scene(a.scene_profile);sc=setup_scene(a.scene,sp,a.profile)
 from xms.render.camera import PRESETS
-sc.render.resolution_x,sc.render.resolution_y=PRESETS[a.quality]['resolution'];sc.eevee.taa_render_samples=PRESETS[a.quality]['samples']
+sc.render.resolution_x,sc.render.resolution_y=PRESETS[a.quality]['resolution'];sc.eevee.taa_render_samples=PRESETS[a.quality]['samples'];sc.eevee.shadow_ray_count=PRESETS[a.quality]['shadow_ray_count'];sc.eevee.shadow_step_count=PRESETS[a.quality]['shadow_step_count']
 if a.resolution:
     from xms.render.camera import parse_resolution
     sc.render.resolution_x,sc.render.resolution_y=parse_resolution(a.resolution)
@@ -40,5 +40,5 @@ for i in selected:
         sc.camera.location=[float(position[k])+diagnostic['offset_blender_m'][k] for k in range(3)]
     sc.render.filepath=str(out/f'{i:06d}.png');bpy.ops.render.render(write_still=True);print('XMS_FRAME',i,flush=True)
 manifest={'schema_version':'xms.render.v1','status':'passed','exit_status':0,'quality':a.quality,'bundle_hash':bundle_hash(a.bundle),'character_profile_hash':profile['profile_hash'],'scene_profile_hash':sp['profile_hash'],'character_asset_sha256_after':file_hash(bpy.data.filepath),'scene_asset_sha256_after':file_hash(a.scene),'blender_version':bpy.app.version_string,'engine':sc.render.engine,'resolution':sp['resolution'],'fps':str(fps),'frame_indices':selected,'seconds':time.monotonic()-start,'inputs':['AnimationBundle','character profile/asset','scene profile/asset'],'source_video_required':False,'tracker_required':False}
-manifest['samples']=sc.eevee.taa_render_samples;manifest['view']=a.view;manifest['resolution']=[sc.render.resolution_x,sc.render.resolution_y]
+manifest['samples']=sc.eevee.taa_render_samples;manifest['shadow_ray_count']=sc.eevee.shadow_ray_count;manifest['shadow_step_count']=sc.eevee.shadow_step_count;manifest['view']=a.view;manifest['resolution']=[sc.render.resolution_x,sc.render.resolution_y]
 (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
