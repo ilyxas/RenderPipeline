@@ -335,7 +335,7 @@ RenderPipeline/
 xms doctor
 xms character register --id xandra --blend /path/Xandra.blend --profile /path/character.json
 xms run /path/input.mp4 --character xandra --scene bedroom --quality final
-xms run --job examples/jobs/xandra_preview.job.json
+xms run --job examples/jobs/xandra_preview.job.json   # planned xms.job.v1 format, never implemented; example removed 2026-10-11
 xms status JOB_ID
 xms resume JOB_ID
 xms rerender JOB_ID --scene studio --quality final

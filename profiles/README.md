@@ -10,4 +10,4 @@ of their asset; a changed asset needs a new version, never an edit.
   used by surface QA.
 - `characters/xandra/arm_limits.v1.json`, `viggle_metahuman_body.v1.json` — bound to the
   skeleton (`rig.npz` hash), so they apply to every look on that skeleton.
-- `scenes/bedroom/v1`–`v3` — the bedroom render scene; `v3` is current.
+- `scenes/bedroom/v1`, `v3` — the bedroom render scene; `v3` is current.

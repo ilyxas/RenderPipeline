@@ -1,7 +1,7 @@
 # Xandra Motion Studio — execution plan
 
 Дата: 9 октября 2026 года. Статус: Stages 0–4 выполнены как `baseline_preview` checkpoint; остановка для review перед Stage 5. Результаты и ограничения: [STAGES_0_4_HANDOFF.md](STAGES_0_4_HANDOFF.md). Содержание этапов ниже сохраняет утверждённые требования.
-Основание: `ARCHITECTURE.md`, `IMPLEMENTATION_PLAN.md`, `../../examples/jobs/xandra_preview.job.json` и исследования архивных проектов в `../research/`.
+Основание: `ARCHITECTURE.md`, `IMPLEMENTATION_PLAN.md`, `../../examples/jobs/xandra_preview.job.json` (planned format, not implemented; removed 2026-10-11) и исследования архивных проектов в `../research/`.
 
 ## Как выполнять этот план
 

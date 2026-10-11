@@ -2,7 +2,7 @@
 
 This implementation supports a body-only `baseline_preview`. Later stages are
 not implemented. Local binaries, models and source assets are explicitly supplied
-in a JSON config (see `examples/jobs/local-config.example.json`). Profiles are
+in a JSON config (see `examples/local-config.example.json`). Profiles are
 hash-bound to the registered Xandra and bedroom assets. A full local Git LFS object
 can be used directly as the read-only character asset; `.blend` filename suffix is
 not required by Blender.
