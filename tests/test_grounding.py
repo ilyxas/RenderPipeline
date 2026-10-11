@@ -52,6 +52,15 @@ class Grounding(unittest.TestCase):
         b,image,valid=self.setup_bundle();valid[:,[27,28,31,32]]=False;before=b.arrays['root_translation'].copy();ground(b,image,valid,1.7)
         self.assertTrue(np.array_equal(before,b.arrays['root_translation']));self.assertEqual(b.metadata['grounding_diagnostics']['unsupported_samples'],40)
 
+    def test_source_lift_releases_foot_even_when_depth_predicts_lower_sole(self):
+        from scipy.spatial.transform import Rotation
+        b,image,valid=self.setup_bundle();names=b.metadata['joint_names'];j=names.index('foot_l')
+        b.arrays['local_rotation_delta'][:,j]=Rotation.from_euler('x',25,degrees=True).as_quat()
+        image[:,27,1]=.7
+        before=rotation(evaluate(b,10)[j]);ground(b,image,valid,1.7)
+        self.assertEqual(b.metadata['grounding_diagnostics']['support_side_indices'],[1]*40)
+        self.assertLess((Rotation.from_matrix(rotation(evaluate(b,10)[j]))*Rotation.from_matrix(before).inv()).magnitude(),1e-5)
+
     def test_shared_image_translation_is_not_flight_evidence(self):
         from xms.solve.grounding import source_support
         b,image,valid=self.setup_bundle()

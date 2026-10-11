@@ -53,16 +53,22 @@ def ground(bundle,image,valid,scale,verified_static_camera=False):
     points=sole_proxies(bundle,rest);reliable,flight=source_support(image,valid,t,scale,verified_static_camera);supported=reliable&~flight
     # Bounded short dropout holds the last floor correction, then leaves motion
     # untouched and diagnoses the unsupported samples.
-    corrections=np.zeros(n);known=np.flatnonzero(supported);heights=[];bounded=0
+    corrections=np.zeros(n);known=np.flatnonzero(supported);heights=[];bounded=0;support_sides=np.full(n,-1,int)
     for i in known:
-        fk=evaluate(bundle,i);soles=sole_positions(fk,points);side=('l','r')[int(np.argmin(soles[:,:,1].min(axis=1)))];foot=ids['foot_'+side];ball=ids['ball_'+side]
-        # Flatten only the lowest foot near support; the lifted foot keeps pitch.
+        fk=evaluate(bundle,i);soles=sole_positions(fk,points);sidx=int(np.argmin(soles[:,:,1].min(axis=1)))
+        # Relative image ankle height is invariant to camera translation. Release
+        # a visibly lifted foot before its pitch grows, rather than waiting for
+        # uncertain reconstructed depth to change which sole is lowest.
+        if valid[i,[27,28,31,32]].all() and abs(image[i,27,1]-image[i,28,1])*scale>.015:
+            sidx=int(np.argmax(image[i,[27,28],1]))
+        support_sides[i]=sidx;side=('l','r')[sidx];foot=ids['foot_'+side];ball=ids['ball_'+side]
+        # Flatten the observed supporting foot; the lifted foot keeps pitch.
         forward=rotation(fk[foot])@rotation(rest[foot]).T@(rest[ball,:3,3]-rest[foot,:3,3])
         try:
             desired=foot_orientation(forward,rest[ball,:3,3]-rest[foot,:3,3],rotation(rest[foot]),planted=True)
             a['local_rotation_delta'][i,foot]=local_delta_for_world(desired,fk[a['parent_indices'][foot]],a['rest_rotation'][foot]);a['rotation_validity'][i,foot]=True;a['rotation_confidence'][i,foot]=.5;a['rotation_provenance'][i,foot]=2
         except ValueError:pass
-        height=float(sole_positions(evaluate(bundle,i),points)[:,:,1].min());heights.append(height);corrections[i]=-np.clip(height,-.45,.45);bounded+=int(abs(height)>.45)
+        height=float(sole_positions(evaluate(bundle,i),points)[sidx,:,1].min());heights.append(height);corrections[i]=-np.clip(height,-.45,.45);bounded+=int(abs(height)>.45)
     # Flight interpolates the floor offset, not the airborne foot height.
     # Thus a source jump retains its original root excursion.
     if len(known):
@@ -95,8 +101,9 @@ def ground(bundle,image,valid,scale,verified_static_camera=False):
     # IK reach corrections can change shared root height. Restore floor support
     # once, after both legs; never globally smooth rotations after this stage.
     for i in known:
-        height=float(sole_positions(evaluate(bundle,i),points)[:,:,1].min());a['root_translation'][i,1]-=np.clip(height,-.12,.12)
-    actual=np.array([sole_positions(evaluate(bundle,i),points)[:,:,1].min() for i in known]);errors=np.abs(actual)
+        height=float(sole_positions(evaluate(bundle,i),points)[support_sides[i],:,1].min());a['root_translation'][i,1]-=np.clip(height,-.12,.12)
+    actual=np.array([sole_positions(evaluate(bundle,i),points)[support_sides[i],:,1].min() for i in known]);errors=np.abs(actual)
     bundle.metadata['grounding_diagnostics']={'policy':'flat floor; source flight evidence; per-frame sole/root alignment; local support IK','support_sample_indices':known.tolist(),'flight_sample_indices':np.flatnonzero(flight).tolist(),'unsupported_samples':int((~reliable).sum()),'flight_observability':'verified static camera' if verified_static_camera else 'unavailable: shared image translation is not jump evidence','correction_bound_samples':bounded,'max_root_correction_m':float(np.abs(corrections).max(initial=0)),'contact_segments':records,'unreachable_anchor_samples':unreachable,'max_support_floor_error_m':float(errors.max(initial=0)),'p95_support_floor_error_m':float(np.percentile(errors,95)) if len(errors) else None,'sole_geometry':'rest-derived heel/ball skeletal proxies; skin sole unverified','quality_accepted':False}
     bundle.metadata['stationary_foot_diagnostics']={'anchored_sides':sorted({r['side'] for r in records}),'policy':'local support intervals; replaced whole-clip stationary locking','quality_accepted':False}
+    bundle.metadata['grounding_diagnostics'].update(support_side_indices=support_sides.tolist(),support_selection='relative source ankle height when separated by 15mm; lowest reconstructed sole otherwise')
     return bundle
