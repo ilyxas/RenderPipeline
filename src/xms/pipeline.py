@@ -65,6 +65,10 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             if solver=='temporal':from .solve.windows import solve
             else:from .solve.video_body import solve
             b=solve(body,timeline,p,rig)
+            # The full path applies these after hands; body-only has no later arm stage.
+            from .solve.limits import apply as arm_limits
+            from .solve.twist import distribute
+            arm_limits(b,p);distribute(b)
         if 'grounding_diagnostics' in b.metadata:
             g=b.metadata['grounding_diagnostics']
             log(f"GROUND support={len(g['support_sample_indices'])}, flight={len(g['flight_sample_indices'])}, unavailable={g['unsupported_samples']}, bounded={g['correction_bound_samples']}, floor_error={g['max_support_floor_error_m']:.4f}m")

@@ -23,5 +23,7 @@ def refine(bundle,report):
             b.arrays['local_rotation_delta'][i,ids]=(Rotation.from_quat(initial)*Rotation.from_rotvec(x.reshape(3,3))).as_quat();return np.r_[(evaluate(b,i)[wrist,:3,3]-target)*10,x*.1]
         limit=np.deg2rad(5)/np.sqrt(3);result=least_squares(cost,np.zeros(9),bounds=(-limit,limit),max_nfev=12);cost(result.x)
         logs.append({'sample':i,'side':side,'surface_depth_before_m':depth,'max_correction_degrees':float(np.degrees(np.linalg.norm(result.x.reshape(3,3),axis=1).max()))})
+    from .twist import distribute
+    distribute(b)
     b.metadata['surface_refinement']={'passes':int(bool(logs)),'max_passes':1,'angular_budget_degrees':5,'translation_target_budget_m':.03,'samples':logs,'skipped_samples':skipped,'quality_accepted':False}
     return b

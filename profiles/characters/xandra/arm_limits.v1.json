@@ -1,0 +1,22 @@
+{
+  "schema_version": "xms.arm_limits.v1",
+  "asset_sha256": "b20530fe8acf51d659028beb1abb0eda13bf57ab4d3020dc95a068931885e801",
+  "coordinate_system": "RH_Y_UP_Z_FORWARD rest world (bundle); converted from HumanoidAlpha MuJoCo Z-up as (x, z, -y)",
+  "source": "HumanoidAlpha physics/model/humanoid_alpha.xml joint axes and physics/anatomical_ranges.json (ENGINEERING priors, needs external validation)",
+  "elbow": {
+    "note": "Hinge. Xandra's rest elbow is already bent; flexion is measured from a straight arm, not from rest as in HumanoidAlpha.",
+    "flexion_from_straight_deg": [0, 150],
+    "axis": {"l": [-0.80688769, -0.58796513, 0.05682603], "r": [-0.80688691, 0.58796686, -0.0568198]}
+  },
+  "forearm_roll": {
+    "note": "Pronation/supination about the forearm axis, relative to the rest forearm. Not modelled in HumanoidAlpha; anatomical prior.",
+    "range_deg": [-90, 90]
+  },
+  "wrist": {
+    "note": "Two hinges relative to the rest hand; no axial wrist roll.",
+    "flexion_deg": [-70, 70],
+    "deviation_deg": [-25, 35],
+    "flexion_axis": {"l": [-0.573002, 0.27839905, 0.77081943], "r": [-0.5729996, -0.27840671, -0.77081847]},
+    "deviation_axis": {"l": [0.38407707, -0.73963851, 0.55264789], "r": [0.38406542, 0.73963916, -0.55265504]}
+  }
+}

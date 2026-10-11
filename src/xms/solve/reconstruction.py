@@ -28,6 +28,9 @@ def solve_full(body_obs,face_obs,hand_obs,timeline,profile,rig,face_map,solver='
     if solver=='temporal':
         try:palm_correction(result)
         except ImportError:result.metadata['palm_diagnostics']={'status':'unavailable','reason':'Optional SciPy missing'}
+    from .limits import apply as arm_limits
+    from .twist import distribute
+    arm_limits(result,profile);distribute(result)
     from .contacts import constraints
     from xms.qa.contacts import measure
     constraints(result);result.metadata['contact_diagnostics']=measure(result)
