@@ -88,10 +88,18 @@ motion/surface/visual acceptance is reported separately and can remain `needs_re
 `video` is the default: calibrated image-plane joint trajectories, a smoothed
 bone-length depth prior and one world-to-local rotation conversion across the rig.
 A neutral interval is used only when observed limb directions match the rest pose.
-Palm orientation and finger curls are calibrated against that same interval;
-forearm pronation preserves the solved wrist position. No second arm IK or palm
+Palm orientation uses that same calibration interval; observed phalanx directions
+are transferred inside the solved palm frame. Distal finger joints use hinges;
+knuckles have bounded splay (15°, thumb 40°). Anatomical limits and rate corrections
+are recorded separately. Clavicles share arm elevation, following the working
+legacy retarget rather than keeping the shoulder fixed.
+Elbow bend planes and forearm axial orientation preserve the solved joint positions.
+No second arm IK or palm
 flip correction runs after this solve. Calibration and degraded assumptions are
-recorded in `image_retarget_diagnostics` and `hand_diagnostics`.
+recorded in `image_retarget_diagnostics` and `hand_diagnostics`. Ambiguous palm and
+finger estimates have declared angular rate fallbacks (900°/s and 1000°/s);
+correction counts appear in diagnostics and the pipeline log. These can degrade
+very fast hand articulation, so a smooth render is not visual acceptance.
 
 Rest-derived sole proxies align to Y=0 on supported frames; short low-speed
 support intervals use leg IK while the free leg stays raised. Root correction is

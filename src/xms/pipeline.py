@@ -68,6 +68,9 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         if 'grounding_diagnostics' in b.metadata:
             g=b.metadata['grounding_diagnostics']
             log(f"GROUND support={len(g['support_sample_indices'])}, flight={len(g['flight_sample_indices'])}, unavailable={g['unsupported_samples']}, bounded={g['correction_bound_samples']}, floor_error={g['max_support_floor_error_m']:.4f}m")
+        if 'bounded_palm_samples' in b.metadata.get('hand_diagnostics',{}):
+            hand=b.metadata['hand_diagnostics']
+            log(f"HAND estimated palm samples={hand['bounded_palm_samples']}, finger samples={hand['bounded_finger_samples']}, anatomical constraints={hand.get('anatomical_finger_samples',0)}; angular fallbacks={hand['palm_rate_fallback_deg_s']} / {hand['finger_rate_fallback_deg_s']} deg/s")
         b.metadata['observations_arrays_sha256']=file_hash(out/'observations/body/arrays.npz')
         if channels=='full':
             b.metadata['face_observations_sha256']=file_hash(out/'observations/face/arrays.npz');b.metadata['hand_observations_sha256']=file_hash(out/'observations/hands/arrays.npz')

@@ -56,7 +56,7 @@ def solve(observations,timeline,profile,rig):
     P=np.zeros_like(world);P[:,:,:2]=(xy-hipxy[:,None])*scale;P[:,:,2]=world[:,:,2]-world[:,[23,24],2].mean(axis=1)[:,None]
     # A neutral window calibrates per-landmark depth bias instead of treating
     # the tracker's asymmetric neutral hips/shoulders as a real body rotation.
-    mapping={11:'upperarm_l',12:'upperarm_r',13:'lowerarm_l',14:'lowerarm_r',15:'hand_l',16:'hand_r',23:'thigh_l',24:'thigh_r',25:'calf_l',26:'calf_r',27:'foot_l',28:'foot_r',31:'ball_l',32:'ball_r'}
+    mapping={11:'upperarm_l',12:'upperarm_r',13:'lowerarm_l',14:'lowerarm_r',15:'hand_l',16:'hand_r',23:'thigh_l',24:'thigh_r',25:'calf_l',26:'calf_r',27:'foot_l',28:'foot_r',29:'foot_l',30:'foot_r',31:'ball_l',32:'ball_r'}
     midrest=(H['thigh_l']+H['thigh_r'])/2
     if calibrated:
         for j,bone in mapping.items():P[:,j,2]+=H[bone][2]-midrest[2]-np.median(P[chosen,j,2])
@@ -83,10 +83,19 @@ def solve(observations,timeline,profile,rig):
     for side,s,e,w,h,k,f in [('l',11,13,15,23,25,27),('r',12,14,16,24,26,28)]:
         for prefix,p,q,parent in [('clavicle',s,e,'spine_05'),('upperarm',s,e,'clavicle_'+side),('lowerarm',e,w,'upperarm_'+side),('thigh',h,k,'pelvis'),('calf',k,f,'thigh_'+side)]:
             name=prefix+'_'+side
-            if prefix=='clavicle':D[name]=chest;continue
+            if prefix=='clavicle':
+                restarm=unit(H['lowerarm_'+side]-H['upperarm_'+side]);target=unit(P[:,e]-P[:,s])
+                if calibrated:target=mv(swing(unit(np.median(target[chosen],axis=0)),restarm),target)
+                elevation=swing(mv(chest,restarm),target)
+                D[name]=blend(ident,elevation,.22)@chest
+                continue
             child={'upperarm':'lowerarm','lowerarm':'hand','thigh':'calf','calf':'foot'}[prefix]+'_'+side;restvec=unit(H[child]-H[name]);target=unit(P[:,q]-P[:,p])
             if calibrated:target=mv(swing(unit(np.median(target[chosen],axis=0)),restvec),target)
-            D[name]=swing(mv(D[parent],restvec),target)@D[parent]
+            # Calf axial orientation is unobserved. Keep the pelvis facing
+            # prior: inheriting a folded thigh's swing can flip the knee frame
+            # at an antiparallel leg configuration while the foot barely moves.
+            orientation_parent='pelvis' if prefix=='calf' else parent
+            D[name]=swing(mv(D[orientation_parent],restvec),target)@D[orientation_parent]
             D[name]=rotation_smooth(D[name],fps)
         D['hand_'+side]=D['lowerarm_'+side]
         # Yaw from heel/toe, with neutral bias removed. Sole pitch is governed by
@@ -117,7 +126,7 @@ def solve(observations,timeline,profile,rig):
     origin=np.median(hipxy[chosen],axis=0) if calibrated else np.median(hipxy,axis=0);a['root_translation'][:,:2]=(hipxy-origin)*scale;a['root_validity'][:]=True;a['root_confidence'][:]=.5;a['root_provenance'][:]=2
     calibration.update(policy='image_neutral_world_delta_v1',neutral_sample_indices=chosen.tolist(),image_plane_metres_per_normalized_height=float(scale),hip_image_origin=(origin/[aspect,-1]).tolist())
     calibration['reference_camera'].update(metres_per_normalized_image_height=float(scale),image_anchor=(origin/[aspect,-1]).tolist())
-    b.metadata.update(calibration=calibration,solver={'backend':'image_body','version':'1','channels':'body'},image_retarget_diagnostics={'neutral_calibrated':calibrated,'neutral_sample_indices':chosen.tolist(),'image_scale':scale,'depth':'calibrated, length-constrained prior','rotation_policy':'single world-delta hierarchy conversion','quality_accepted':False},limitations=['Fixed-camera, upright single-person retarget; depth remains an estimate.','No verified camera motion: flight is not inferred from shared image translation.','Unobserved finger/pose details remain bounded estimates.'])
+    b.metadata.update(observations_source_sha256=meta['source_sha256'],calibration=calibration,solver={'backend':'image_body','version':'1','channels':'body'},image_retarget_diagnostics={'neutral_calibrated':calibrated,'neutral_sample_indices':chosen.tolist(),'image_scale':scale,'depth':'calibrated, length-constrained prior','rotation_policy':'single world-delta hierarchy conversion','quality_accepted':False},limitations=['Fixed-camera, upright single-person retarget; depth remains an estimate.','No verified camera motion: flight is not inferred from shared image translation.','Unobserved finger/pose details remain bounded estimates.'])
     from .grounding import ground
     ground(b,image,valid,scale)
     return validate(b)

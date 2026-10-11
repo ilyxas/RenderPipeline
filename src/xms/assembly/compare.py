@@ -18,7 +18,8 @@ def letterbox(image,size,sar=1):
 def compare(video,run,out,config):
     run,out=Path(run),Path(out);out.mkdir(parents=True,exist_ok=False)
     timeline=json.loads((run/'observations/timeline.json').read_text());probe=json.loads((run/'observations/probe.json').read_text());b=read_bundle(run/'animation')
-    if file_hash(video)!=b.metadata['observations_source_sha256']:raise ValueError('Comparison source hash mismatch')
+    source_hash=b.metadata.get('observations_source_sha256',b.metadata.get('calibration',{}).get('source_sha256'))
+    if file_hash(video)!=source_hash:raise ValueError('Comparison source hash mismatch')
     frames,_=decode(video,probe,timeline,config['ffmpeg'],out/'decode.log')
     source=np.array(timeline['source_times_s']);mapping=b.arrays['source_time_map'];
     from xms.ingest.timeline import nearest_indices
