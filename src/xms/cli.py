@@ -38,6 +38,10 @@ def main():
             print(render(args.bundle,out,load_config(args.config,render_only=True),args.fps,str(out)+'.log',indices,view=args.view,quality=args.quality))
         else:
             from .pipeline import run
+            import signal
+            def interrupt(*_):raise KeyboardInterrupt
+            # Terminal close (SIGHUP) or kill (SIGTERM) end the run like Ctrl+C, so its manifest says cancelled.
+            for sig in (signal.SIGTERM,signal.SIGHUP):signal.signal(sig,interrupt)
             if args.job:
                 job=json.loads(Path(args.job).read_text())
                 if job['schema_version']!='xms.baseline_job.v1':raise ValueError('Unsupported job version')
@@ -50,7 +54,8 @@ def main():
                 if not importlib.util.find_spec('scipy'):p.error('Temporal solver needs SciPy. Install the temporal dependency group or use --solver video.')
             from .render.camera import parse_resolution
             resolution=parse_resolution(args.resolution) if args.resolution else None
-            result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final,resolution)
+            try:result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final,resolution)
+            except KeyboardInterrupt:print('RUN CANCELLED',flush=True);raise SystemExit(130)
             print('RUN MANIFEST',result/'manifest.json');raise SystemExit(json.loads((result/'manifest.json').read_text()).get('result_exit_code',1))
     except (ValueError,FileNotFoundError,KeyError) as error:p.error(str(error))
 

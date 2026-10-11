@@ -113,6 +113,9 @@ class Runner:
                 self.state['exit_code']=code
                 if self.cancelled:
                     self.state['status']='stopping' if self.state['status']=='stopping' else 'cancelled'
+                elif code<0 or code==130:
+                    # Killed outside the Stop button (signal or interrupt): stopped, not failed.
+                    self.state['status']='cancelled';self.state['error']=f'Запуск остановлен извне (код {code}).';self._mark_cancelled('Stopped outside XMS GUI')
                 else:
                     self.state['status']='complete' if code==0 else 'failed'
                     if code and not self.state['error']:self.state['error']='Запуск завершился с ошибкой. Подробности в журнале.'
@@ -132,13 +135,15 @@ class Runner:
         except ProcessLookupError:pass
         self.worker.join(timeout=3)
         with self.lock:
-            self.state['status']='cancelled';self.state['finished_at']=time.time()
-            if self.run_dir:
-                manifest=self.run_dir/'manifest.json'
-                try:
-                    m=json.loads(manifest.read_text())
-                    if m.get('status')=='running':m.update(status='cancelled',result_exit_code=130,error='Stopped from XMS GUI');manifest.write_text(json.dumps(m,indent=2))
-                except (FileNotFoundError,json.JSONDecodeError):pass
+            self.state['status']='cancelled';self.state['finished_at']=time.time();self._mark_cancelled('Stopped from XMS GUI')
+
+    def _mark_cancelled(self,reason):
+        if not self.run_dir:return
+        manifest=self.run_dir/'manifest.json'
+        try:
+            m=json.loads(manifest.read_text())
+            if m.get('status')=='running':m.update(status='cancelled',result_exit_code=130,error=reason);manifest.write_text(json.dumps(m,indent=2))
+        except (FileNotFoundError,json.JSONDecodeError):pass
 
     def snapshot(self):
         with self.lock:
@@ -234,7 +239,8 @@ def serve(port=0,open_browser=True):
     server=ThreadingHTTPServer(('127.0.0.1',port),Handler);url=f'http://127.0.0.1:{server.server_port}/';print('XMS GUI '+url,flush=True)
     if open_browser:webbrowser.open(url)
     def terminate(*_):raise KeyboardInterrupt
-    old_handlers={s:signal.signal(s,terminate) for s in (signal.SIGINT,signal.SIGTERM)}
+    # SIGHUP: the launcher's Terminal window was closed; the run lives in its own session and must be stopped here.
+    old_handlers={s:signal.signal(s,terminate) for s in (signal.SIGINT,signal.SIGTERM,signal.SIGHUP)}
     try:server.serve_forever(poll_interval=.3)
     except KeyboardInterrupt:pass
     finally:

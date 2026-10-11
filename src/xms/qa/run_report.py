@@ -11,7 +11,7 @@ from xms.report.html import report
 
 def quality(run):
     run=Path(run);m=json.loads((run/'manifest.json').read_text())
-    if m.get('status') in ('failed','needs_input'):return {'schema_version':'xms.quality.v1','status':m['status'],'exit_code':EXIT_CODES[m['status']],'metrics':{'execution':metric(False,passed=False)},'limitations':[m.get('error','Execution failed')],'provenance':{'run_manifest_sha256':file_hash(run/'manifest.json')}}
+    if m.get('status') in ('failed','needs_input','cancelled'):return {'schema_version':'xms.quality.v1','status':m['status'],'exit_code':EXIT_CODES[m['status']],'metrics':{'execution':metric(False,passed=False)},'limitations':[m.get('error','Execution failed')],'provenance':{'run_manifest_sha256':file_hash(run/'manifest.json')}}
     b=read_bundle(run/'animation');t=json.loads((run/'observations/timeline.json').read_text())
     metrics=coverage_metrics(b,read_observations(run/'observations/body'));metrics.update(timing_metrics(t,m['verification']))
     if (run/'observations/face').exists():

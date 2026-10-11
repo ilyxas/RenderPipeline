@@ -167,6 +167,9 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         log('VIDEO '+manifest['outputs']['video']);log('BUNDLE '+str(out/'animation'));log('QUALITY '+q['status']+' (rendered candidate; visual acceptance pending)')
     except Exception as error:
         manifest.update(status='failed',exit_status=1,result_exit_code=1,error=str(error));(out/'logs/error.log').write_text(traceback.format_exc());log('ERROR '+str(error)+' | diagnostics: '+str(out/'logs/error.log'))
+    except KeyboardInterrupt:
+        # Ctrl+C, SIGTERM or SIGHUP (see cli.py): a stopped run is not a failed one.
+        manifest.update(status='cancelled',exit_status=130,result_exit_code=130,error='Interrupted');log('CANCELLED run interrupted');raise
     finally:
         manifest['seconds']=time.monotonic()-began;save()
         from .qa.run_report import write_report
