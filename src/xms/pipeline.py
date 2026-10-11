@@ -12,7 +12,7 @@ from .assembly.encode import preflight,encode,verify
 from .qa.contract import self_peak_bytes
 
 
-def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False,resolution=None):
+def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False,resolution=None,keep_frames=False):
     out=Path(runs_root).resolve()/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
     manifest={'schema_version':'xms.run.v1','quality':'development_candidate','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':quality,'solver':solver,'channels':channels,'audio':audio_mode,'surface_qa':surface_qa,'camera':camera},'config':config,'python':sys.version,'limitations':[],'warnings':[],'stages':{}}
     began=time.monotonic()
@@ -51,7 +51,16 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             audio=optional('audio cues (video-only fallback)',lambda:observe_audio(video,timeline,config,out/'observations/audio',audio_mode))
             if audio:manifest['warnings']+=audio['metadata']['warnings']
         save();t=time.monotonic();body=read_observations(out/'observations/body');log('SOLVE '+solver)
-        if solver=='baseline':
+        if solver=='viggle':
+            # Experimental external mocap; MediaPipe body observations still define the timeline.
+            from .observations.viggle import fetch
+            from .solve.viggle import solve as viggle_solve
+            glb=fetch(video,float(Fraction(timeline['fps'])),log)
+            if channels=='full':
+                from .solve.viggle import solve_full as viggle_full
+                b=viggle_full(glb,detail_face,timeline,p,rig,face,audio,body[0]['source_sha256'])
+            else:b=viggle_solve(glb,timeline,p,rig,body[0]['source_sha256'])
+        elif solver=='baseline':
             if channels=='full':
                 from .solve.baseline_full import solve_full
                 b=solve_full(body,detail_face,detail_hands,timeline,p,rig,face)
@@ -155,9 +164,16 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         (out/'limitations.md').write_text('\n'.join('- '+x for x in manifest['limitations']+manifest['warnings']))
         from .qa.run_report import quality as measure_quality
         q=measure_quality(out);manifest['quality_status']=q['status'];manifest['outputs'].update(quality=str(out/'report/quality.json'),report=str(out/'report/report.html'))
+        if not keep_frames:
+            # PNG sequences are encoder input only; the MP4s, bundle, GLB and report remain.
+            from .clean import prune_frames
+            manifest['frames_pruned_bytes']=prune_frames(out)
         log('VIDEO '+manifest['outputs']['video']);log('BUNDLE '+str(out/'animation'));log('QUALITY '+q['status']+' (rendered candidate; visual acceptance pending)')
     except Exception as error:
         manifest.update(status='failed',exit_status=1,result_exit_code=1,error=str(error));(out/'logs/error.log').write_text(traceback.format_exc());log('ERROR '+str(error)+' | diagnostics: '+str(out/'logs/error.log'))
+    except KeyboardInterrupt:
+        # Ctrl+C, SIGTERM or SIGHUP (see cli.py): a stopped run is not a failed one.
+        manifest.update(status='cancelled',exit_status=130,result_exit_code=130,error='Interrupted');log('CANCELLED run interrupted');raise
     finally:
         manifest['seconds']=time.monotonic()-began;save()
         from .qa.run_report import write_report

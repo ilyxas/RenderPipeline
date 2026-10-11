@@ -32,7 +32,16 @@ def video_info(path,config_path=None):
     v=videos[0];duration=float(v.get('duration',data['format'].get('duration',0)))
     if not math.isfinite(duration) or duration<=0:raise ValueError('Не удалось определить длительность видео')
     rate=v.get('avg_frame_rate','0/1');fps=float(Fraction(rate)) if rate!='0/0' else 0
-    return {'path':str(path),'name':path.name,'duration':duration,'width':v['width'],'height':v['height'],'fps':fps,'audio':any(s['codec_type']=='audio' for s in data['streams'])}
+    from .observations.viggle import cache_dir
+    viggle_cached=bool(fps) and (cache_dir(path,fps)/'metahuman_body.glb').exists()
+    return {'path':str(path),'name':path.name,'duration':duration,'width':v['width'],'height':v['height'],'fps':fps,'audio':any(s['codec_type']=='audio' for s in data['streams']),'viggle_cached':viggle_cached,'viggle_key':bool(os.environ.get('VIGGLE_API_KEY'))}
+
+
+def env_for(settings,base):
+    """Child environment; only an explicit tick allows the paid Viggle upload for this run."""
+    env=dict(base);env.pop('XMS_VIGGLE_ALLOW_UPLOAD',None)
+    if settings.get('solver')=='viggle' and settings.get('viggle_upload') is True:env['XMS_VIGGLE_ALLOW_UPLOAD']='1'
+    return env
 
 
 def command_for(settings,runs_root,config_path=None):
@@ -43,7 +52,7 @@ def command_for(settings,runs_root,config_path=None):
     if not math.isfinite(start) or not math.isfinite(duration) or start<0 or duration<=0:raise ValueError('Проверьте начало и длительность фрагмента')
     resolution=settings.get('resolution','540x960');parse_resolution(resolution)
     quality=settings.get('quality','preview');solver=settings.get('solver','video');audio=settings.get('audio','envelope');surface=settings.get('surface_qa','sampled')
-    for value,choices in [(quality,('preview','final')),(solver,('video','baseline','temporal')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
+    for value,choices in [(quality,('preview','final')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
         if value not in choices:raise ValueError('Неизвестная настройка: '+str(value))
     cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
     if not settings.get('to_end'):cmd+=['--end',str(start+duration)]
@@ -70,7 +79,7 @@ class Runner:
             config_path=settings.get('config','').strip() or None
             cmd=command_for(settings,self.runs_root,config_path)
             if self.command_prefix:cmd=self.command_prefix+cmd[4:]
-            env=os.environ.copy();env['PYTHONPATH']=str(ROOT/'src')+os.pathsep+env.get('PYTHONPATH','');env['PYTHONUNBUFFERED']='1'
+            env=env_for(settings,os.environ);env['PYTHONPATH']=str(ROOT/'src')+os.pathsep+env.get('PYTHONPATH','');env['PYTHONUNBUFFERED']='1'
             self.runs_root.mkdir(parents=True,exist_ok=True)
             self.process=subprocess.Popen(cmd,cwd=ROOT,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1,start_new_session=True)
             self.cancelled=False;self.run_dir=None;self.logs.clear();self.log_offsets={};self.phase='prepare';self.completed=None;self.total=None
@@ -104,6 +113,9 @@ class Runner:
                 self.state['exit_code']=code
                 if self.cancelled:
                     self.state['status']='stopping' if self.state['status']=='stopping' else 'cancelled'
+                elif code<0 or code==130:
+                    # Killed outside the Stop button (signal or interrupt): stopped, not failed.
+                    self.state['status']='cancelled';self.state['error']=f'Запуск остановлен извне (код {code}).';self._mark_cancelled('Stopped outside XMS GUI')
                 else:
                     self.state['status']='complete' if code==0 else 'failed'
                     if code and not self.state['error']:self.state['error']='Запуск завершился с ошибкой. Подробности в журнале.'
@@ -123,13 +135,15 @@ class Runner:
         except ProcessLookupError:pass
         self.worker.join(timeout=3)
         with self.lock:
-            self.state['status']='cancelled';self.state['finished_at']=time.time()
-            if self.run_dir:
-                manifest=self.run_dir/'manifest.json'
-                try:
-                    m=json.loads(manifest.read_text())
-                    if m.get('status')=='running':m.update(status='cancelled',result_exit_code=130,error='Stopped from XMS GUI');manifest.write_text(json.dumps(m,indent=2))
-                except (FileNotFoundError,json.JSONDecodeError):pass
+            self.state['status']='cancelled';self.state['finished_at']=time.time();self._mark_cancelled('Stopped from XMS GUI')
+
+    def _mark_cancelled(self,reason):
+        if not self.run_dir:return
+        manifest=self.run_dir/'manifest.json'
+        try:
+            m=json.loads(manifest.read_text())
+            if m.get('status')=='running':m.update(status='cancelled',result_exit_code=130,error=reason);manifest.write_text(json.dumps(m,indent=2))
+        except (FileNotFoundError,json.JSONDecodeError):pass
 
     def snapshot(self):
         with self.lock:
@@ -225,7 +239,8 @@ def serve(port=0,open_browser=True):
     server=ThreadingHTTPServer(('127.0.0.1',port),Handler);url=f'http://127.0.0.1:{server.server_port}/';print('XMS GUI '+url,flush=True)
     if open_browser:webbrowser.open(url)
     def terminate(*_):raise KeyboardInterrupt
-    old_handlers={s:signal.signal(s,terminate) for s in (signal.SIGINT,signal.SIGTERM)}
+    # SIGHUP: the launcher's Terminal window was closed; the run lives in its own session and must be stopped here.
+    old_handlers={s:signal.signal(s,terminate) for s in (signal.SIGINT,signal.SIGTERM,signal.SIGHUP)}
     try:server.serve_forever(poll_interval=.3)
     except KeyboardInterrupt:pass
     finally:

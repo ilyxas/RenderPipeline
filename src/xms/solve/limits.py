@@ -29,8 +29,8 @@ def twist_split(q,axis):
 
 def apply(bundle,profile):
     spec=json.loads(LIMITS.read_text())
-    if spec['asset_sha256']!=profile['asset_sha256']:
-        bundle.metadata['arm_limit_diagnostics']={'status':'unavailable','reason':'Arm limits are registered for a different character asset'};return bundle
+    if spec['rig_sha256']!=profile['files']['rig.npz']:
+        bundle.metadata['arm_limit_diagnostics']={'status':'unavailable','reason':'Arm limits are registered for a different skeleton'};return bundle
     a=bundle.arrays;ids={s:i for i,s in enumerate(bundle.metadata['joint_names'])};t=a['sample_times_s']
     ref=copy.deepcopy(bundle);ref.arrays['local_rotation_delta'][:]=[0,0,0,1];ref.arrays['root_translation'][:]=0;rest=evaluate(ref,0)
     def world_rotation(j):return rest[j,:3,:3]/np.linalg.norm(rest[j,:3,:3],axis=0)

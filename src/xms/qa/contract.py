@@ -2,7 +2,7 @@
 import json,re,resource,subprocess,sys,time
 from pathlib import Path
 
-EXIT_CODES={'success':0,'failed':1,'needs_input':2,'needs_review':3,'warnings':4}
+EXIT_CODES={'success':0,'failed':1,'needs_input':2,'needs_review':3,'warnings':4,'cancelled':130}
 
 class NeedsInput(ValueError):
     """Input is ambiguous and needs an explicit user selection."""

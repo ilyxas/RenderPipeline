@@ -4,7 +4,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
-from xms.gui import Runner,command_for
+from xms.gui import Runner,command_for,env_for
 from xms.render.camera import parse_resolution
 
 class Launcher(unittest.TestCase):
@@ -18,6 +18,17 @@ class Launcher(unittest.TestCase):
             self.assertEqual(parse_resolution('1080x1920'),[1080,1920])
             for value in ['1081x1920','0x960','720','huge']:
                 with self.assertRaises(ValueError):parse_resolution(value)
+
+    def test_viggle_solver_and_explicit_upload_consent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            video=Path(tmp)/'in.mp4';video.touch()
+            cmd=command_for({'input':str(video),'start':0,'duration':2,'solver':'viggle'},Path(tmp)/'runs')
+            self.assertEqual(cmd[cmd.index('--solver')+1],'viggle');self.assertEqual(cmd[cmd.index('--channels')+1],'full')
+            base={'XMS_VIGGLE_ALLOW_UPLOAD':'1','VIGGLE_API_KEY':'k'}
+            self.assertNotIn('XMS_VIGGLE_ALLOW_UPLOAD',env_for({'solver':'viggle'},base))
+            self.assertNotIn('XMS_VIGGLE_ALLOW_UPLOAD',env_for({'solver':'video','viggle_upload':True},base))
+            self.assertEqual(env_for({'solver':'viggle','viggle_upload':True},base)['XMS_VIGGLE_ALLOW_UPLOAD'],'1')
+            self.assertEqual(env_for({'solver':'viggle'},base)['VIGGLE_API_KEY'],'k')
 
     def test_whole_video_uses_pipeline_exact_endpoint(self):
         with tempfile.TemporaryDirectory() as tmp:

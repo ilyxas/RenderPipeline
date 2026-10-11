@@ -1,12 +1,11 @@
 """Derived animated GLB from a published bundle, and its numerical verification."""
-import json,re,struct,subprocess,sys,time
+import subprocess,time
 from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation
 from xms.animation.fk import evaluate
+from xms.animation.gltf import load,accessor
 from xms.animation.io import read_bundle
-
-TYPES={'SCALAR':1,'VEC2':2,'VEC3':3,'VEC4':4,'MAT4':16};COMPONENTS={5126:np.float32,5123:np.uint16,5125:np.uint32,5121:np.uint8}
 
 
 def export(bundle,config,fps,out,log,name='XMS_Bundle'):
@@ -16,17 +15,6 @@ def export(bundle,config,fps,out,log,name='XMS_Bundle'):
     with open(log,'w') as stream:r=subprocess.run(cmd,stdout=stream,stderr=subprocess.STDOUT)
     if r.returncode:raise RuntimeError(f'Blender GLB export exit {r.returncode}; see {log}')
     return {'exit_status':0,'seconds':time.monotonic()-start,'command':cmd}
-
-
-def load(path):
-    raw=Path(path).read_bytes();size=struct.unpack('<I',raw[12:16])[0];gltf=json.loads(raw[20:20+size]);offset=20+size
-    length=struct.unpack('<I',raw[offset:offset+4])[0];return gltf,raw[offset+8:offset+8+length]
-
-
-def accessor(gltf,binary,index):
-    a=gltf['accessors'][index];view=gltf['bufferViews'][a['bufferView']];width=TYPES[a['type']]
-    values=np.frombuffer(binary,COMPONENTS[a['componentType']],a['count']*width,view.get('byteOffset',0)+a.get('byteOffset',0))
-    return values.reshape(a['count'],width).astype(float)
 
 
 def verify(path,bundle_path,face_map=None,name='XMS_Bundle'):

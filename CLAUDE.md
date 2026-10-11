@@ -10,13 +10,15 @@ Why it exists: generative video gives a result but no control. Xandra gives full
 
 This is an exploratory, for-fun research project. Owners: Ilya and Claude. Earlier work was done by Codex, Grok Build and Grok Bot.
 
-## Current state (2026-10-11)
+## Current state (2026-10-11, evening)
 
-- Infrastructure works: `./xms run`, `./xms gui`, run folders, compare video, reports.
-- **Core reconstruction is not proven.** On the first eight diagnostic clips (`base video/`) poses are wrong: tilted body, unstable stance, arms that do not reach targets.
-- Observed pattern: in-plane motion (arms up/sideways, knee raise) transfers roughly; **depth motion and self-contact** (crossing arms, hands to face, head yaw, forward kick) fail or are attenuated.
-- Next step: a synthetic `AnimationBundle` test — neutral pose plus one moving joint, no video — judged by meaning ("right arm forward 45°" looks like that), not only by numeric agreement. If it fails, the bug is after reconstruction; if it passes, look at observations / solving / retargeting.
-- Default solver is `video` (see README). `temporal` has **not** passed acceptance; Stages 9–16 were built on top of it and are functional, not accepted.
+- Infrastructure works: `./xms run`, `./xms gui` (Stop really stops), run folders, compare video, report, animated GLB (`outputs/animation.glb`), `./xms clean`.
+- **Core reconstruction is still not accepted.** The `video` solver (default) loses depth (raised arms drift forward), self-contact and limb twist; its neutral calibration forces Xandra's rest pose onto the subject's first pose (`XMS_NEUTRAL_CALIBRATION=0` to compare).
+- `--solver viggle` (external Viggle mocap, MetaHuman-body rig, retargeted by rotations; face/lips from our face pipeline) is clearly better on all eight diagnostic clips in side view — Ilya's verdict "земля и небо" — but it is an R&D backend: known gaps are arm–arm collisions, Viggle's own estimate errors (knee over-flexion) and no jumps. Details: `docs/research/VIGGLE_COMPARISON.md`.
+- The retarget was proven before any video: Viggle posed in Xandra's rest gives zero deltas; one rotated shoulder moves only that arm by exactly that angle (`tests/test_viggle_retarget.py`).
+- Characters: profile `v3` (top/shorts, LFS asset) and `v4` (Black Lace fitting asset, local) share one skeleton; limits and the Viggle map are bound to the rig, not to the asset file.
+- `temporal` has **not** passed acceptance; Stages 9–16 were built on top of it and are functional, not accepted.
+- Next candidates: arm–arm/arm–body collision (skin-based, see legacy `clip_full/02b_collide.py`), GLB with HumanoidAlpha's expected clips, shoulder/hip limits.
 
 ## R&D mode: the approach is a hypothesis
 
@@ -67,8 +69,9 @@ Critical asset. Used both for **regression** (nothing that worked may break) and
 
 - macOS, Apple Silicon. Runtime in `.venv`; `./xms` refuses to run without it.
 - Blender 4.5 LTS (EEVEE), FFmpeg, MediaPipe Tasks — paths registered in `.xms/config.json`.
-- Preview: 540×960, 16 samples. Final: 1080×1920, 64 samples. Prefer preview for experiments.
-- Every run writes `runs/<id>/` (ignored by Git): video, bundle, observations, manifest, diagnostics, logs, compare, report.
+- Preview: 540×960, 16 samples. Final: 1080×1920, 32 samples, default shadow rays/steps (`docs/research/RENDER_SETTINGS.md`). Prefer preview for experiments.
+- Viggle: key only from `VIGGLE_API_KEY`; uploads are paid and external — ask Ilya before any upload; results are cached in `~/.cache/xms/viggle/`.
+- Every run writes `runs/<id>/` (ignored by Git): video, GLB, bundle, observations, manifest, diagnostics, logs, compare, report. Frame PNGs are deleted after a successful encode; `./xms clean` handles older runs.
 - Tests: `tests/` (unittest; pytest is not installed in `.venv`): `PYTHONPATH=src:tests .venv/bin/python -m unittest discover -s tests -p 'test_*.py'`. `tools/validate_base_videos.py` runs the eight diagnostic clips and keeps evidence without auto-acceptance.
 
 ## Where to look

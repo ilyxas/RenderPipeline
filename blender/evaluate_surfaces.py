@@ -16,7 +16,8 @@ from xms.animation.io import read_bundle
 original=read_bundle(a.bundle);dt=np.diff(original.arrays['sample_times_s']);fps=1/np.median(dt) if len(dt) else 24
 b,profile,face=apply_bundle(a.bundle,a.profile,fps=fps);records=[];planned=list(range(len(b.arrays['sample_times_s'])))
 # Registered surface identities from the actual asset, independent of collider sizes.
-pairs=[('F4_Hands','Xandra_Top'),('F4_Hands','Xandra_Shorts')]
+look=json.loads((Path(a.profile)/'look.json').read_text())
+pairs=[tuple(x) for x in look.get('surface_qa_pairs',[('F4_Hands','Xandra_Top'),('F4_Hands','Xandra_Shorts')])]
 for i in indices:
     sc=bpy.context.scene;sc.frame_set(i+1);graph=bpy.context.evaluated_depsgraph_get();meshes={}
     for name in set(x for pair in pairs for x in pair):
