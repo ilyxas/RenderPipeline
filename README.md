@@ -81,6 +81,10 @@ xms run input.mp4 --character xandra --quality preview
 Omitting `--start`/`--end` processes the whole video. Every run gets a unique
 `runs/<id>/` directory with `outputs/video.mp4`, immutable `animation/`, observations,
 `manifest.json`, solver diagnostics, logs, comparison video and an HTML report.
+`outputs/animation.glb` is the same bundle as an animated GLB (skinned Xandra, bones and
+ARKit face morphs in one animation `XMS_Bundle`), exported by `blender/export_glb.py`
+from the read-only canonical asset and checked against bundle FK (`glb_export` in the
+manifest). Its failure is a warning and does not discard the MP4.
 `--output` copies the main MP4 to a chosen path and refuses to overwrite it.
 The terminal prints both MP4 and bundle paths. A successful render exits 0;
 motion/surface/visual acceptance is reported separately and can remain `needs_review`.

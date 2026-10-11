@@ -134,6 +134,14 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
                 checked=verify(close,timeline,sp['diagnostic_views']['face']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/face-decode.log');return {'path':str(close),'bundle_hash':h,'verification':checked}
             result=optional('face close-up',closeup);manifest['diagnostic_videos']={'face':result} if result else {}
         manifest['output_sha256']=file_hash(destination);manifest['outputs']={'video':str(destination),'bundle':str(out/'animation'),'observations':str(out/'observations'),'manifest':str(out/'manifest.json')}
+        def glb():
+            from .export.glb import export as export_glb,verify as verify_glb
+            log('EXPORT animated GLB');path=out/'outputs/animation.glb';stage=export_glb(out/'animation',config,timeline['fps'],path,out/'logs/glb-export.log')
+            stage['verification']=verify_glb(path,out/'animation',face);stage['path']=str(path)
+            if stage['verification']['max_joint_position_error_m']>.001:manifest['warnings'].append('GLB joint positions differ from the bundle by more than 1 mm')
+            return stage
+        exported=optional('animated GLB export',glb);manifest['stages']['glb_export']=exported or {'status':'unavailable'}
+        if exported:manifest['outputs']['glb']=exported['path']
         if output:
             output=Path(output).resolve();output.parent.mkdir(parents=True,exist_ok=True)
             # Exclusive create prevents accidental replacement, including races.
