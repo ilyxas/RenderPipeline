@@ -1,6 +1,5 @@
 {
   "schema_version": "xms.viggle_retarget.v1",
-  "asset_sha256": "b20530fe8acf51d659028beb1abb0eda13bf57ab4d3020dc95a068931885e801",
   "source_rig": "Viggle Motion 3D metahuman_body (86 joints), GLB export",
   "axis_offset": {
     "note": "Xandra world bone frame = Viggle world bone frame @ offset. Measured 88.3 deg about +Y on rest-matched bones (spine, legs, feet; residual = real rest-pose differences); the convention is the exact quarter turn.",
@@ -63,5 +62,7 @@
   "not_mapped": {
     "fingers": "channels=body; finger channels are left at rest",
     "twist": "Viggle has no arm twist bones; xms.solve.twist distributes arm roll"
-  }
+  },
+  "rig_sha256": "d35acb5da7262b1d97d54a00b8928c41a71d9c0794d5b67ee46ac662d3749bd3",
+  "binding": "registered skeleton (profile files rig.npz); any clothing asset with this rig"
 }

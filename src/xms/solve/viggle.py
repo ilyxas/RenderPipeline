@@ -29,7 +29,7 @@ def continuous(q):
 
 def retarget(world,pelvis,rest_pelvis,times,source_times,profile,rig,spec):
     """world: {joint: (n,3,3) Viggle world rotations}; pelvis: (n,3) Viggle world pelvis; rest_pelvis: (3,)."""
-    if spec['asset_sha256']!=profile['asset_sha256']:raise ValueError('Viggle retarget spec is registered for a different character asset')
+    if spec['rig_sha256']!=profile['files']['rig.npz']:raise ValueError('Viggle retarget spec is registered for a different skeleton')
     b=neutral(profile,rig,times,source_times);a=b.arrays;names=profile['joint_names'];n=len(times)
     offset=Rotation.from_quat(spec['axis_offset']['xyzw']).as_matrix()
     armature=a['armature_transform'][:3,:3]/np.linalg.norm(a['armature_transform'][:3,:3],axis=0);actual=[]
