@@ -97,7 +97,19 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             from .qa.surface_collision import evaluate
             log('SURFACE QA '+surface_qa)
             surface=optional('surface QA',lambda:evaluate(chosen,config,out/'surface',surface_qa));manifest['stages']['surface']=surface or {'status':'unavailable'}
-            if surface and refine and surface['status']=='needs_review' and solver!='baseline':
+            skin=bool(surface) and any(row.get('witnesses') for row in surface.get('records',[]))
+            if skin and refine and surface['status']=='needs_review' and solver!='baseline':
+                # Stage-15 windowed refinement from exact skin witnesses: one candidate, fresh
+                # exact QA, every frozen gate must pass or the source stays (needs_review).
+                from .solve.collision_refine import refine as refine_collisions,accept as accept_collisions
+                trial=optional('bounded collision refinement',lambda:refine_collisions(b,surface))
+                if trial:
+                    write_bundle(trial,out/'animation-refined');trial_surface=optional('refined surface QA',lambda:evaluate(out/'animation-refined',config,out/'surface-refined',surface_qa))
+                    verdict=accept_collisions(surface,trial_surface,b,trial) if trial_surface else {'accepted':False,'gates':{'refined_surface_qa':False}}
+                    manifest['stages']['surface_refinement']={'passes':1,'method':'collision_refine','accepted':verdict['accepted'],'refinement':trial.metadata['collision_refinement'],'verdict':verdict,'surface':trial_surface}
+                    if verdict['accepted']:b=trial;chosen=out/'animation-refined';manifest['stages']['surface']=trial_surface;manifest['stages']['continuity']=continuity(trial)
+                    else:manifest['warnings'].append('Collision refinement rejected by frozen gates: '+', '.join(k for k,v in verdict['gates'].items() if not v)+'; source bundle kept (needs_review).')
+            elif surface and refine and surface['status']=='needs_review' and solver!='baseline':
                 from .solve.surface_refine import refine as refine_surface
                 trial=optional('one bounded surface refinement',lambda:refine_surface(b,surface))
                 if trial and not trial.metadata['surface_refinement']['passes']:

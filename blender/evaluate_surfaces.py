@@ -79,16 +79,23 @@ if skin:
             for region,pattern in skin['regions'].items():
                 if re.match(pattern,bone):return region+'_'+side.group(1)
         return 'body'
-    regions=[]
+    def chain_of(bone):
+        # The arm chain bone a skin vertex rides with (twist/corrective bones fold into it).
+        side=re.search(r'_([lr])$',bone)
+        if not side:return 'body'
+        for prefix,chain in (('lowerarm','lowerarm'),('upperarm','upperarm'),('hand','hand'),('wrist','hand'),('thumb','hand'),('index','hand'),('middle','hand'),('ring','hand'),('pinky','hand')):
+            if bone.startswith(prefix):return chain+'_'+side.group(1)
+        return 'body'
+    regions=[];attach=[];is_hand=[]
     for name in skin['meshes']:
         o=bpy.data.objects[name];groups={g.index:g.name for g in o.vertex_groups}
         for v in o.data.vertices:
-            weights={}
+            weights={};chains={}
             for g in v.groups:
                 bone=groups.get(g.group)
-                if bone in bones:weights[region_of(bone)]=weights.get(region_of(bone),0)+g.weight
-            regions.append(max(weights,key=weights.get) if weights else 'none')
-    regions=np.array(regions)
+                if bone in bones:weights[region_of(bone)]=weights.get(region_of(bone),0)+g.weight;chains[chain_of(bone)]=chains.get(chain_of(bone),0)+g.weight
+            regions.append(max(weights,key=weights.get) if weights else 'none');attach.append(max(chains,key=chains.get) if chains else 'body');is_hand.append(name=='F4_Hands')
+    regions=np.array(regions);attach=np.array(attach);is_hand=np.array(is_hand)
     masks=[(m,m.show_viewport) for name in skin['meshes'] for m in bpy.data.objects[name].modifiers if m.type=='MASK']
     for i in indices:
         sc=bpy.context.scene;sc.frame_set(i+1)
@@ -105,18 +112,22 @@ if skin:
             side=source[-1];query=np.flatnonzero(regions==source);tri=triangles[np.isin(triangle_region,skin['targets'][target])]
             tree=BVHTree.FromPolygons([Vector(v) for v in vertices],tri.tolist(),all_triangles=True)
             row={'sample':i,'source':'skin:'+source,'target':'skin:'+target,'kind':'skin_witness','candidate_depths_m':[],'worst_evidence':None,'signed_interior_available':True,'intersection_coverage_complete':True,'sign_method':'generalized_winding_number','query_points':int(len(query)),'target_triangles':int(len(tri))}
-            near=[];found=[]
+            near=[];found=[];row['witnesses']=[]
             for k in query:
-                location,normal,_,distance=tree.find_nearest(Vector(vertices[k]))
-                if location is not None and distance<skin['candidate_radius_m']:near.append(k);found.append((location,distance))
+                location,normal,face,distance=tree.find_nearest(Vector(vertices[k]))
+                if location is not None and distance<skin['candidate_radius_m']:near.append(k);found.append((location,distance,face))
             if near:
                 w=np.abs(winding_numbers(vertices[near],vertices,tri))
-                for k,(location,distance),wk in zip(near,found,w):
+                for k,(location,distance,face),wk in zip(near,found,w):
                     if wk>.5 and distance>skin['margin_m']:
                         row['candidate_depths_m'].append(float(distance))
+                        # Hand skin on anything is intentional contact; forearm skin is penetration.
+                        kind='contact' if is_hand[k] else 'body' if target=='body' else 'arm_arm'
+                        row['witnesses'].append({'class':kind,'side':side,'depth_m':float(distance),'point_blender_m':list(vertices[k]),'target_blender_m':list(location),'attach':str(attach[k]),'target_attach':'body' if target=='body' else str(attach[tri[face][0]])})
                         if row['worst_evidence'] is None or distance>row['worst_evidence']['depth_m']:
                             push=(location-Vector(vertices[k])).normalized()
                             row['worst_evidence']={'depth_m':float(distance),'point_blender_m':list(vertices[k]),'normal_blender':list(push),'side':side,'pair':f'{source}->{target}'}
+            row['witnesses']=sorted(row['witnesses'],key=lambda x:-x['depth_m'])[:80]
             records.append(row)
 result=assess(records,planned,indices);result.update(bundle_hash=bundle_hash(a.bundle),blender_version=bpy.app.version_string,blender_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 (out/'quality.json').write_text(json.dumps(result,indent=2))
