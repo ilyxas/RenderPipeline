@@ -1,0 +1,69 @@
+{
+ "accepted": false,
+ "gates": {
+  "body_not_worse": false,
+  "body_meaningful_reduction": false,
+  "arm_arm_not_worse": false,
+  "arm_arm_meaningful_reduction": true,
+  "contact_not_worse": true,
+  "wrist_deviation_le_3cm": false,
+  "elbow_deviation_le_3cm": true,
+  "angular_gate_le_5deg": true,
+  "velocity_not_worse": true,
+  "acceleration_not_worse": false
+ },
+ "penetration_before": {
+  "body": {
+   "frames_over_5mm": 98,
+   "max_mm": 36.48146241903305,
+   "p95_mm": 25.07818657904863
+  },
+  "arm_arm": {
+   "frames_over_5mm": 107,
+   "max_mm": 26.852387934923172,
+   "p95_mm": 25.45143514871597
+  },
+  "contact": {
+   "frames_over_5mm": 14,
+   "max_mm": 28.340034186840057,
+   "p95_mm": 21.60582933574913
+  }
+ },
+ "penetration_after": {
+  "body": {
+   "frames_over_5mm": 110,
+   "max_mm": 26.818716898560524,
+   "p95_mm": 26.38295851647854
+  },
+  "arm_arm": {
+   "frames_over_5mm": 97,
+   "max_mm": 28.805295005440712,
+   "p95_mm": 18.569499533623453
+  },
+  "contact": {
+   "frames_over_5mm": 23,
+   "max_mm": 26.49783529341221,
+   "p95_mm": 20.556829869747148
+  }
+ },
+ "contact_same_set": {
+  "points": 471,
+  "p95_before_mm": 23.723608814179897,
+  "p95_after_mm": 1.564598293043673
+ },
+ "deviation_m": {
+  "hand_l": 0.028537298839072734,
+  "hand_r": 0.03169238504011935,
+  "lowerarm_l": 0.018877296372147395,
+  "lowerarm_r": 0.01887727659793657
+ },
+ "dynamics_before": {
+  "max_step_deg": 10.127997584091078,
+  "max_step_change_deg": 2.8696332889607925
+ },
+ "dynamics_after": {
+  "max_step_deg": 10.112716578028317,
+  "max_step_change_deg": 5.374783977413367
+ },
+ "video_review": "pending (human)"
+}
