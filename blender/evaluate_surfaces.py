@@ -96,6 +96,7 @@ if skin:
                 if bone in bones:weights[region_of(bone)]=weights.get(region_of(bone),0)+g.weight;chains[chain_of(bone)]=chains.get(chain_of(bone),0)+g.weight
             regions.append(max(weights,key=weights.get) if weights else 'none');attach.append(max(chains,key=chains.get) if chains else 'body');is_hand.append(name=='F4_Hands')
     regions=np.array(regions);attach=np.array(attach);is_hand=np.array(is_hand)
+    skin_result={}
     masks=[(m,m.show_viewport) for name in skin['meshes'] for m in bpy.data.objects[name].modifiers if m.type=='MASK']
     for i in indices:
         sc=bpy.context.scene;sc.frame_set(i+1)
@@ -108,6 +109,13 @@ if skin:
         vertices=np.array(vertices);triangles=np.array(triangles)
         if len(vertices)!=len(regions):raise RuntimeError('Evaluated skin topology differs from the registered mesh')
         triangle_region=regions[triangles[:,0]]
+        if 'capsules' not in skin_result:
+            # Forearm capsule radii from the skin around the elbow->wrist axis (rigid, so any frame works).
+            skin_result['capsules']={}
+            for side in 'lr':
+                e=np.array(arm.matrix_world@arm.pose.bones['lowerarm_'+side].head);h=np.array(arm.matrix_world@arm.pose.bones['hand_'+side].head);axis=h-e;length=float(np.linalg.norm(axis))
+                pts=vertices[(regions=='forearm_hand_'+side)&(attach=='lowerarm_'+side)];t=(pts-e)@axis/length**2;radial=np.linalg.norm(pts-(e+np.outer(t,axis)),axis=1)
+                skin_result['capsules'][side]={'r_elbow_m':float(np.median(radial[(t>=0)&(t<.25)])),'r_wrist_m':float(np.median(radial[(t>.75)&(t<=1)])),'source':'median skin distance to the lowerarm->hand axis'}
         for source,target in skin['pairs']:
             side=source[-1];query=np.flatnonzero(regions==source);tri=triangles[np.isin(triangle_region,skin['targets'][target])]
             tree=BVHTree.FromPolygons([Vector(v) for v in vertices],tri.tolist(),all_triangles=True)
@@ -123,11 +131,11 @@ if skin:
                         row['candidate_depths_m'].append(float(distance))
                         # Hand skin on anything is intentional contact; forearm skin is penetration.
                         kind='contact' if is_hand[k] else 'body' if target=='body' else 'arm_arm'
-                        row['witnesses'].append({'class':kind,'side':side,'depth_m':float(distance),'point_blender_m':list(vertices[k]),'target_blender_m':list(location),'attach':str(attach[k]),'target_attach':'body' if target=='body' else str(attach[tri[face][0]])})
+                        row['witnesses'].append({'vertex':int(k),'class':kind,'side':side,'depth_m':float(distance),'point_blender_m':list(vertices[k]),'target_blender_m':list(location),'attach':str(attach[k]),'target_attach':'body' if target=='body' else str(attach[tri[face][0]])})
                         if row['worst_evidence'] is None or distance>row['worst_evidence']['depth_m']:
                             push=(location-Vector(vertices[k])).normalized()
                             row['worst_evidence']={'depth_m':float(distance),'point_blender_m':list(vertices[k]),'normal_blender':list(push),'side':side,'pair':f'{source}->{target}'}
             row['witnesses']=sorted(row['witnesses'],key=lambda x:-x['depth_m'])[:80]
             records.append(row)
-result=assess(records,planned,indices);result.update(bundle_hash=bundle_hash(a.bundle),blender_version=bpy.app.version_string,blender_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+result=assess(records,planned,indices);result['skin_capsules']=skin_result.get('capsules') if skin else None;result.update(bundle_hash=bundle_hash(a.bundle),blender_version=bpy.app.version_string,blender_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 (out/'quality.json').write_text(json.dumps(result,indent=2))

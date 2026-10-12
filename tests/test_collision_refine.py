@@ -26,7 +26,7 @@ class CollisionRefine(unittest.TestCase):
         q=p+np.array([0,0,-1.])*depth
         return {'class':'body','side':'l','depth_m':depth,'point_blender_m':to_blender(p),'target_blender_m':to_blender(q),'attach':'lowerarm_l','target_attach':'body'}
     def point_after(self,bundle,frame,w):
-        arms=cr.Arms(self.b,np.arange(9));term=cr.build_terms(arms,[{**w,'frame':frame}])[0]
+        arms=cr.Arms(self.b,np.arange(9));term=cr.build_terms(arms,[{**w,'frame':frame}])[0][0]
         world=evaluate(bundle,frame)[self.names.index('lowerarm_l')];return (world@term['p_local'])[:3],term
     def test_penetrating_point_exits_and_source_is_untouched(self):
         before=copy.deepcopy(self.b.arrays['local_rotation_delta']);w=self.witness(4,.004)
@@ -44,6 +44,19 @@ class CollisionRefine(unittest.TestCase):
         report={'records':[{'sample':4,'witnesses':[self.witness(4)]}]}
         verdict=cr.accept(report,report,self.b,copy.deepcopy(self.b))
         self.assertFalse(verdict['accepted']);self.assertFalse(verdict['gates']['body_meaningful_reduction'])
+
+
+
+class CollisionMath(unittest.TestCase):
+    def test_crossing_segments_closest_points(self):
+        p0,p1=np.array([[-1.,0,0]]),np.array([[1.,0,0]]);q0,q1=np.array([[0.,-1,.05]]),np.array([[0.,1,.05]])
+        s,t,P,Q=cr.segment_closest(p0,p1,q0,q1);np.testing.assert_allclose(P,[[0,0,0]],atol=1e-12);np.testing.assert_allclose(Q,[[0,0,.05]],atol=1e-12)
+    def test_contact_only_where_the_source_touched_with_hysteresis(self):
+        def w(f,d):return {'class':'contact','side':'l','frame':f,'depth_m':d,'target_attach':'body'}
+        # Frames 0-4 touch (<10 mm); frame 5 at 20 mm stays inside the 25 mm exit; 6 at 40 mm releases; 8 alone is too short.
+        ws=[w(f,.004) for f in range(5)]+[w(5,.02),w(6,.04),w(8,.004)]
+        active=cr.contact_episodes(ws,10)[('l','body')]
+        np.testing.assert_array_equal(active,[1,1,1,1,1,1,0,0,0,0])
 
 
 if __name__=='__main__':unittest.main()
