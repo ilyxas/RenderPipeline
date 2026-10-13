@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "status": "experimental_dimensions_not_surface_validated",
+  "margin_m": 0.005,
+  "angular_correction_budget_degrees": 5,
+  "translation_correction_budget_m": 0.03,
+  "capsules": {
+    "torso": {
+      "start": "pelvis",
+      "end": "neck_01",
+      "radius_m": 0.13
+    },
+    "forearm_l": {
+      "start": "lowerarm_l",
+      "end": "hand_l",
+      "radius_m": 0.04
+    },
+    "forearm_r": {
+      "start": "lowerarm_r",
+      "end": "hand_r",
+      "radius_m": 0.04
+    }
+  },
+  "pairs": [
+    [
+      "forearm_l",
+      "torso"
+    ],
+    [
+      "forearm_r",
+      "torso"
+    ]
+  ]
+}
