@@ -1,4 +1,4 @@
-# Текущий статус (на 2026-10-12, ночь)
+# Текущий статус (на 2026-10-14)
 
 ## Коротко
 
@@ -21,10 +21,12 @@
 ## Персонаж и ассеты (локально, вне Git)
 
 - Конфиг: `.xms/config.json` (в Git не попадает). Запасной для старого вида: `.xms/config.v3-top-shorts.json`.
-- Сейчас выбран профиль **`v6`** — Wardrobe v07 (спорт-топ и шорты `SP_*` с кружевом `SP_Floral_Lace_*`, улучшенные волосы): `blender/Xandra_Wardrobe_v07.blend` (вне Git, sha256 `f63cef81…`). Тестовый прогон e479064c из кэша Viggle: run `20261014-203601-27f2cbbb` (MP4 + GLB, визуальная приёмка не проводилась). Запасные конфиги: `.xms/config.v5-wardrobe.json` (v06; самого `Xandra_Wardrobe_v06_upright.blend` на диске уже нет, этот конфиг не запустится), `.xms/config.v4-blacklace.json`.
+- Для Wardrobe v07 правильный профиль **`v7`**: `.xms/config.v7-wardrobe-v07-asset.json`. Режим look `asset`: пайплайн не перекрашивает ассет, GLB с 8 весами, маской кожи и real-time конверсиями ткани. Проверочный прогон: `20261014-213538-4bf23915`. Подробно в [sessions/2026-10-14.md](sessions/2026-10-14.md). `.xms/config.json` указывает на `v7`. Профиль `v6` — это тот же ассет со старой подкраской, все его подмены теперь видны в манифесте и в отчёте.
+- `blender/Xandra_Wardrobe_v07.blend` лежит вне Git, sha256 `f63cef81…`. Запасные конфиги: `.xms/config.v6-wardrobe-v07.json`, `.xms/config.v5-wardrobe.json` (v06; ассета на диске уже нет, не запустится), `.xms/config.v4-blacklace.json`.
+- Каждый прогон пишет `look_overrides` (правки вида «было → стало»), `drivers` и `driver_inputs` (например `Sport_Set`), а `animation.export.json` — веса, маски и предупреждения.
 - Профиль `v4` — Black Lace: `~/Xandra/model/Xandra_BlackLace_Fitting_v01.blend` (sha256 `c0d5de55…`).
 - Профиль `v3` — топ и шорты: `blender/Xandra_Animations.blend` (Git LFS, sha256 `b20530fe…`).
-- Скелет у v3, v4, v5 и v6 одинаковый (341 кость, rest идентичен) → бандлы, пределы руки и карта Viggle подходят к обоим.
+- Скелет у v3–v7 одинаковый (341 кость, rest идентичен) → бандлы, пределы руки и карта Viggle подходят к обоим.
 - Сцена спальни: `~/codex/clip02_blender_kit/blend/clip02_scene.blend` — внешняя зависимость от старой папки Codex.
 - Кэш Viggle: `~/.cache/xms/viggle/<sha256 видео>-fps24/`. Удалённый кэш клиент восстанавливает бесплатно из уже оплаченной задачи на стороне Viggle (`6f93dee`). Сейчас в кэше: 8 базовых клипов, `sing.mp4` и два ролика из uploads (спиной к столу; в розовом платье).
 - Окружение: `.venv` на Python 3.13 по lock-файлу `environments/stage0-macos-arm64.txt` + scipy 1.18.1. Blender 4.5.13 LTS, Apple M4 (Metal).
@@ -36,7 +38,7 @@
 
 ## Проверки
 
-- 74 unit-теста, 1 пропускается (нужен реальный образец Viggle в `~/.cache/xms/viggle/text-probe/`, кэш удалён).
+- 86 unit-тестов, 1 пропускается (нужен реальный образец Viggle в `~/.cache/xms/viggle/text-probe/`, кэш удалён).
 - Запуск: `PYTHONPATH=src:tests .venv/bin/python -m unittest discover -s tests -p 'test_*.py'`.
 
 ## Ключевые документы

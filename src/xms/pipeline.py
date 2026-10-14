@@ -144,7 +144,10 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         log('RENDER '+quality)
         manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log',quality=quality,camera_plan=out/'camera-plan.json',resolution=plan['resolution'])
         rendered=json.loads((out/'frames/manifest.json').read_text());assert rendered['bundle_hash']==h
-        manifest['stages']['render']=rendered;save()
+        manifest['stages']['render']=rendered;manifest['look_overrides']=rendered.get('look_overrides',[])
+        if any(r.get('kind')=='override' for r in manifest['look_overrides']):
+            manifest['warnings'].append('Render look differs from the asset: the profile overrides '+', '.join(sorted({r['material'] for r in manifest['look_overrides'] if r.get('kind')=='override'})))
+        save()
         log('ENCODE main video');destination=out/'outputs/video.mp4';encode(out/'frames',video,timeline,config['ffmpeg'],destination,out/'logs/encode.log')
         manifest['verification']=verify(destination,timeline,plan['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/full-decode.log')
         if face_closeup:
@@ -159,6 +162,11 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             from .export.glb import export as export_glb,verify as verify_glb
             log('EXPORT animated GLB');path=out/'outputs/animation.glb';stage=export_glb(out/'animation',config,timeline['fps'],path,out/'logs/glb-export.log')
             stage['verification']=verify_glb(path,out/'animation',face);stage['path']=str(path)
+            record=json.loads(path.with_suffix('.export.json').read_text())
+            stage.update({k:record.get(k) for k in ('look_mode','influences','masks','driver_inputs','visible_sets','primitives_with_joints_1')})
+            stage['influences']={k:v for k,v in (record.get('influences') or {}).items() if k!='per_mesh'}
+            manifest['look_overrides']=manifest.get('look_overrides',[])+record.get('look_overrides',[])
+            manifest['warnings']+=['GLB: '+w for w in record.get('warnings',[])]
             if stage['verification']['max_joint_position_error_m']>.001:manifest['warnings'].append('GLB joint positions differ from the bundle by more than 1 mm')
             return stage
         exported=optional('animated GLB export',glb);manifest['stages']['glb_export']=exported or {'status':'unavailable'}

@@ -98,14 +98,18 @@ if skin:
     regions=np.array(regions);attach=np.array(attach);is_hand=np.array(is_hand)
     skin_result={}
     masks=[(m,m.show_viewport) for name in skin['meshes'] for m in bpy.data.objects[name].modifiers if m.type=='MASK']
+    # Kept outfit drivers would switch the masks back on during evaluation; mute them meanwhile.
+    mask_drivers=[d for name in skin['meshes'] if bpy.data.objects[name].animation_data for d in bpy.data.objects[name].animation_data.drivers if d.data_path.startswith('modifiers[') and d.data_path.endswith('.show_viewport')]
     for i in indices:
         sc=bpy.context.scene;sc.frame_set(i+1)
+        for d in mask_drivers:d.mute=True
         for m,_ in masks:m.show_viewport=False
         graph=bpy.context.evaluated_depsgraph_get();vertices=[];triangles=[];offset=0
         for name in skin['meshes']:
             e=bpy.data.objects[name].evaluated_get(graph);mesh=e.to_mesh();mesh.calc_loop_triangles()
             vertices+= [list(e.matrix_world@v.co) for v in mesh.vertices];triangles+=[[k+offset for k in t.vertices] for t in mesh.loop_triangles];offset=len(vertices);e.to_mesh_clear()
         for m,state in masks:m.show_viewport=state
+        for d in mask_drivers:d.mute=False
         vertices=np.array(vertices);triangles=np.array(triangles)
         if len(vertices)!=len(regions):raise RuntimeError('Evaluated skin topology differs from the registered mesh')
         triangle_region=regions[triangles[:,0]]

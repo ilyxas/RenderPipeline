@@ -1,0 +1,75 @@
+{
+  "schema_version": "xms.look.v1",
+  "id": "xandra_wardrobe_v07_asset",
+  "mode": "asset",
+  "reference": "Xandra_Wardrobe_v07.blend carries its own look (hair baked by skin_hair_v07.py, skin specular 0.30, SP4_* fabric); render applies nothing. glb: real-time conversions ported from Voyager export_sport_glb.py (reference Xandra_Animated_v07_8bone.glb).",
+  "surface_qa_pairs": [
+    [
+      "F4_Hands",
+      "SP_VNeck_Racerback_Top"
+    ],
+    [
+      "F4_Hands",
+      "SP_Shorts"
+    ]
+  ],
+  "glb": {
+    "influences": 8,
+    "hair_alpha": {
+      "material": "MI_X3D_Hair_V7"
+    },
+    "lace_alpha": {
+      "material": "SP4_Floral_Lace",
+      "size": 1024,
+      "gamma": 0.6,
+      "base_color": [
+        0.0035,
+        0.0035,
+        0.004
+      ]
+    },
+    "normal_maps": {
+      "uv_map": "GarmentUV",
+      "tile": 512,
+      "plain_u_scale": 52.083333,
+      "materials": {
+        "SP4_Rib_Knit": [
+          420,
+          8,
+          0.012,
+          1.0,
+          0.45
+        ],
+        "SP4_Jersey": [
+          0,
+          0,
+          0.012,
+          0.0,
+          0.45
+        ],
+        "SP4_Binding": [
+          0,
+          0,
+          0.012,
+          0.0,
+          0.45
+        ],
+        "SP4_Stitch": [
+          0,
+          0,
+          0.012,
+          0.0,
+          0.45
+        ]
+      }
+    },
+    "realtime_fabric": {
+      "prefix": "SP4_",
+      "sheen": 0.0,
+      "specular": 0.35,
+      "roughness": 0.62,
+      "base": 0.0045,
+      "blue_ratio": 1.12
+    }
+  }
+}
