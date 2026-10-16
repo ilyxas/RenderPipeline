@@ -16,6 +16,7 @@ class CalibrationConfig:
     # The hinge bend measured in a found rest baseline is treated as tracking bias and
     # removed by remapping [bias, 180] -> [0, 180] (see solver.debias_bend).
     hinge_bias_correction: bool = True
+    max_hinge_bias_deg: float = 30.0  # a larger "rest bend" is not tracker bias; cap it
     min_arm_abduction_deg: float = 10.0   # A-pose .. T-pose band, measured from the trunk
     max_arm_abduction_deg: float = 100.0
     # Rebuild landmark depth from the 2D image points and constant actor lengths (depth.py).

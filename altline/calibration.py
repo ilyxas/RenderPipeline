@@ -236,14 +236,14 @@ def rest_references(frames, idx: list[int], skel: Skeleton) -> dict:
     return out
 
 
-def hinge_bias(frames, idx: list[int], enabled: bool) -> dict[str, float]:
+def hinge_bias(frames, idx: list[int], enabled: bool, cap_deg: float = 30.0) -> dict[str, float]:
     """Median elbow/knee bend in the rest baseline (degrees); zeros when disabled."""
     keys = {"elbow_l": "left_elbow_bend", "elbow_r": "right_elbow_bend",
             "knee_l": "left_knee_bend", "knee_r": "right_knee_bend"}
     if not enabled:
         return {k: 0.0 for k in keys}
     feats = [rest_features(frames[i][0]) for i in idx]
-    return {k: float(np.median([f[v] for f in feats])) for k, v in keys.items()}
+    return {k: min(cap_deg, float(np.median([f[v] for f in feats]))) for k, v in keys.items()}
 
 
 def _actor_lengths(frames, idx, min_vis: float) -> dict[str, float | None]:
@@ -264,13 +264,15 @@ def _rebuild_depth(raw: dict, frames, idx, actor) -> tuple[list, dict]:
     scale = pixel_scale([pts[i] for i in idx], actor)
     lengths = {**actor, **planar_lengths(pts, idx, scale)}
     out, max_dz = [], []
+    prev = None
     for fr, p in zip(frames, pts):
         if fr is None:
             out.append(None)
             max_dz.append(None)
+            prev = None
             continue
         joints, vis = fr
-        rec, dz = reconstruct(joints, p, scale, lengths)
+        rec, dz, prev = reconstruct(joints, p, scale, lengths, prev)
         vis = dict(vis)
         derived_joints(rec, vis)
         out.append((rec, vis))
@@ -323,7 +325,8 @@ def calibrate(raw_path: Path, out_dir: Path, skel: Skeleton, cfg: CalibrationCon
         "rest_alignment": align.tolist(),
         "rest_alignment_angle_deg": float(np.degrees(np.arccos(np.clip((np.trace(align) - 1) / 2, -1, 1)))),
         "rest_references": rest_references(frames, idx, skel),
-        "hinge_bias_deg": hinge_bias(frames, idx, base["rest_pose_found"] and cfg.hinge_bias_correction),
+        "hinge_bias_deg": hinge_bias(frames, idx, base["rest_pose_found"] and cfg.hinge_bias_correction,
+                                     cfg.max_hinge_bias_deg),
         "actor_lengths_m": actor,
         "target_lengths_m": target,
         "target_over_actor": ratios,

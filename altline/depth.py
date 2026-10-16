@@ -51,6 +51,8 @@ for _s, _side in (("l", "left"), ("r", "right")):
 # length-based depth is used in full (cos 14 deg and cos 32 deg)
 PLANAR_TRACKER_RATIO = 0.97
 PLANAR_FULL_LENGTH_RATIO = 0.85
+# tracker depth of at least this fraction of the segment length decides the depth sign
+SIGN_CONFIDENT = 0.3
 
 
 def _smoothstep(x: float, lo: float, hi: float) -> float:
@@ -89,36 +91,36 @@ def pixel_scale(frames_2d: list[dict[str, np.ndarray]], lengths: dict[str, float
     return float(np.median(ratios))
 
 
-def planar_lengths(frames_2d: list[dict[str, np.ndarray] | None], idx: list[int], scale: float,
-                   percentile: float = 98.0) -> dict[str, float]:
-    """Segment lengths for the depth rebuild, measured in the image, not by the tracker.
-
-    A segment's projection is never longer than the segment (weak perspective), so its
-    length is the larger of the rest-baseline projection (where these segments lie in the
-    image plane) and a high percentile of its projection over the whole clip. The tracker's
-    own 3D lengths are not used here: they carry its depth noise, and the rebuild is very
-    sensitive to L near the image plane (L 10 % too long on a planar forearm already adds
-    ~11 cm of false depth).
+def planar_lengths(frames_2d: list[dict[str, np.ndarray] | None], idx: list[int], scale: float) -> dict[str, float]:
+    """Segment lengths for the depth rebuild: their projection in the rest baseline, where
+    these segments lie in the image plane. Not the tracker's 3D lengths (they carry its
+    depth noise, and the rebuild is very sensitive to L near the image plane), and not a
+    high percentile over the clip (the camera is perspective: a limb moved toward it looks
+    longer, which v2 turned into false depth at rest).
     """
     out = {}
     for parent, child, key, from_length in TREE:
         if not from_length or key in out:
             continue
-        rest = [np.linalg.norm(frames_2d[i][child] - frames_2d[i][parent]) for i in idx]
-        clip = [np.linalg.norm(p[child] - p[parent]) for p in frames_2d if p is not None]
-        out[key] = scale * float(max(np.median(rest), np.percentile(clip, percentile)))
+        out[key] = scale * float(np.median([np.linalg.norm(frames_2d[i][child] - frames_2d[i][parent]) for i in idx]))
     return out
 
 
 def reconstruct(world: dict[str, np.ndarray], pts: dict[str, np.ndarray], scale: float,
-                lengths: dict[str, float]) -> tuple[dict[str, np.ndarray], dict[str, float]]:
-    """Rebuild canonical joint positions; returns (joints, per-segment depth change in m).
+                lengths: dict[str, float], prev_dz: dict[str, float] | None = None
+                ) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, float]]:
+    """Rebuild canonical joint positions.
 
-    `world` holds canonical tracker positions (including midpoints); its depth signs are used.
+    Returns (joints, per-segment depth change vs the tracker in m, per-segment dz in m).
+    `world` holds canonical tracker positions (including midpoints). The depth sign comes
+    from the tracker only when it is confident (|dz| >= SIGN_CONFIDENT * L); otherwise the
+    sign that continues the previous frame's dz is kept (`prev_dz`), so a tracker depth
+    hovering around zero cannot flip a joint from in front of the body to behind it.
     """
     out = {"hip_mid": np.zeros(3)}
-    dz_change = {}
+    dz_change, dz_out = {}, {}
     for parent, child, key, from_length in TREE:
+        seg = f"{parent}->{child}"
         d2 = (pts[child] - pts[parent]) * scale
         tracker = world[child] - world[parent]
         L = lengths.get(key)
@@ -128,6 +130,9 @@ def reconstruct(world: dict[str, np.ndarray], pts: dict[str, np.ndarray], scale:
             ratio = float(np.linalg.norm(d2)) / L
             mag = np.sqrt(max(L * L - float(d2 @ d2), 0.0))
             sign = 1.0 if tracker[2] >= 0 else -1.0
+            prev = None if prev_dz is None else prev_dz.get(seg)
+            if prev is not None and abs(tracker[2]) < SIGN_CONFIDENT * L:
+                sign = 1.0 if abs(mag - prev) <= abs(-mag - prev) else -1.0
             # Near the image plane sqrt(L^2 - d^2) is ill-conditioned (a 3 % shorter
             # projection already means 14 deg of depth), so there the tracker's own depth is
             # kept, capped at what the length allows; clearly foreshortened segments take
@@ -135,8 +140,9 @@ def reconstruct(world: dict[str, np.ndarray], pts: dict[str, np.ndarray], scale:
             w = _smoothstep(ratio, PLANAR_FULL_LENGTH_RATIO, PLANAR_TRACKER_RATIO)
             dz = w * float(np.clip(tracker[2], -mag, mag)) + (1.0 - w) * sign * mag
         out[child] = out[parent] + np.array([d2[0], d2[1], dz])
-        dz_change[f"{parent}->{child}"] = float(dz - tracker[2])
+        dz_change[seg] = float(dz - tracker[2])
+        dz_out[seg] = float(dz)
     for name in FACE_POINTS:
         if name in world:
             out[name] = out["nose"] + (world[name] - world["nose"])
-    return out, dz_change
+    return out, dz_change, dz_out

@@ -178,12 +178,12 @@ class DepthTests(unittest.TestCase):
         pts = {"hip_mid": np.zeros(2), "a": np.zeros(2), "b": np.array([planar, 0.0]) / 0.002}
         return world, pts
 
-    def rebuild(self, world, pts, L):
+    def rebuild(self, world, pts, L, prev=None):
         from altline import depth
         saved = depth.TREE
         depth.TREE = [("hip_mid", "a", "x", False), ("a", "b", "seg", True)]
         try:
-            out, _ = depth.reconstruct(world, pts, 0.002, {"seg": L})
+            out, _, _ = depth.reconstruct(world, pts, 0.002, {"seg": L}, prev)
         finally:
             depth.TREE = saved
         return out["b"][2]
@@ -198,6 +198,11 @@ class DepthTests(unittest.TestCase):
         L = 0.25
         world, pts = self.segment(0.03, 1.0, L, planar=0.248)  # ratio 0.992
         self.assertAlmostEqual(self.rebuild(world, pts, L), 0.03, places=9)
+
+    def test_unsure_tracker_sign_does_not_flip_the_joint(self):
+        L = 0.25
+        world, pts = self.segment(-0.02, 1.0, L, planar=0.15)  # tracker barely behind: unsure
+        self.assertGreater(self.rebuild(world, pts, L, prev={"a->b": 0.19}), 0.0)
 
     def test_sign_comes_from_tracker(self):
         L = 0.25
