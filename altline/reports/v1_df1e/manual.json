@@ -1,0 +1,65 @@
+{
+ "clip_content": "high front kick with the actor's LEFT leg, held in the air (verified in source)",
+ "verdict": "fail: the extended leg points straight UP and slightly BACKWARD (vertical split) instead of forward-up; thigh twist wanders +-68 deg; foot rotated 40 deg by a clamp",
+ "visual_findings": {
+  "method": "ffmpeg frame extraction from preview/preview.mp4 and the source video, inspected by eye; numbers from physical_plausibility_auto",
+  "findings": [
+   "f42 rest OK.",
+   "f86 kick chamber: knee bent ~100-120 deg, thigh forward/horizontal - matches source.",
+   "f85->86: knee extends 47 deg in one frame (1309 deg/s), shin_l 21064 deg/s^2 at f86.",
+   "f100, f130: front view looks plausible, but the SIDE view shows the leg vertical in the frontal plane: thigh 150-155 deg from down, thigh direction z = -0.06 at f100 (behind the body plane). Foot at 1.68-1.71 m (rig head top is 1.68 m). Source: leg forward-up at ~60 deg elevation, clearly in front of the body. Tracker thigh direction itself is (0.26..0.33, 0.93..0.96, 0.04..0.20) -> tracker depth loss.",
+   "Thigh_l twist swings +67.5 deg (f90) -> -67.9 (f100) -> ~0 (f108-116) -> -28 (f128-144) while the leg is held still: knee appears to rotate inward/outward.",
+   "shin_l twist -84 deg clamped to -30 (frames 105-123, run of 19 frames > max_bridge_frames 12 -> left clamped, not bridged) -> foot_l world direction off by up to 40 deg vs target (f102-123).",
+   "Trunk tilts sideways ~11 deg (pelvis Y x=-0.19), source also leans slightly. Stance foot stays on floor."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "A1",
+   "severity": "blocker",
+   "area": "tracker / new depth-recovery stage",
+   "file": "altline/calibration.py (new function after load_frames) or new altline/depth.py; observations.py variant",
+   "change": "MediaPipe world landmarks collapse depth for limbs pointing at the camera. Use the constant actor lengths (actor_profile.actor_lengths_m) to recover depth: per segment, if length_ratio < 0.9, keep the image-plane direction from image_joints (x scaled by width/height aspect, metric scale from the baseline torso) and set |dz| = sqrt(L^2 - dxy^2), sign from MediaPipe world dz (fallback: temporal continuity). Cheap first experiment: rerun observations with --variant heavy and compare length_ratio and side views.",
+   "expected": "length_ratio of arm/leg segments within +-10%; front kick leg goes forward instead of up; hands come back onto face/shoulders. Done = side view of preview agrees with source on 85a9/0663/df1e; fail = hands still >15 cm from face/shoulders.",
+   "evidence": "tracker thigh_l unit direction y 0.93-0.96, z 0.04-0.20 at f100-144; length_ratio thigh_l min 0.70 (f94), shin_l 0.727 (f85)."
+  },
+  {
+   "id": "A5",
+   "severity": "major",
+   "area": "solver twist reference for thigh/upper arm",
+   "file": "altline/solver.py bone_targets() (thigh/upper_arm twist), altline/config.py SolverConfig.bend_twist_zero_deg/full_deg; altline/limits.py (add upper_arm/thigh twist limits)",
+   "change": "Thigh and upper-arm twist come from the knee/elbow bend plane with weight smoothstep(de-biased bend, 2, 10 deg). After de-biasing, tracker noise of the hinge (+-10 deg) lands right in that window, so the bend plane flips. Use the raw bend minus bias with a wider window (zero 15 deg, full 35 deg); when the weight is low take thigh twist from the foot heading (heel->toe projected) rather than inheriting; add twist limits upper_arm +-90 deg, thigh +-45 deg in limits.py (currently unlimited).",
+   "expected": "df1e thigh_l twist no longer swings +67.5 (f90) -> -67.9 (f100) -> 0 (f108) -> -28 (f128) while the leg is held still; thigh_l gate violations f100-137 disappear.",
+   "evidence": "thigh_l twist +67.5 (f90) / -67.9 (f100); de-biased knee bend 3-14 deg there -> partial twist weight frames 100-109, 119-144; thigh_l acc above gate in ~30 frames f69-137."
+  },
+  {
+   "id": "A4",
+   "severity": "major",
+   "area": "limits math (twist distribution, child compensation)",
+   "file": "altline/limits.py: _hinge(), clamp_bone(), apply_limits()",
+   "change": "(1) When a forearm/shin twist exceeds its limit and the hinge flex is < ~20 deg, move the excess twist into the parent (upper_arm/thigh) local rotation: with a straight limb both twists share the same axis, so the child's world orientation is preserved instead of being clamped away. (2) After any clamp that changes a bone's world rotation, recompute its children's local rotations from their pre-clamp world rotations (hand under forearm, foot under shin), then clamp the child. Today the child keeps its old local rotation and inherits the parent's correction.",
+   "expected": "061c: hand_r twist error (p95 19 deg) and forearm_r twist error (p95 25 deg) -> < 5 deg; df1e: foot_l world direction error 40 deg at f102-123 -> < 5 deg.",
+   "evidence": "shin_l max_clamp_correction 54.4 deg, unbridged run [105,123]; foot_l fk-vs-target 39.9 deg at f102-108, 27 frames > 10 deg."
+  },
+  {
+   "id": "A3",
+   "severity": "major",
+   "area": "temporal stability",
+   "file": "altline/limits.py apply_limits() mask; new filter step before solver (calibration output) ; altline/config.py LimitsConfig.spike_deg",
+   "change": "There is no temporal filtering at all, and the single-frame spike detector (spike_deg=25) did not fire once in 8 runs (0 bridged runs). Add (a) an anomaly mask from calibrated_pose length_ratio: |ratio-1| > 0.2 on the bone's segment -> anomalous, bridged by slerp; (b) a One-Euro filter (min_cutoff ~1.5 Hz, beta tuned on 690b/9645 so that clean motion is not lagged) on the quaternion log relative to the previous frame, or on landmarks before solving; (c) multi-frame glitch detection (departure from a 5-frame robust fit) instead of 1-frame slerp midpoint.",
+   "expected": "0663 f26-33 and 85a9 f20-27 glitches bridged; flagged bone-frames above the 3000 deg/s^2 gate drop by >70% without lag in the slow clips (compare peak timing of upper_arm in 690b before/after).",
+   "evidence": "81 bone-frames above gate (raw 93); shin_l 21064 deg/s^2 f86, upper_arm_l 17697 f90, foot_l 11852 f81, thigh_l 11167 f136."
+  }
+ ],
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted",
+ "review_notes": {
+  "math": "No numerical failures: max ||q|-1| = 0 in solver/limits output and <=6.9e-8 in the bundle (7-digit rounding); bundle matrices orthonormal to 3e-7; no hemisphere sign flips between consecutive frames; no rot_between near-180 deg cases; no twist correction > 120 deg (so no hidden elbow/knee inside-out flips absorbed by upper-arm/thigh twist). Solver re-run reproduces raw_rotations to <1e-14 deg. Degeneracy that matters: twist reference parallel to the bone (straight limbs) for upper_arm/thigh in most frames -> twist inherited (see A4/A5).",
+  "coordinate_space": "canon = (x,-y,-z) has det +1 (no mirror). Left/right and forward checks pass in 100% of frames in all runs (left shoulder/hip on +X, nose and toes on +Z, image left shoulder right of right shoulder). FK of the bundle matches the solver's target directions to <2 deg except where limits clamped a parent (hand_r 9.5 deg in 061c, foot_l 40 deg in df1e). Deviation from raw landmarks is a constant 10-19 deg on limbs = the hinge de-bias (by design, but see A2). Rest frames: trunk/head/legs within 1 deg of identity (neck 6-7, foot ~7); arms 12-19 deg (actor A-pose differs from rig A-pose, plus de-bias). Head rest yaw +5.8..+7.9 deg in every clip.",
+  "bone_lengths": "FK lengths exact (<=4.4e-16 m deviation), joint gaps constant. Actor-side length_ratio is the useful signal: arm segments drop to 0.48-0.66 and the kicking thigh to 0.70 exactly at the bad frames -> tracker depth collapse.",
+  "limits": "shin_l: 45 frames clamped, max correction 54.4 deg; frames 105-123 flagged anomalous but the run (19) exceeds max_bridge_frames=12, so the clamped pose is kept. The clamp hides a real problem upstream (thigh twist instability from the bend plane + depth loss) and moves the foot 40 deg away from the tracked direction."
+ },
+ "keyframe_images": {
+  "preview": "plots/preview_keyframes.png",
+  "source_strip(every 18th frame)": "plots/source_strip.png"
+ }
+}

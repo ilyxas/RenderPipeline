@@ -1,0 +1,55 @@
+{
+ "clip_content": "head turn to the actor's RIGHT with a slight tilt, body static (verified in source)",
+ "verdict": "fail on head: turn reaches -42 deg at f60 then decays to -13..-20 deg while the source holds ~50 deg; body OK and smooth",
+ "visual_findings": {
+  "method": "ffmpeg frame extraction from preview/preview.mp4 and the source video, inspected by eye; numbers from physical_plausibility_auto",
+  "findings": [
+   "Body static in all views, arms/legs match, 20 bone-frames above gate (all neck, f40-46, max 4822 deg/s^2 at f42).",
+   "Preview cannot show head orientation (head drawn as a single line) - judged from numbers: head world yaw -33.9 (f48), -41.9 (f60), then -18.6 (f72), -12.7 (f84), -14..-20 to the end.",
+   "Image evidence (2D ear separation ratio 0.48-0.65 vs baseline, nose offset -0.45 of ear span) says the head stays turned ~50 deg from f48 to f144. So the rig head 'returns' 25-30 deg on its own.",
+   "Chest co-rotates -22 deg at f58 (source torso looks frontal; image shoulder width shrinks only 7%) - hypothesis: tracker couples shoulders to the head.",
+   "Head roll max -6.7 deg (f46); the source tilt looks larger (not measured).",
+   "Rest head yaw +7.3 deg at the baseline although the actor looks straight."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "A6",
+   "severity": "major",
+   "area": "tracker (head) + calibration",
+   "file": "altline/solver.py bone_targets() head/neck; altline/calibration.py reference_pitch_offsets()",
+   "change": "Head yaw from MediaPipe world ears/nose is 2-3x too small and decays while the head is held turned. Estimate yaw from image_joints (ear separation ratio vs baseline -> |yaw| = acos(ratio), sign from nose offset relative to ear midpoint) and fuse with the world estimate (take the larger magnitude when ear visibility is high). Also calibrate full head rest orientation (yaw and roll, not only pitch): rest head yaw is +5.8..+7.9 deg in all 8 clips.",
+   "expected": "9645 head yaw reaches ~45-55 deg and holds; 5313 holds ~-50 deg from f48 to the end instead of decaying to -13..-20.",
+   "evidence": "FK yaw -41.9 (f60) vs -12.7 (f84) while image ear ratio stays 0.48-0.65; rest yaw +7.3 deg."
+  },
+  {
+   "id": "A8",
+   "severity": "minor",
+   "area": "preview",
+   "file": "altline/preview.py render()",
+   "change": "Head orientation is invisible (head is one line), so head-turn clips cannot be reviewed. Draw a nose/forward tick from the head bone's Z, a palm-normal tick for hands, and a top view (x-z) panel.",
+   "expected": "5313/9645 head yaw visible; forearm roll visible.",
+   "evidence": "head turn not visible in preview.mp4 at f58/f120."
+  },
+  {
+   "id": "A3",
+   "severity": "major",
+   "area": "temporal stability",
+   "file": "altline/limits.py apply_limits() mask; new filter step before solver (calibration output) ; altline/config.py LimitsConfig.spike_deg",
+   "change": "There is no temporal filtering at all, and the single-frame spike detector (spike_deg=25) did not fire once in 8 runs (0 bridged runs). Add (a) an anomaly mask from calibrated_pose length_ratio: |ratio-1| > 0.2 on the bone's segment -> anomalous, bridged by slerp; (b) a One-Euro filter (min_cutoff ~1.5 Hz, beta tuned on 690b/9645 so that clean motion is not lagged) on the quaternion log relative to the previous frame, or on landmarks before solving; (c) multi-frame glitch detection (departure from a 5-frame robust fit) instead of 1-frame slerp midpoint.",
+   "expected": "0663 f26-33 and 85a9 f20-27 glitches bridged; flagged bone-frames above the 3000 deg/s^2 gate drop by >70% without lag in the slow clips (compare peak timing of upper_arm in 690b before/after).",
+   "evidence": "neck 4822 deg/s^2 at f42 (tracker, identical raw)."
+  }
+ ],
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted",
+ "review_notes": {
+  "math": "No numerical failures: max ||q|-1| = 0 in solver/limits output and <=6.9e-8 in the bundle (7-digit rounding); bundle matrices orthonormal to 3e-7; no hemisphere sign flips between consecutive frames; no rot_between near-180 deg cases; no twist correction > 120 deg (so no hidden elbow/knee inside-out flips absorbed by upper-arm/thigh twist). Solver re-run reproduces raw_rotations to <1e-14 deg. Degeneracy that matters: twist reference parallel to the bone (straight limbs) for upper_arm/thigh in most frames -> twist inherited (see A4/A5).",
+  "coordinate_space": "canon = (x,-y,-z) has det +1 (no mirror). Left/right and forward checks pass in 100% of frames in all runs (left shoulder/hip on +X, nose and toes on +Z, image left shoulder right of right shoulder). FK of the bundle matches the solver's target directions to <2 deg except where limits clamped a parent (hand_r 9.5 deg in 061c, foot_l 40 deg in df1e). Deviation from raw landmarks is a constant 10-19 deg on limbs = the hinge de-bias (by design, but see A2). Rest frames: trunk/head/legs within 1 deg of identity (neck 6-7, foot ~7); arms 12-19 deg (actor A-pose differs from rig A-pose, plus de-bias). Head rest yaw +5.8..+7.9 deg in every clip.",
+  "bone_lengths": "FK lengths exact (<=4.4e-16 m deviation), joint gaps constant. Actor-side length_ratio is the useful signal: arm segments drop to 0.48-0.66 and the kicking thigh to 0.70 exactly at the bad frames -> tracker depth collapse.",
+  "limits": "Only cosmetic clamps (<=0.9 deg). Head/neck have no limits; the wrong head yaw is not a limit issue."
+ },
+ "keyframe_images": {
+  "preview": "plots/preview_keyframes.png",
+  "source_strip(every 18th frame)": "plots/source_strip.png"
+ }
+}
