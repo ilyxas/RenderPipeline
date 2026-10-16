@@ -1,0 +1,64 @@
+{
+ "clip_content": "actor's RIGHT arm raised sideways to overhead (verified in source)",
+ "verdict": "partial: arm path and straight elbow match; hand/forearm roll wrong by ~26 deg after f99; tracker jitter f85-100",
+ "visual_findings": {
+  "method": "ffmpeg frame extraction from preview/preview.mp4 and the source video, inspected by eye; numbers from physical_plausibility_auto",
+  "findings": [
+   "f10 rest: A-pose matches source, left/right correct (orange = actor right raised = image-left arm in source).",
+   "f88: right arm at ~30 deg above horizontal, straight; side view arm slightly forward (z +0.10 at hand). Matches source within depth uncertainty.",
+   "f99, f130: arm vertical overhead and straight (elbow flex <= 4.6 deg), hand at y=2.02 m. Matches source.",
+   "Forearm roll: tracker index->pinky gives 116 deg forearm twist (f~100-144) because the straight upper arm gets no twist (twist reference parallel to bone in 124/145 frames); limits clamp it to 90 -> palm orientation 26 deg off (twist error p95 25 deg forearm_r, 19 deg hand_r), hand_r direction changed 9.5 deg by the parent clamp (f113-144).",
+   "Feet hover 3.8 cm above floor at rest (toes up 7 deg). Head and trunk fine (yaw within +-9 deg).",
+   "No arm/torso penetration, no left/right swap, no backward elbow."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "A4",
+   "severity": "major",
+   "area": "limits math (twist distribution, child compensation)",
+   "file": "altline/limits.py: _hinge(), clamp_bone(), apply_limits()",
+   "change": "(1) When a forearm/shin twist exceeds its limit and the hinge flex is < ~20 deg, move the excess twist into the parent (upper_arm/thigh) local rotation: with a straight limb both twists share the same axis, so the child's world orientation is preserved instead of being clamped away. (2) After any clamp that changes a bone's world rotation, recompute its children's local rotations from their pre-clamp world rotations (hand under forearm, foot under shin), then clamp the child. Today the child keeps its old local rotation and inherits the parent's correction.",
+   "expected": "061c: hand_r twist error (p95 19 deg) and forearm_r twist error (p95 25 deg) -> < 5 deg; df1e: foot_l world direction error 40 deg at f102-123 -> < 5 deg.",
+   "evidence": "forearm_r raw twist 116 deg clamped by 26 deg (limits_report max_clamp_correction_deg 26.0, 46 frames clamped); hand_r fk direction change 9.5 deg f113-144."
+  },
+  {
+   "id": "A3",
+   "severity": "major",
+   "area": "temporal stability",
+   "file": "altline/limits.py apply_limits() mask; new filter step before solver (calibration output) ; altline/config.py LimitsConfig.spike_deg",
+   "change": "There is no temporal filtering at all, and the single-frame spike detector (spike_deg=25) did not fire once in 8 runs (0 bridged runs). Add (a) an anomaly mask from calibrated_pose length_ratio: |ratio-1| > 0.2 on the bone's segment -> anomalous, bridged by slerp; (b) a One-Euro filter (min_cutoff ~1.5 Hz, beta tuned on 690b/9645 so that clean motion is not lagged) on the quaternion log relative to the previous frame, or on landmarks before solving; (c) multi-frame glitch detection (departure from a 5-frame robust fit) instead of 1-frame slerp midpoint.",
+   "expected": "0663 f26-33 and 85a9 f20-27 glitches bridged; flagged bone-frames above the 3000 deg/s^2 gate drop by >70% without lag in the slow clips (compare peak timing of upper_arm in 690b before/after).",
+   "evidence": "forearm_r 15360 deg/s^2 at f99, hand_r 8317 at f87, upper_arm_r 8265 at f88; identical in raw solver output -> tracker; 0 frames bridged."
+  },
+  {
+   "id": "A11",
+   "severity": "minor",
+   "area": "limits math",
+   "file": "altline/limits.py _hinge(), _wrist()",
+   "change": "np.clip creates a velocity kink when a channel hits its bound (061c forearm_r twist ramps 7 deg/frame and stops dead at 90 deg ~f102). Use a soft saturation (e.g. smooth tanh-style knee over the last 10-15 deg).",
+   "expected": "no acceleration spike at the frame where a clamp engages.",
+   "evidence": "forearm_r twist 7 deg/frame ramp (f86 0 deg -> f102 90 deg) stops at the bound."
+  },
+  {
+   "id": "A9",
+   "severity": "minor",
+   "area": "calibration/rest",
+   "file": "altline/solver.py foot target; altline/calibration.py",
+   "change": "Feet hover 3.4-4.3 cm above the floor at rest in every clip (foot local rotation 7 deg toe-up at baseline; rig toe is at 2 cm). Calibrate the foot pitch offset at rest like the head pitch, and later add a foot-contact pass (root has no translation, pelvis fixed at 0.95 m).",
+   "expected": "rest lowest foot point <= 2 cm.",
+   "evidence": "rest lowest foot point 3.8 cm."
+  }
+ ],
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted",
+ "review_notes": {
+  "math": "No numerical failures: max ||q|-1| = 0 in solver/limits output and <=6.9e-8 in the bundle (7-digit rounding); bundle matrices orthonormal to 3e-7; no hemisphere sign flips between consecutive frames; no rot_between near-180 deg cases; no twist correction > 120 deg (so no hidden elbow/knee inside-out flips absorbed by upper-arm/thigh twist). Solver re-run reproduces raw_rotations to <1e-14 deg. Degeneracy that matters: twist reference parallel to the bone (straight limbs) for upper_arm/thigh in most frames -> twist inherited (see A4/A5).",
+  "coordinate_space": "canon = (x,-y,-z) has det +1 (no mirror). Left/right and forward checks pass in 100% of frames in all runs (left shoulder/hip on +X, nose and toes on +Z, image left shoulder right of right shoulder). FK of the bundle matches the solver's target directions to <2 deg except where limits clamped a parent (hand_r 9.5 deg in 061c, foot_l 40 deg in df1e). Deviation from raw landmarks is a constant 10-19 deg on limbs = the hinge de-bias (by design, but see A2). Rest frames: trunk/head/legs within 1 deg of identity (neck 6-7, foot ~7); arms 12-19 deg (actor A-pose differs from rig A-pose, plus de-bias). Head rest yaw +5.8..+7.9 deg in every clip.",
+  "bone_lengths": "FK lengths exact (<=4.4e-16 m deviation), joint gaps constant. Actor-side length_ratio is the useful signal: arm segments drop to 0.48-0.66 and the kicking thigh to 0.70 exactly at the bad frames -> tracker depth collapse.",
+  "limits": "Clamps fired on forearm_r twist (46 frames, max 26 deg) and shin_l (23 frames, <=1.4 deg). The forearm clamp hides a real modelling gap (humeral rotation dumped into forearm roll), not a tracker error; it silently rotates the hand 9.5 deg. No bridging."
+ },
+ "keyframe_images": {
+  "preview": "plots/preview_keyframes.png",
+  "source_strip(every 18th frame)": "plots/source_strip.png"
+ }
+}

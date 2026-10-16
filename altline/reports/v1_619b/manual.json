@@ -1,0 +1,46 @@
+{
+ "clip_content": "actor's RIGHT knee raised to about hip height and held (verified in source)",
+ "verdict": "mostly OK: knee lift and bend (132 deg) match; one-frame lift-off jump at f60-61; thigh ~40 deg above horizontal (source ~horizontal, hypothesis)",
+ "visual_findings": {
+  "method": "ffmpeg frame extraction from preview/preview.mp4 and the source video, inspected by eye; numbers from physical_plausibility_auto",
+  "findings": [
+   "f6 rest OK.",
+   "f61 lift-off: thigh_r jumps 20.6 deg in one frame (494 deg/s, 10886 deg/s^2 at f60), shin_r 22.9 deg; looks like a snap rather than a lift. Tracker (identical raw).",
+   "f90, f102: knee raised and bent 132 deg, foot hanging under the knee - matches source. Thigh 133 deg from down (43 deg above horizontal); source looks closer to horizontal (hypothesis, tracker dots agree with the rig).",
+   "Raised foot crosses slightly past the stance ankle toward actor-left (legs-crossed flag f98-106, few cm). Stance leg slants inward because the pelvis cannot translate over the stance foot (no root motion).",
+   "Trunk rocks -8 deg (forward, f59) to +8 deg (back, f107); source upright with a slight lean.",
+   "Stance foot 4.7-5.1 cm above floor f64-71."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "A3",
+   "severity": "major",
+   "area": "temporal stability",
+   "file": "altline/limits.py apply_limits() mask; new filter step before solver (calibration output) ; altline/config.py LimitsConfig.spike_deg",
+   "change": "There is no temporal filtering at all, and the single-frame spike detector (spike_deg=25) did not fire once in 8 runs (0 bridged runs). Add (a) an anomaly mask from calibrated_pose length_ratio: |ratio-1| > 0.2 on the bone's segment -> anomalous, bridged by slerp; (b) a One-Euro filter (min_cutoff ~1.5 Hz, beta tuned on 690b/9645 so that clean motion is not lagged) on the quaternion log relative to the previous frame, or on landmarks before solving; (c) multi-frame glitch detection (departure from a 5-frame robust fit) instead of 1-frame slerp midpoint.",
+   "expected": "0663 f26-33 and 85a9 f20-27 glitches bridged; flagged bone-frames above the 3000 deg/s^2 gate drop by >70% without lag in the slow clips (compare peak timing of upper_arm in 690b before/after).",
+   "evidence": "thigh_r 10886 deg/s^2 f60, shin_r 9984 f60, 12 bone-frames above gate."
+  },
+  {
+   "id": "A9",
+   "severity": "minor",
+   "area": "calibration/rest",
+   "file": "altline/solver.py foot target; altline/calibration.py",
+   "change": "Feet hover 3.4-4.3 cm above the floor at rest in every clip (foot local rotation 7 deg toe-up at baseline; rig toe is at 2 cm). Calibrate the foot pitch offset at rest like the head pitch, and later add a foot-contact pass (root has no translation, pelvis fixed at 0.95 m).",
+   "expected": "rest lowest foot point <= 2 cm.",
+   "evidence": "rest lowest foot point 3.9 cm; stance foot 5.1 cm f66-69."
+  }
+ ],
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted",
+ "review_notes": {
+  "math": "No numerical failures: max ||q|-1| = 0 in solver/limits output and <=6.9e-8 in the bundle (7-digit rounding); bundle matrices orthonormal to 3e-7; no hemisphere sign flips between consecutive frames; no rot_between near-180 deg cases; no twist correction > 120 deg (so no hidden elbow/knee inside-out flips absorbed by upper-arm/thigh twist). Solver re-run reproduces raw_rotations to <1e-14 deg. Degeneracy that matters: twist reference parallel to the bone (straight limbs) for upper_arm/thigh in most frames -> twist inherited (see A4/A5).",
+  "coordinate_space": "canon = (x,-y,-z) has det +1 (no mirror). Left/right and forward checks pass in 100% of frames in all runs (left shoulder/hip on +X, nose and toes on +Z, image left shoulder right of right shoulder). FK of the bundle matches the solver's target directions to <2 deg except where limits clamped a parent (hand_r 9.5 deg in 061c, foot_l 40 deg in df1e). Deviation from raw landmarks is a constant 10-19 deg on limbs = the hinge de-bias (by design, but see A2). Rest frames: trunk/head/legs within 1 deg of identity (neck 6-7, foot ~7); arms 12-19 deg (actor A-pose differs from rig A-pose, plus de-bias). Head rest yaw +5.8..+7.9 deg in every clip.",
+  "bone_lengths": "FK lengths exact (<=4.4e-16 m deviation), joint gaps constant. Actor-side length_ratio is the useful signal: arm segments drop to 0.48-0.66 and the kicking thigh to 0.70 exactly at the bad frames -> tracker depth collapse.",
+  "limits": "Only cosmetic clamps (<=1.4 deg); knee flex 133 deg within range. No bridging."
+ },
+ "keyframe_images": {
+  "preview": "plots/preview_keyframes.png",
+  "source_strip(every 18th frame)": "plots/source_strip.png"
+ }
+}
