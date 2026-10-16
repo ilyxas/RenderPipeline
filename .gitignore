@@ -28,3 +28,6 @@ frames/
 
 # Asset textures next to local .blend files (outside Git like the .blend itself)
 blender/textures_*/
+
+# altline: run outputs stay local; reviewer reports are committed
+altline/runs/
