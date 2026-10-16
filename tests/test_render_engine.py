@@ -22,7 +22,7 @@ class RenderEngine(unittest.TestCase):
         scene=SimpleNamespace(render=SimpleNamespace(engine='',use_motion_blur=False,motion_blur_shutter=0),cycles=SimpleNamespace(),eevee=SimpleNamespace(taa_render_samples=16))
         record=configure(scene,'cycles','final')
         self.assertEqual(scene.render.engine,'CYCLES');self.assertEqual(record['device'],'CPU');self.assertEqual(record['samples'],64)
-        self.assertTrue(scene.render.use_motion_blur);self.assertTrue(scene.cycles.use_denoising)
+        self.assertTrue(scene.render.use_motion_blur);self.assertTrue(scene.cycles.use_denoising);self.assertTrue(scene.render.use_persistent_data)
         record=configure(scene,'eevee','final')
         self.assertEqual(scene.render.engine,'BLENDER_EEVEE_NEXT');self.assertFalse(scene.render.use_motion_blur);self.assertEqual(record,{'engine':'eevee','samples':16})
 

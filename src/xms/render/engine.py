@@ -7,9 +7,9 @@ ENGINES=('eevee','cycles')
 CYCLES={'preview':{'samples':32},'final':{'samples':64}}
 CYCLES_COMMON={'adaptive_threshold':0.02,'max_bounces':8,'motion_blur_shutter':0.5}
 # Rough seconds per frame per megapixel on an Apple M4 (measured 2026-10-14/16: EEVEE final 1080x1920 ~1.2 s,
-# Cycles 64 samples 1080x1920 ~15 s; preview 32 samples 540x960 3.7 s, run 20261016-032906-988e05f7). Used only for the time estimate shown before a run.
-_RATE={'eevee':{'preview':1.2,'final':0.6},'cycles':{'preview':5.0,'final':7.2}}
-_OVERHEAD={'eevee':0.4,'cycles':1.2}
+# Cycles 64 samples 1080x1920 ~15 s; preview 32 samples 540x960 3.7 s, run 20261016-032906-988e05f7; persistent data cuts ~1.3 s/frame of reloads). Used only for the time estimate shown before a run.
+_RATE={'eevee':{'preview':1.2,'final':0.6},'cycles':{'preview':3.6,'final':6.5}}
+_OVERHEAD={'eevee':0.4,'cycles':0.2}
 
 
 def check(engine):
@@ -30,7 +30,7 @@ def estimate_seconds(engine,quality,resolution,frames):
 def configure(scene,engine,quality,preferences=None):
     """Switch a Blender scene to the engine; return the settings recorded in the render manifest."""
     if check(engine)=='eevee':
-        scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.use_motion_blur=False
+        scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.use_motion_blur=False;scene.render.use_persistent_data=False
         return {'engine':'eevee','samples':scene.eevee.taa_render_samples}
     c=scene.cycles;scene.render.engine='CYCLES';c.device='GPU';backend=None
     if preferences is not None:
@@ -46,4 +46,6 @@ def configure(scene,engine,quality,preferences=None):
     c.use_denoising=True;c.denoiser='OPENIMAGEDENOISE';c.denoising_use_gpu=backend is not None
     c.max_bounces=CYCLES_COMMON['max_bounces'];c.caustics_reflective=False;c.caustics_refractive=False;c.film_transparent=False
     scene.render.use_motion_blur=True;scene.render.motion_blur_shutter=CYCLES_COMMON['motion_blur_shutter']
-    return {'engine':'cycles','samples':c.samples,'device':backend or 'CPU','denoiser':'OPENIMAGEDENOISE','adaptive_threshold':c.adaptive_threshold,'motion_blur_shutter':scene.render.motion_blur_shutter}
+    # Keep textures and static geometry on the device between frames: 3.4 -> 2.0 s/frame, same pixels (2026-10-16).
+    scene.render.use_persistent_data=True
+    return {'engine':'cycles','persistent_data':True,'samples':c.samples,'device':backend or 'CPU','denoiser':'OPENIMAGEDENOISE','adaptive_threshold':c.adaptive_threshold,'motion_blur_shutter':scene.render.motion_blur_shutter}
