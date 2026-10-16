@@ -10,11 +10,13 @@ reference: the direction its local +Z should face.
     upper arm  dir shoulder->elbow     twist: elbow bend plane (forearm, perpendicular part)
     forearm    dir elbow->wrist        twist: pinky->index across the hand
     hand       dir wrist->hand centre  twist: pinky->index
-    thigh      dir hip->knee           twist: knee bend plane (shin points to -Z)
+    thigh      dir hip->knee           twist: knee bend plane (shin points to -Z), or the
+                                       foot heading while the knee is nearly straight
     shin       dir knee->ankle         twist: heel->toe
     foot       dir ankle->toe          (inherits twist)
     pelvis / spine / chest: trunk up; facing from the hip line / both lines / shoulder line
-    neck / head: shoulder centre->ear centre; head frame from ears and nose
+    neck / head: shoulder centre->ear centre; head frame from ears and nose, corrected by
+                 the head frame measured at rest (calibration.rest_references)
 
 Bones are solved root to leaf. Each bone starts from where its parent carries it with a
 zero local rotation; a minimal swing aligns its Y axis to the target direction and a twist
@@ -31,6 +33,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .calibration import head_frame
 from .config import SolverConfig
 from .io_utils import read_json, run_dir, write_json
 from .quat import mat_to_quat, normalize, rot_axis_angle, rot_between, signed_angle_about
@@ -49,15 +52,26 @@ def angle_deg(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def debias_bend(theta: float, bias: float) -> float:
-    """Remap a hinge bend [bias, 180] -> [0, 180]; bends below the rest bias become 0."""
+    """Remove the rest-pose hinge bias from small bends only.
+
+    theta' = max(0, theta - bias * g), g = 1 up to the bias, fading linearly to 0 at twice
+    the bias: a straight rest limb reads as straight, while a clearly bent elbow or knee
+    keeps its measured bend. Monotonic (slope 2 inside the fade band).
+    """
     if bias <= 0:
         return theta
-    return max(0.0, (theta - bias) * 180.0 / (180.0 - bias))
+    g = float(np.clip((2.0 * bias - theta) / bias, 0.0, 1.0))
+    return max(0.0, theta - bias * g)
 
 
 def perp(v: np.ndarray, axis: np.ndarray) -> np.ndarray:
     a = normalize(axis)
     return v - np.dot(v, a) * a
+
+
+def _unit_or_zero(v: np.ndarray) -> np.ndarray:
+    n = np.linalg.norm(v)
+    return v / n if n > 1e-9 else np.zeros(3)
 
 
 def _perp_weight(v: np.ndarray, axis: np.ndarray) -> float:
@@ -97,7 +111,7 @@ def _hinge(root: np.ndarray, mid: np.ndarray, end: np.ndarray, bias: float
 def bone_targets(j: dict[str, np.ndarray], vis: dict[str, float], profile: dict,
                  cfg: SolverConfig) -> tuple[dict, dict]:
     """Per-bone (direction, twist reference, twist weight, confidence) for one frame."""
-    offs = profile["reference_pitch_offsets_rad"]
+    refs = profile["rest_references"]
     bias = profile["hinge_bias_deg"]
     t: dict[str, tuple] = {}
     diag: dict[str, float] = {}
@@ -114,13 +128,11 @@ def bone_targets(j: dict[str, np.ndarray], vis: dict[str, float], profile: dict,
     t["spine"] = (up, normalize(fwd_hips + fwd_sh), 1.0, c_trunk)
     t["chest"] = (up, fwd_sh, 1.0, c_trunk)
 
-    ear_lat = j["left_ear"] - j["right_ear"]
-    head_fwd = rot_axis_angle(ear_lat, offs["head_forward"]) @ (j["nose"] - j["ear_mid"])
-    head_up = normalize(np.cross(head_fwd, ear_lat))
-    neck_up = rot_axis_angle(sh_lat, offs["neck_up"]) @ (j["ear_mid"] - j["shoulder_mid"])
+    head = head_frame(j) @ np.asarray(refs["head_rest_bias"]).T
+    neck_up = rot_axis_angle(sh_lat, refs["neck_up"]) @ (j["ear_mid"] - j["shoulder_mid"])
     c_head = conf("nose", "left_ear", "right_ear")
-    t["neck"] = (neck_up, head_fwd, 1.0, min(c_head, c_trunk))
-    t["head"] = (head_up, head_fwd, 1.0, c_head)
+    t["neck"] = (neck_up, head[:, 2], 1.0, min(c_head, c_trunk))
+    t["head"] = (head[:, 1], head[:, 2], 1.0, c_head)
 
     for s, side in SIDES.items():
         sh, el, wr = j[f"{side}_shoulder"], j[f"{side}_elbow"], j[f"{side}_wrist"]
@@ -140,10 +152,17 @@ def bone_targets(j: dict[str, np.ndarray], vis: dict[str, float], profile: dict,
         thigh, shin, corr, raw, fixed = _hinge(hip, kn, an, bias[f"knee_{s}"])
         diag[f"knee_{s}_bend_raw"], diag[f"knee_{s}_bend"] = raw, fixed
         foot_dir = corr @ (j[f"{side}_foot_index"] - an)
+        foot_dir = rot_axis_angle(np.cross(foot_dir, [0.0, 1.0, 0.0]), refs[f"foot_pitch_{s}"]) @ foot_dir
         foot_ref = corr @ (j[f"{side}_foot_index"] - j[f"{side}_heel"])
-        w_bend = smoothstep(fixed, cfg.bend_twist_zero_deg, cfg.bend_twist_full_deg)
         c_foot = conf(f"{side}_ankle", f"{side}_heel", f"{side}_foot_index")
-        t[f"thigh_{s}"] = (thigh, -perp(shin, thigh), w_bend, conf(f"{side}_hip", f"{side}_knee"))
+        # Thigh twist: the knee bend plane once the knee is clearly bent; while it is nearly
+        # straight that plane is noise, so the foot heading (toes point to the thigh's front)
+        # takes over.
+        w_bend = smoothstep(fixed, cfg.knee_twist_zero_deg, cfg.knee_twist_full_deg)
+        heading = perp(foot_ref, thigh)
+        w_head = _perp_weight(foot_ref, thigh) * min(1.0, c_foot / 0.5)
+        ref = w_bend * _unit_or_zero(-perp(shin, thigh)) + (1.0 - w_bend) * w_head * _unit_or_zero(heading)
+        t[f"thigh_{s}"] = (thigh, ref, max(w_bend, w_head), conf(f"{side}_hip", f"{side}_knee"))
         t[f"shin_{s}"] = (shin, foot_ref, _perp_weight(foot_ref, shin), conf(f"{side}_knee", f"{side}_ankle"))
         t[f"foot_{s}"] = (foot_dir, None, 0.0, c_foot)
     return t, diag

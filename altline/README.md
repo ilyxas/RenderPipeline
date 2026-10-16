@@ -5,7 +5,7 @@ It does not read or import anything from `src/xms/`, `blender/` or `tools/`; eve
 lives here and hands off to the next one through files only.
 
 Status: **implemented and functionally verified on synthetic data** (exact round trip, see
-tests). Motion quality on real video is **not accepted**; see `reports/` for the reviewer's
+tests). v2 = v1 plus the reviewer's v1 action items (see `reports/v1_overview.md`). Motion quality on real video is **not accepted**; see `reports/` for the reviewer's
 findings per run.
 
 ```
@@ -38,9 +38,9 @@ reports go to `altline/reports/<run_id>/` (committed).
 | Stage | File | Output | What it does |
 |---|---|---|---|
 | 1 | `observations.py` | `observations/raw_pose.json` | MediaPipe Pose (Tasks API, VIDEO mode). Per frame `joints` = world landmarks in meters (MediaPipe axes, raw), `image_joints` = normalized image coords. Format `{"frames": [{"frame_index", "joints": {name: [x, y, z, visibility]}}]}` plus `meta`. |
-| 2 | `calibration.py` | `calibration/actor_profile.json`, `calibrated_pose.json` | Converts to canonical space; finds the rest-pose baseline (straight-ish limbs, symmetric abduction, minimal motion); actor segment lengths (median), target/actor ratios; rest alignment (upright, facing +Z); head/neck reference pitch; elbow/knee *hinge bias*. Per-frame `length_ratio` keeps the actor's length variance as a diagnostic only. |
+| 2 | `calibration.py` (+ `depth.py`, `filters.py`) | `calibration/actor_profile.json`, `calibrated_pose.json` | Converts to canonical space; finds the rest-pose baseline; actor segment lengths; **rebuilds depth from 2D points + constant lengths**; zero-phase One-Euro filter on joint positions; rest alignment (upright, facing +Z); rest biases of head frame, neck pitch, foot pitch; elbow/knee *hinge bias*. Per-frame `length_ratio` of the raw tracker is kept as a diagnostic. |
 | 3 | `solver.py` | `solver/raw_rotations.json` | Analytic aim + twist per bone, root to leaf; output local basis quaternions. Uses only unit directions, so rig bone lengths stay constant. |
-| 4 | `limits.py` | `limits/clean_rotations.json`, `limits_report.json` | Swing-twist limits: elbow hinge 0..140°, forearm roll ±90°, wrist ±90°, knee hinge 0..150° (twist ±30°). Spikes/flips/missing frames are bridged with slerp; no frame is dropped. |
+| 4 | `limits.py` | `limits/clean_rotations.json`, `limits_report.json` | Swing-twist limits: elbow hinge 0..140°, forearm roll ±90°, wrist ±90°, knee hinge 0..150° (twist ±30°). Clamped root to leaf, children keep their world orientation; excess roll of a straight limb goes to the upper arm / thigh. Spikes/flips/missing frames are bridged with slerp; no frame is dropped. |
 | 5 | `animation.py` | `animation/motion_bundle.json` | `{format, fps, bones, rotation_mode, frames: [{t, q: [[w,x,y,z] per bone]}]}`. |
 | – | `preview.py` | `preview/preview.mp4` | Source | front | side; rig bones vs tracker landmarks (grey dots). |
 
@@ -63,14 +63,20 @@ All thresholds: `config.py`. No per-clip constants anywhere.
   direction; calibration only removes the actor's scale, the camera's tilt/yaw, and two
   tracker biases measured in the rest baseline. It does *not* force the rig's rest pose onto
   the actor's first pose.
-- **Hinge bias.** MediaPipe reports 20–35° of elbow and knee bend for visibly straight
-  standing limbs. When a rest baseline is found, that bend is treated as tracker bias and
-  removed by remapping the bend `[bias, 180] → [0, 180]`, keeping the chord
-  (shoulder→wrist, hip→ankle) and the bend plane. Disable with
-  `CalibrationConfig.hinge_bias_correction = False`.
+- **Depth from 2D + lengths.** MediaPipe flattens limbs that point at the camera. For
+  segments that lie in the image plane at rest (trunk, widths, clavicles, neck, ears, arm
+  and leg segments) depth is rebuilt as `|dz| = sqrt(L² − d²)` (weak perspective, sign from
+  the tracker). `L` is measured in the image (rest projection or the 98th percentile over
+  the clip), not by the tracker. Within ~14° of the image plane that formula is
+  ill-conditioned, so the tracker's own depth is kept there (blended out by 32°). Forward
+  pointing pieces (nose, fingers, heel, toes) keep the tracker depth.
+- **Hinge bias.** MediaPipe reports elbow and knee bend for visibly straight standing
+  limbs. When a rest baseline is found, the bend measured there is removed from small
+  bends only (fully up to the bias, fading out by twice the bias), keeping the chord
+  (shoulder→wrist, hip→ankle) and the bend plane.
 - **Twist sources.** Upper arm / thigh twist come from the elbow / knee bend plane, weighted
-  by how bent the limb is (`SolverConfig.bend_twist_*`): a straight limb has no bend plane,
-  so its twist is inherited. Forearm and hand twist come from pinky→index; shin twist from
+  by how bent the limb is (`SolverConfig.bend_twist_*`, `knee_twist_*`): a straight arm
+  inherits its twist, a straight leg takes it from the foot heading. Forearm and hand twist come from pinky→index; shin twist from
   heel→toe. The pose model gives only one hand-plane reference, so wrist twist relative to
   the forearm is not observable separately (it is all forearm roll).
 - **No root translation in v1.** MediaPipe world landmarks are hip-centred; global travel

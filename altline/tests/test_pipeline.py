@@ -11,7 +11,8 @@ from altline.io_utils import read_json, write_json
 from altline.quat import (quat_angle_between, quat_from_axis_angle, quat_mul, quat_to_mat, mat_to_quat,
                           rot_axis_angle)
 from altline.skeleton import Skeleton, frame_from_hint, reference_skeleton
-from altline.tests.synthetic import (NEUTRAL_PROFILE, X, Y, Z, landmarks_from_pose, q, random_pose,
+from altline.config import CalibrationConfig
+from altline.tests.synthetic import (IMAGE_H, IMAGE_W, NEUTRAL_PROFILE, X, Y, Z, landmarks_from_pose, q, random_pose,
                                      to_mediapipe_frame)
 
 FPS = 24.0
@@ -128,10 +129,86 @@ class LimitTests(unittest.TestCase):
         self.assertLess(np.degrees(quat_angle_between(got, q(X, 50))), 1e-6)
 
 
+class LimitHierarchyTests(unittest.TestCase):
+    def frames(self, skel, pose):
+        rot = [mat_to_quat(m).tolist() for m in pose]
+        return {"meta": {"bones": skel.names}, "frames": [
+            {"frame_index": t, "timestamp_s": t / FPS, "valid": True, "rotations": rot,
+             "confidence": [1.0] * len(skel.names)} for t in range(3)]}
+
+    def test_clamp_keeps_child_world_orientation(self):
+        skel = reference_skeleton()
+        pose = np.repeat(np.eye(3)[None], len(skel.names), axis=0)
+        pose[skel.index["forearm_l"]] = rot_axis_angle(X, np.radians(160))   # over the 140 limit
+        pose[skel.index["hand_l"]] = rot_axis_angle(X, np.radians(-10))
+        clean, _ = limits.apply_limits(self.frames(skel, pose), skel=skel)
+        basis = np.array([quat_to_mat(qq) for qq in clean["frames"][1]["rotations"]])
+        world, _, _ = skel.fk(basis)
+        world_ref, _, _ = skel.fk(pose)
+        h = skel.index["hand_l"]
+        self.assertLess(np.degrees(quat_angle_between(mat_to_quat(world[h]), mat_to_quat(world_ref[h]))), 1e-6)
+
+    def test_straight_arm_roll_goes_to_upper_arm(self):
+        skel = reference_skeleton()
+        pose = np.repeat(np.eye(3)[None], len(skel.names), axis=0)
+        pose[skel.index["forearm_r"]] = rot_axis_angle(Y, np.radians(130))   # roll over the 90 limit
+        clean, report = limits.apply_limits(self.frames(skel, pose), skel=skel)
+        basis = np.array([quat_to_mat(qq) for qq in clean["frames"][1]["rotations"]])
+        world, _, _ = skel.fk(basis)
+        world_ref, _, _ = skel.fk(pose)
+        f = skel.index["forearm_r"]
+        self.assertLess(np.degrees(quat_angle_between(mat_to_quat(world[f]), mat_to_quat(world_ref[f]))), 1e-6)
+        self.assertAlmostEqual(np.degrees(quat_angle_between(clean["frames"][1]["rotations"][skel.index["upper_arm_r"]],
+                                                             [1, 0, 0, 0])), 40.0, places=5)
+
+
+class DebiasTests(unittest.TestCase):
+    def test_bias_only_on_small_bends(self):
+        self.assertEqual(solver.debias_bend(30.0, 30.0), 0.0)
+        self.assertEqual(solver.debias_bend(10.0, 30.0), 0.0)
+        self.assertEqual(solver.debias_bend(60.0, 30.0), 60.0)
+        self.assertEqual(solver.debias_bend(120.0, 30.0), 120.0)
+        vals = [solver.debias_bend(x, 30.0) for x in np.linspace(0, 180, 361)]
+        self.assertTrue(all(b >= a for a, b in zip(vals, vals[1:])))
+
+
+class DepthTests(unittest.TestCase):
+    def segment(self, true_dz, squash, L=0.25, planar=0.2):
+        world = {"hip_mid": np.zeros(3), "a": np.zeros(3), "b": np.array([planar, 0.0, squash * true_dz])}
+        pts = {"hip_mid": np.zeros(2), "a": np.zeros(2), "b": np.array([planar, 0.0]) / 0.002}
+        return world, pts
+
+    def rebuild(self, world, pts, L):
+        from altline import depth
+        saved = depth.TREE
+        depth.TREE = [("hip_mid", "a", "x", False), ("a", "b", "seg", True)]
+        try:
+            out, _ = depth.reconstruct(world, pts, 0.002, {"seg": L})
+        finally:
+            depth.TREE = saved
+        return out["b"][2]
+
+    def test_foreshortened_segment_gets_length_depth(self):
+        L = 0.25
+        true_dz = np.sqrt(L * L - 0.15 ** 2)  # projection ratio 0.6
+        world, pts = self.segment(true_dz, 0.3, L, planar=0.15)
+        self.assertAlmostEqual(self.rebuild(world, pts, L), true_dz, places=9)
+
+    def test_near_planar_segment_keeps_tracker_depth(self):
+        L = 0.25
+        world, pts = self.segment(0.03, 1.0, L, planar=0.248)  # ratio 0.992
+        self.assertAlmostEqual(self.rebuild(world, pts, L), 0.03, places=9)
+
+    def test_sign_comes_from_tracker(self):
+        L = 0.25
+        world, pts = self.segment(-0.2, 0.3, L, planar=0.15)
+        self.assertLess(self.rebuild(world, pts, L), 0.0)
+
+
 class EndToEnd(unittest.TestCase):
     """Synthetic MediaPipe JSON -> calibration -> solver -> limits -> bundle -> FK."""
 
-    def make_clip(self, skel, rng, n_rest=12, n_move=24):
+    def make_clip(self, skel, rng, n_rest=12, n_move=24, ease=False):
         rest = np.repeat(np.eye(3)[None], len(skel.names), axis=0)
         target = random_pose(skel, rng)
         poses = [rest] * n_rest
@@ -139,9 +216,61 @@ class EndToEnd(unittest.TestCase):
         tgt_q = [mat_to_quat(m) for m in target]
         from altline.quat import slerp
         for k in range(1, n_move + 1):
-            poses.append(np.array([quat_to_mat(slerp(a, b, k / n_move)) for a, b in zip(rest_q, tgt_q)]))
+            u = k / n_move
+            u = u * u * (3 - 2 * u) if ease else u
+            poses.append(np.array([quat_to_mat(slerp(a, b, u)) for a, b in zip(rest_q, tgt_q)]))
+        if ease:
+            poses += [poses[-1]] * 6
         frames = [to_mediapipe_frame(landmarks_from_pose(skel, p), i, FPS) for i, p in enumerate(poses)]
-        return poses, {"meta": {"fps": FPS, "video": "synthetic"}, "frames": frames}
+        meta = {"fps": FPS, "video": "synthetic", "width": IMAGE_W, "height": IMAGE_H}
+        return poses, {"meta": meta, "frames": frames}
+
+    def run_clip(self, skel, raw, tmp, cfg):
+        write_json(tmp / "raw_pose.json", raw)
+        prof_path, cal_path = calibration.calibrate(tmp / "raw_pose.json", tmp / "cal", skel, cfg)
+        solver.solve(cal_path, prof_path, tmp / "raw.json", skel)
+        clean, _ = limits.apply_limits(read_json(tmp / "raw.json"), skel=skel)
+        return read_json(prof_path), animation.build_bundle(clean, skel)
+
+    def test_depth_from_2d_restores_flattened_limbs(self):
+        """Arm depth squashed to 40 % (MediaPipe's failure on limbs pointing at the camera):
+        the rebuild must cut the arm error at least in half against the tracker's depth."""
+        skel = reference_skeleton()
+        poses, raw = self.make_clip(skel, np.random.default_rng(3))
+        for f in raw["frames"]:
+            j = f["joints"]
+            for side in ("left", "right"):
+                z0 = j[f"{side}_shoulder"][2]
+                for k in ("elbow", "wrist", "index", "pinky", "thumb"):
+                    j[f"{side}_{k}"][2] = z0 + 0.4 * (j[f"{side}_{k}"][2] - z0)
+        arm = [skel.index[n] for n in ("upper_arm_l", "forearm_l", "upper_arm_r", "forearm_r")]
+        errors = {}
+        for depth in (True, False):
+            with tempfile.TemporaryDirectory() as tmp:
+                prof, bundle = self.run_clip(skel, raw, Path(tmp),
+                                             CalibrationConfig(filter_enabled=False, depth_from_2d=depth))
+            if depth:
+                self.assertAlmostEqual(prof["depth_from_2d"]["pixel_scale_m"], 0.002, places=9)
+            err = []
+            for f, pose in zip(bundle["frames"], poses):
+                _, _, t = skel.fk(np.array([quat_to_mat(qq) for qq in f["q"]]))
+                _, _, t_ref = skel.fk(pose)
+                err.append(np.linalg.norm(t[arm] - t_ref[arm], axis=1).mean())
+            errors[depth] = float(np.mean(err))
+        self.assertLess(errors[True], 0.5 * errors[False], errors)
+
+
+    def test_filter_has_no_lag_on_smooth_motion(self):
+        skel = reference_skeleton()
+        poses, raw = self.make_clip(skel, np.random.default_rng(4), ease=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            _, bundle = self.run_clip(skel, raw, Path(tmp), CalibrationConfig())
+        errs = []
+        for f, pose in zip(bundle["frames"], poses):
+            _, _, t = skel.fk(np.array([quat_to_mat(qq) for qq in f["q"]]))
+            _, _, t_ref = skel.fk(pose)
+            errs.append(np.abs(t - t_ref).max())
+        self.assertLess(max(errs), 0.01)
 
     def test_end_to_end_recovers_motion(self):
         skel = reference_skeleton()
@@ -149,7 +278,8 @@ class EndToEnd(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             write_json(tmp / "raw_pose.json", raw)
-            prof_path, cal_path = calibration.calibrate(tmp / "raw_pose.json", tmp / "cal", skel)
+            prof_path, cal_path = calibration.calibrate(tmp / "raw_pose.json", tmp / "cal", skel,
+                                                        CalibrationConfig(filter_enabled=False))
             prof = read_json(prof_path)
             self.assertTrue(prof["baseline"]["rest_pose_found"])
             self.assertLess(prof["baseline"]["end"], 12)
@@ -157,7 +287,7 @@ class EndToEnd(unittest.TestCase):
             for k, v in prof["hinge_bias_deg"].items():
                 self.assertLess(v, 1e-3, k)
             solver.solve(cal_path, prof_path, tmp / "raw.json", skel)
-            clean, report = limits.apply_limits(read_json(tmp / "raw.json"))
+            clean, report = limits.apply_limits(read_json(tmp / "raw.json"), skel=skel)
             bundle = animation.build_bundle(clean, skel)
             self.assertEqual(len(bundle["frames"]), len(poses))
             for f, pose in zip(bundle["frames"], poses):

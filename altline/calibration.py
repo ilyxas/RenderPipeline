@@ -6,17 +6,18 @@ Output: <run>/calibration/actor_profile.json and <run>/calibration/calibrated_po
 1. Convert MediaPipe world landmarks to canonical space (+X actor left, +Y up, +Z actor
    forward): canon = (x, -y, -z).
 2. Find a baseline interval where the actor is closest to a static rest pose (A/T pose):
-   elbows and knees straight, arms abducted symmetrically between the configured bounds,
-   minimal joint speed.
-3. From the baseline: the actor's constant segment lengths (median), the ratio to the
-   target rig's lengths, and a rest alignment rotation that makes the actor stand upright
-   and face +Z (removes camera tilt / yaw). Also the head-reference pitch offset, so a
-   neutral head in the baseline is solved as a neutral head, and the elbow/knee bend the
-   tracker reports for visibly straight rest limbs (hinge bias).
-4. calibrated_pose.json holds per-frame aligned joints plus each segment's length ratio
-   to the actor's constant length. The solver uses only unit bone directions, so length
-   variance (depth errors, foreshortening noise) cannot leak into the target's lengths;
-   the ratios are kept as a diagnostic.
+   elbows and knees straight-ish, arms abducted symmetrically between the configured
+   bounds, minimal joint speed. Measure the actor's segment lengths there (median).
+3. Rebuild landmark depth from the 2D image points and constant segment lengths
+   (depth.py), then smooth all joint trajectories with a zero-phase One-Euro filter
+   (filters.py).
+4. From the baseline of the rebuilt landmarks: a rest alignment rotation that makes the
+   actor stand upright and face +Z (removes camera tilt / yaw); the rest biases of
+   landmark references with no anatomical ground truth (head frame, neck pitch, foot
+   pitch); the elbow/knee bend the tracker reports for straight rest limbs (hinge bias).
+5. calibrated_pose.json holds the per-frame aligned joints, plus each segment's tracker
+   length ratio to the actor's constant length (a diagnostic of tracker depth loss). The
+   solver uses only unit bone directions, so actor lengths never reach the rig.
 """
 
 from __future__ import annotations
@@ -27,6 +28,8 @@ from pathlib import Path
 import numpy as np
 
 from .config import CalibrationConfig
+from .depth import image_points, pixel_scale, planar_lengths, reconstruct
+from .filters import one_euro_zero_phase
 from .io_utils import read_json, run_dir, write_json
 from .skeleton import Skeleton, load_skeleton
 
@@ -38,6 +41,8 @@ SEGMENTS = {
     "neck": ("shoulder_mid", "ear_mid"),
     "hip_width": ("right_hip", "left_hip"),
     "shoulder_width": ("right_shoulder", "left_shoulder"),
+    "ear_width": ("right_ear", "left_ear"),
+    "nose": ("ear_mid", "nose"),
 }
 for s, side in SIDES.items():
     SEGMENTS.update({
@@ -48,6 +53,10 @@ for s, side in SIDES.items():
         f"thigh_{s}": (f"{side}_hip", f"{side}_knee"),
         f"shin_{s}": (f"{side}_knee", f"{side}_ankle"),
         f"foot_{s}": (f"{side}_ankle", f"{side}_foot_index"),
+        f"heel_{s}": (f"{side}_ankle", f"{side}_heel"),
+        f"index_{s}": (f"{side}_wrist", f"{side}_index"),
+        f"pinky_{s}": (f"{side}_wrist", f"{side}_pinky"),
+        f"thumb_{s}": (f"{side}_wrist", f"{side}_thumb"),
     })
 
 
@@ -178,23 +187,53 @@ def target_lengths(skel: Skeleton) -> dict[str, float]:
     return out
 
 
-def reference_pitch_offsets(frames, idx: list[int], align: np.ndarray) -> dict[str, float]:
-    """Pitch (radians, about +X) of the face/neck references in the baseline.
+def orthonormal_mean(mats: list[np.ndarray]) -> np.ndarray:
+    u, _, vt = np.linalg.svd(np.mean(mats, axis=0))
+    r = u @ vt
+    if np.linalg.det(r) < 0:
+        u[:, -1] *= -1
+        r = u @ vt
+    return r
 
-    Landmarks give no true neck axis or head-forward axis: ear->nose points down and the
-    ears sit in front of the shoulders even in a neutral stance. The solver rotates these
-    references back by the baseline pitch, assuming the actor holds the head neutral there.
-      head_forward: pitch of (nose - ear_mid) from horizontal
-      neck_up:      pitch of (ear_mid - shoulder_mid) from vertical
+
+def head_frame(j: dict[str, np.ndarray]) -> np.ndarray:
+    """Head frame from landmarks: X = right->left ear, Z = ear centre->nose, Y = Z x X."""
+    lat = j["left_ear"] - j["right_ear"]
+    fwd = j["nose"] - j["ear_mid"]
+    up = np.cross(fwd, lat)
+    x = lat / np.linalg.norm(lat)
+    y = up / np.linalg.norm(up)
+    return np.column_stack([x, y, np.cross(x, y)])
+
+
+def foot_pitch(v: np.ndarray) -> float:
+    return float(np.arctan2(v[1], np.linalg.norm(v[[0, 2]])))
+
+
+def rest_references(frames, idx: list[int], skel: Skeleton) -> dict:
+    """Biases of landmark references that have no anatomical ground truth, measured in the
+    (already aligned) rest baseline, assuming the actor holds head and feet neutral there.
+
+      head_rest_bias: the landmark head frame at rest (ears/nose sit off the anatomical
+                      axes: nose below the ear line, head turned a few degrees); the solver
+                      uses H_measured @ bias^T.
+      neck_up:        pitch (rad, about +X) of (ear_mid - shoulder_mid) from vertical.
+      foot_pitch_l/r: rig rest foot pitch minus the measured ankle->toe pitch (rad).
     """
-    head, neck = [], []
+    heads = [head_frame(frames[i][0]) for i in idx]
+    neck = []
+    foot = {"l": [], "r": []}
     for i in idx:
         j = frames[i][0]
-        fwd = align @ (j["nose"] - j["ear_mid"])
-        up = align @ (j["ear_mid"] - j["shoulder_mid"])
-        head.append(np.arctan2(fwd[1], fwd[2]))
+        up = j["ear_mid"] - j["shoulder_mid"]
         neck.append(np.arctan2(-up[2], up[1]))
-    return {"head_forward": float(np.median(head)), "neck_up": float(np.median(neck))}
+        for s, side in (("l", "left"), ("r", "right")):
+            foot[s].append(foot_pitch(j[f"{side}_foot_index"] - j[f"{side}_ankle"]))
+    out = {"head_rest_bias": orthonormal_mean(heads).tolist(), "neck_up": float(np.median(neck))}
+    for s in ("l", "r"):
+        b = skel.index[f"foot_{s}"]
+        out[f"foot_pitch_{s}"] = foot_pitch(skel.tails[b] - skel.heads[b]) - float(np.median(foot[s]))
+    return out
 
 
 def hinge_bias(frames, idx: list[int], enabled: bool) -> dict[str, float]:
@@ -207,21 +246,71 @@ def hinge_bias(frames, idx: list[int], enabled: bool) -> dict[str, float]:
     return {k: float(np.median([f[v] for f in feats])) for k, v in keys.items()}
 
 
-def calibrate(raw_path: Path, out_dir: Path, skel: Skeleton, cfg: CalibrationConfig | None = None) -> tuple[Path, Path]:
-    cfg = cfg or CalibrationConfig()
-    raw = read_json(raw_path)
-    frames = load_frames(raw)
-    base = find_baseline(frames, cfg)
-    idx = base["frames"]
-    align = rest_alignment(frames, idx)
-
+def _actor_lengths(frames, idx, min_vis: float) -> dict[str, float | None]:
     actor = {}
     for seg, (a, b) in SEGMENTS.items():
         vals = [np.linalg.norm(frames[i][0][b] - frames[i][0][a]) for i in idx
-                if min(frames[i][1][a], frames[i][1][b]) >= cfg.min_visibility]
+                if min(frames[i][1][a], frames[i][1][b]) >= min_vis]
         actor[seg] = float(np.median(vals)) if vals else None
+    for half, full in (("half_hip_width", "hip_width"), ("half_ear_width", "ear_width")):
+        actor[half] = actor[full] / 2 if actor[full] else None
+    return actor
+
+
+def _rebuild_depth(raw: dict, frames, idx, actor) -> tuple[list, dict]:
+    meta = raw["meta"]
+    pts = [image_points(f["image_joints"], meta["width"], meta["height"]) if f["detected"] else None
+           for f in raw["frames"]]
+    scale = pixel_scale([pts[i] for i in idx], actor)
+    lengths = {**actor, **planar_lengths(pts, idx, scale)}
+    out, max_dz = [], []
+    for fr, p in zip(frames, pts):
+        if fr is None:
+            out.append(None)
+            max_dz.append(None)
+            continue
+        joints, vis = fr
+        rec, dz = reconstruct(joints, p, scale, lengths)
+        vis = dict(vis)
+        derived_joints(rec, vis)
+        out.append((rec, vis))
+        max_dz.append(max(abs(v) for v in dz.values()))
+    info = {"pixel_scale_m": scale, "lengths_m": {k: lengths[k] for k in planar_lengths(pts, idx, scale)},
+            "max_depth_change_m_per_frame": max_dz}
+    return out, info
+
+
+def _filter(frames, times: np.ndarray, cfg: CalibrationConfig) -> list:
+    names = next(fr[0].keys() for fr in frames if fr is not None)
+    out = [None if fr is None else ({}, fr[1]) for fr in frames]
+    for name in names:
+        x = np.array([fr[0][name] if fr is not None else [np.nan] * 3 for fr in frames], dtype=float)
+        y = one_euro_zero_phase(x, times, cfg.filter_min_cutoff_hz, cfg.filter_beta)
+        for i, fr in enumerate(out):
+            if fr is not None:
+                fr[0][name] = y[i]
+    return out
+
+
+def calibrate(raw_path: Path, out_dir: Path, skel: Skeleton, cfg: CalibrationConfig | None = None) -> tuple[Path, Path]:
+    cfg = cfg or CalibrationConfig()
+    raw = read_json(raw_path)
+    tracker = load_frames(raw)                     # canonical tracker landmarks, unaligned
+    base = find_baseline(tracker, cfg)
+    idx = base["frames"]
+    actor = _actor_lengths(tracker, idx, cfg.min_visibility)
+
+    frames, depth_info = tracker, None
+    if cfg.depth_from_2d and all(f["image_joints"] for f in raw["frames"] if f["detected"]):
+        frames, depth_info = _rebuild_depth(raw, tracker, idx, actor)
+    if cfg.filter_enabled:
+        frames = _filter(frames, np.array([f["timestamp_s"] for f in raw["frames"]]), cfg)
+
+    align = rest_alignment(frames, idx)
+    frames = [None if fr is None else ({k: align @ v for k, v in fr[0].items()}, fr[1]) for fr in frames]
+
     target = target_lengths(skel)
-    ratios = {k: (target[k] / v if v else None) for k, v in actor.items()}
+    ratios = {k: (target[k] / v if v and k in target else None) for k, v in actor.items()}
     leg_trunk = ["trunk", "thigh_l", "shin_l", "thigh_r", "shin_r"]
     global_scale = float(sum(target[k] for k in leg_trunk) / sum(actor[k] for k in leg_trunk))
 
@@ -229,9 +318,11 @@ def calibrate(raw_path: Path, out_dir: Path, skel: Skeleton, cfg: CalibrationCon
         "source": str(raw_path),
         "baseline": base,
         "canonical_axes": "+X actor left, +Y up, +Z actor forward (meters)",
+        "depth_from_2d": None if depth_info is None else {k: depth_info[k] for k in ("pixel_scale_m", "lengths_m")},
+        "filter": {"enabled": cfg.filter_enabled, "min_cutoff_hz": cfg.filter_min_cutoff_hz, "beta": cfg.filter_beta},
         "rest_alignment": align.tolist(),
         "rest_alignment_angle_deg": float(np.degrees(np.arccos(np.clip((np.trace(align) - 1) / 2, -1, 1)))),
-        "reference_pitch_offsets_rad": reference_pitch_offsets(frames, idx, align),
+        "rest_references": rest_references(frames, idx, skel),
         "hinge_bias_deg": hinge_bias(frames, idx, base["rest_pose_found"] and cfg.hinge_bias_correction),
         "actor_lengths_m": actor,
         "target_lengths_m": target,
@@ -246,10 +337,13 @@ def calibrate(raw_path: Path, out_dir: Path, skel: Skeleton, cfg: CalibrationCon
             rec.update(valid=False, joints={}, length_ratio={})
         else:
             joints, vis = fr
-            aligned = {k: (align @ v).tolist() + [vis[k]] for k, v in joints.items()}
-            lr = {seg: (float(np.linalg.norm(joints[b] - joints[a]) / actor[seg]) if actor[seg] else None)
+            tj = tracker[i][0]
+            # length ratio of the *tracker's* world landmarks: depth loss shows up here
+            lr = {seg: (float(np.linalg.norm(tj[b] - tj[a]) / actor[seg]) if actor[seg] else None)
                   for seg, (a, b) in SEGMENTS.items()}
-            rec.update(valid=True, joints=aligned, length_ratio=lr)
+            rec.update(valid=True, joints={k: v.tolist() + [vis[k]] for k, v in joints.items()}, length_ratio=lr)
+            if depth_info is not None:
+                rec["max_depth_change_m"] = depth_info["max_depth_change_m_per_frame"][i]
         out_frames.append(rec)
 
     out_dir.mkdir(parents=True, exist_ok=True)

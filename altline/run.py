@@ -46,7 +46,7 @@ def run(video: Path, run_id: str, rig: Path | None = None, make_preview: bool = 
                                          rd / "solver" / "raw_rotations.json", skel, cfg.solver))
 
     def _limits():
-        clean, report = limits.apply_limits(read_json(rd / "solver" / "raw_rotations.json"), cfg.limits)
+        clean, report = limits.apply_limits(read_json(rd / "solver" / "raw_rotations.json"), cfg.limits, skel)
         write_json(rd / "limits" / "clean_rotations.json", clean)
         write_json(rd / "limits" / "limits_report.json", report)
     stage("limits", _limits)

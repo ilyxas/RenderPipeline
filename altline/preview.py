@@ -1,8 +1,8 @@
 """Visual check: the motion bundle on the reference rig next to the source video.
 
-Output: <run>/preview/preview.mp4 — per frame: source frame | front view | side view.
+Output: <run>/preview/preview.mp4 — per frame: source | front | side | top view.
 Rig bones (FK of the bundle, constant lengths) are coloured lines: left side blue,
-right side orange, trunk dark grey. The calibrated tracker landmarks (scaled to the rig
+right side orange, trunk dark grey; the red arrow is where the head faces. The calibrated tracker landmarks (scaled to the rig
 and placed at the pelvis) are light grey dots, so depth or twist disagreements between
 the tracker and the solved rig are visible at a glance.
 """
@@ -28,14 +28,15 @@ DOTS = ["nose", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "lef
         "left_foot_index", "right_foot_index"]
 
 
-def fk_sequence(skel: Skeleton, quats: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    heads, tails = [], []
+def fk_sequence(skel: Skeleton, quats: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    worlds, heads, tails = [], [], []
     for qs in quats:
         basis = np.array([quat_to_mat(q) for q in qs])
-        _, h, t = skel.fk(basis)
+        w, h, t = skel.fk(basis)
+        worlds.append(w)
         heads.append(h)
         tails.append(t)
-    return np.array(heads), np.array(tails)
+    return np.array(worlds), np.array(heads), np.array(tails)
 
 
 def render(run: Path, skel: Skeleton, out: Path) -> Path:
@@ -45,7 +46,8 @@ def render(run: Path, skel: Skeleton, out: Path) -> Path:
     import matplotlib.pyplot as plt
 
     bones, times, quats, fps = load_bundle(run / "animation" / "motion_bundle.json")
-    heads, tails = fk_sequence(skel, quats)
+    worlds, heads, tails = fk_sequence(skel, quats)
+    hb = skel.index["head"]
     cal = read_json(run / "calibration" / "calibrated_pose.json")
     profile = read_json(run / "calibration" / "actor_profile.json")
     scale = profile["global_scale"]
@@ -58,8 +60,8 @@ def render(run: Path, skel: Skeleton, out: Path) -> Path:
     try:
         for t in range(len(times)):
             ok, bgr = cap.read()
-            fig, axes = plt.subplots(1, 3, figsize=(10.8, 6.4), dpi=100,
-                                     gridspec_kw={"width_ratios": [0.75, 1, 1]})
+            fig, axes = plt.subplots(1, 4, figsize=(14.0, 6.4), dpi=100,
+                                     gridspec_kw={"width_ratios": [0.75, 1, 1, 1]})
             if ok:
                 axes[0].imshow(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
             axes[0].set_title(f"source  frame {t}  t={times[t]:.2f}s", fontsize=9)
@@ -69,19 +71,28 @@ def render(run: Path, skel: Skeleton, out: Path) -> Path:
             if f["valid"]:
                 hip = 0.5 * (np.array(f["joints"]["left_hip"][:3]) + np.array(f["joints"]["right_hip"][:3]))
                 dots = np.array([(np.array(f["joints"][k][:3]) - hip) * scale + pelvis for k in DOTS])
-            for ax, (h_axis, label) in zip(axes[1:], [(0, "front (x: actor left ->)"), (2, "side (z: actor forward ->)")]):
+            views = [(0, 1, "front (x: actor left ->)"), (2, 1, "side (z: actor forward ->)"),
+                     (0, 2, "top (x: left ->, y: forward ^)")]
+            for ax, (h_axis, v_axis, label) in zip(axes[1:], views):
                 for b in range(len(bones)):
                     par = skel.parents[b]
                     if par >= 0 and np.linalg.norm(heads[t, b] - tails[t, par]) > 1e-6:  # e.g. hip joints
-                        ax.plot([tails[t, par, h_axis], heads[t, b, h_axis]], [tails[t, par, 1], heads[t, b, 1]],
+                        ax.plot([tails[t, par, h_axis], heads[t, b, h_axis]], [tails[t, par, v_axis], heads[t, b, v_axis]],
                                 color="#999999", lw=1, ls="--")
-                    ax.plot([heads[t, b, h_axis], tails[t, b, h_axis]], [heads[t, b, 1], tails[t, b, 1]],
+                    ax.plot([heads[t, b, h_axis], tails[t, b, h_axis]], [heads[t, b, v_axis], tails[t, b, v_axis]],
                             color=colors[b], lw=2.5, solid_capstyle="round")
+                # head facing: arrow along the head's forward (local +Z) axis
+                c = 0.5 * (heads[t, hb] + tails[t, hb])
+                tip = c + 0.15 * worlds[t, hb][:, 2]
+                ax.plot([c[h_axis], tip[h_axis]], [c[v_axis], tip[v_axis]], color="#d62728", lw=2)
                 if dots is not None:
-                    ax.scatter(dots[:, h_axis], dots[:, 1], s=8, color="#9a9a9a", zorder=3)
-                ax.axhline(0, color="#bbbbbb", lw=0.8)
+                    ax.scatter(dots[:, h_axis], dots[:, v_axis], s=8, color="#9a9a9a", zorder=3)
                 ax.set_xlim(-1.0, 1.0)
-                ax.set_ylim(-0.1, 2.1)
+                if v_axis == 1:
+                    ax.axhline(0, color="#bbbbbb", lw=0.8)
+                    ax.set_ylim(-0.1, 2.1)
+                else:
+                    ax.set_ylim(-0.8, 0.8)
                 ax.set_aspect("equal")
                 ax.set_title(label, fontsize=9)
                 ax.tick_params(labelsize=7)

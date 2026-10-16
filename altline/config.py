@@ -18,6 +18,12 @@ class CalibrationConfig:
     hinge_bias_correction: bool = True
     min_arm_abduction_deg: float = 10.0   # A-pose .. T-pose band, measured from the trunk
     max_arm_abduction_deg: float = 100.0
+    # Rebuild landmark depth from the 2D image points and constant actor lengths (depth.py).
+    depth_from_2d: bool = True
+    # One-Euro filter on canonical joint positions (filters.py), forward-backward.
+    filter_enabled: bool = True
+    filter_min_cutoff_hz: float = 1.5
+    filter_beta: float = 2.0          # cutoff rises by beta Hz per m/s of joint speed
 
 
 @dataclass
@@ -26,6 +32,10 @@ class SolverConfig:
     # Twist from the elbow/knee bend plane is only trusted once the limb is bent this much.
     bend_twist_full_deg: float = 10.0
     bend_twist_zero_deg: float = 2.0
+    # Thigh: bend-plane twist fades in over this (de-biased) knee bend; below it the foot
+    # heading drives the thigh twist.
+    knee_twist_zero_deg: float = 10.0
+    knee_twist_full_deg: float = 30.0
 
 
 @dataclass
@@ -35,6 +45,8 @@ class LimitsConfig:
     wrist_deg: float = 90.0           # wrist twist and each wrist swing component
     knee_flex_deg: tuple[float, float] = (0.0, 150.0)
     knee_twist_deg: float = 30.0
+    # Excess forearm roll / knee twist goes to the parent bone while the hinge flex is below this.
+    twist_transfer_max_flex_deg: float = 20.0
     # A frame is a spike if it departs from the slerp of its neighbours by more than this.
     spike_deg: float = 25.0
     # A clamp that has to move a joint further than this marks the frame as a tracking
