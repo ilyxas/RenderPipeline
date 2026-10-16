@@ -10,11 +10,11 @@ def stop_tree(pid):
     except ProcessLookupError:pass
 
 
-def render(bundle,out,config,fps,log,indices=None,view='main',quality='preview',camera_plan=None,resolution=None):
+def render(bundle,out,config,fps,log,indices=None,view='main',quality='preview',camera_plan=None,resolution=None,engine='eevee'):
     script=Path(__file__).resolve().parents[3]/'blender/render_frames.py'
     cmd=[config['blender'],'-b',config['character_asset'],'--python-exit-code','1','--python',str(script),'--','--bundle',str(Path(bundle).resolve()),'--profile',config['character_profile'],'--scene',config['scene_asset'],'--scene-profile',config['scene_profile'],'--out',str(Path(out).resolve()),'--fps',str(fps)]
     if indices is not None:cmd+=['--frame-indices',','.join(str(i) for i in indices)]
-    cmd+=['--view',view,'--quality',quality]
+    cmd+=['--view',view,'--quality',quality,'--engine',engine]
     if camera_plan:cmd+=['--camera-plan',str(Path(camera_plan).resolve())]
     if resolution:cmd+=['--resolution',f'{resolution[0]}x{resolution[1]}']
     start=time.monotonic()

@@ -75,7 +75,10 @@ result in the phone's browser; report, folder and bundle stay on the Mac.
 ./xms run input.mp4 --start 3 --end 8 --resolution 720x1280
 ./xms run input.mp4 --solver viggle --channels full --quality final --resolution 720x1280
 ./xms run input.mp4 --quality final --output ~/Movies/xandra.mp4
+./xms run input.mp4 --solver viggle --quality final --engine cycles   # path traced finals: ~15 s/frame at 1080x1920 on an M4
 ```
+
+`--engine eevee` (default) is fast for iteration; `--engine cycles` renders with OpenImageDenoise and motion blur. A scene profile may set `engine_exposure` per engine. Studio has the same choice with a time estimate.
 
 Omitting `--start/--end` processes the whole video. A successful render exits 0; motion
 and visual acceptance are reported separately (`needs_review`). Ctrl+C, SIGTERM or

@@ -67,10 +67,10 @@ def command_for(settings,runs_root,config_path=None):
     start=float(settings.get('start',0));duration=float(settings['duration'])
     if not math.isfinite(start) or not math.isfinite(duration) or start<0 or duration<=0:raise ValueError('Проверьте начало и длительность фрагмента')
     resolution=settings.get('resolution','540x960');parse_resolution(resolution)
-    quality=settings.get('quality','preview');solver=settings.get('solver','video');audio=settings.get('audio','envelope');surface=settings.get('surface_qa','sampled')
-    for value,choices in [(quality,('preview','final')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
+    quality=settings.get('quality','preview');engine=settings.get('engine','eevee');solver=settings.get('solver','video');audio=settings.get('audio','envelope');surface=settings.get('surface_qa','sampled')
+    for value,choices in [(quality,('preview','final')),(engine,('eevee','cycles')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
         if value not in choices:raise ValueError('Неизвестная настройка: '+str(value))
-    cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
+    cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--engine',engine,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
     if not settings.get('to_end'):cmd+=['--end',str(start+duration)]
     if settings.get('face_closeup') and not settings.get('body_only'):cmd+=['--face-closeup']
     if settings.get('no_refine'):cmd+=['--no-refine']

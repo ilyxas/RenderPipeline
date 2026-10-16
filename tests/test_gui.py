@@ -11,11 +11,12 @@ class Launcher(unittest.TestCase):
     def test_options_reach_existing_cli_and_resolution_validation(self):
         with tempfile.TemporaryDirectory() as tmp:
             video=Path(tmp)/'input with spaces.mp4';video.touch()
-            settings={'input':str(video),'start':2,'duration':3,'resolution':'720x1280','quality':'final','solver':'temporal','audio':'speech','surface_qa':'all','body_only':True,'face_closeup':True,'fixed_camera':True,'no_refine':True,'output':str(Path(tmp)/'out.mp4')}
+            settings={'input':str(video),'start':2,'duration':3,'resolution':'720x1280','quality':'final','solver':'temporal','audio':'speech','surface_qa':'all','body_only':True,'face_closeup':True,'fixed_camera':True,'no_refine':True,'engine':'cycles','output':str(Path(tmp)/'out.mp4')}
             cmd=command_for(settings,Path(tmp)/'runs')
-            for option,value in [('--start','2.0'),('--end','5.0'),('--resolution','720x1280'),('--quality','final'),('--solver','temporal'),('--channels','body'),('--audio','speech'),('--surface-qa','all'),('--camera','fixed')]:self.assertEqual(cmd[cmd.index(option)+1],value)
+            for option,value in [('--start','2.0'),('--end','5.0'),('--resolution','720x1280'),('--quality','final'),('--solver','temporal'),('--channels','body'),('--audio','speech'),('--surface-qa','all'),('--camera','fixed'),('--engine','cycles')]:self.assertEqual(cmd[cmd.index(option)+1],value)
             self.assertIn('--no-refine',cmd);self.assertNotIn('--face-closeup',cmd);self.assertIn(str(video.resolve()),cmd)
             self.assertEqual(parse_resolution('1080x1920'),[1080,1920])
+            with self.assertRaises(ValueError):command_for({**settings,'engine':'workbench'},Path(tmp)/'runs')
             for value in ['1081x1920','0x960','720','huge']:
                 with self.assertRaises(ValueError):parse_resolution(value)
 
