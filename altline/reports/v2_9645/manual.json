@@ -1,0 +1,37 @@
+{
+ "clip_content": "head turn to the actor's LEFT, body static (verified in source)",
+ "verdict": "head fixed: holds +40 deg vs 2D estimate +45 (v1 +14.5), hold error 4.8 deg (v1 30.2); body calm, 0 frames above gate. Best clip.",
+ "visual_findings": {
+  "method": "preview frames (source|front|side|top) at key frames vs source, v1 preview below (plots/keyframes_v1_v2.png); numbers from v1_vs_v2 and depth_rebuild_diagnostics",
+  "findings": [
+   "Head yaw follows the 2D estimate with a constant ~5 deg shortfall, no decay.",
+   "Rest head yaw 0.0 (v1 +7.3).",
+   "Static arms out of plane <= 12 deg (v1 16); chest co-rotates 12 deg as in v1."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "B1",
+   "severity": "blocker",
+   "area": "depth rebuild: segment length L",
+   "file": "altline/depth.py planar_lengths(); calibration._rebuild_depth()",
+   "change": "L = max(rest projection, 98th percentile of the projection over the clip) is wrong under real (not weak) perspective: a limb moved toward the camera is magnified, so the p98 is 10-25 % longer than the true length. Every other frame, including the rest pose, then gets sqrt(L^2-d^2) of invented depth. Take L from the rest projection only (rest limbs are in-plane by the baseline definition) and either model perspective (scale each joint's image offset by its depth; focal length from the actor height in pixels, iterate 2-3 times) or cap L at the rest projection x 1.03. Add a test: a planar rest pose plus one limb swung toward a perspective camera must give 0 deg out-of-plane at rest.",
+   "expected": "rest out-of-plane of every limb segment < 5 deg (depth_rebuild_diagnostics); hinge_bias_deg back to <= 35 deg in all clips; df1e/619b standing shin vertical in the side view.",
+   "fail": "any rest segment still > 10 deg out of plane, or hinge bias > 40 deg."
+  }
+ ],
+ "v1_action_items_status": {
+  "A1 depth loss": "PARTLY FIXED with regressions: 2D-plane agreement is now near exact (0663 arm 2D direction p95 20-32 -> 2-4 deg), elbows bend more, df1e thigh goes forward; but invented rest depth (B1) and sign flips (B2) create new failures (df1e folded leg, false trunk/head yaw).",
+  "A2 debias_bend": "FORMULA FIXED (fades to 0 at 2*bias); undermined by inflated biases up to 61.6 deg (B8).",
+  "A3 temporal filter / anomalies": "PARTLY FIXED: zero-phase One-Euro, no measurable lag (|lag| <= 0.5 frame in 6 moving clips), bridging now fires; frames above gate 311 -> 184, but peaks rose in 5 clips because of the depth rebuild (B6).",
+  "A4 limits child re-expression / twist transfer": "MOSTLY FIXED: 061c forearm_r twist error p95 25.2 -> 0.2; hand_r 19.1 -> 13.8; df1e foot_l 40 -> 30 deg (B9).",
+  "A5 thigh twist": "UNCLEAR: no longer wanders in df1e (+80..88 steady) but in a wrong folded configuration; re-check after B2.",
+  "A6 head yaw": "FIXED for head-turn clips (9645 hold error 30.2 -> 4.8, 5313 25.5 -> 5.5, rest yaw 6-8 -> 0) - REGRESSION in static-head clips (0663 -20 deg) (B3).",
+  "A7 trunk lean": "NOT ADDRESSED (0663 20.2 -> 16.8, 85a9 17.7 -> 12.5 as a side effect).",
+  "A8 preview": "FIXED: top view and head arrow make head yaw, trunk yaw and depth errors visible.",
+  "A9 feet above floor": "NOT FIXED (2.9-4.4 cm).",
+  "A10 forearm interpenetration": "NOT ADDRESSED (0663 104 frames < 5 cm)."
+ },
+ "filter_lag_check": "zero-phase One-Euro does not lag: see v1_vs_v2.filter_lag (rig image-plane chord angle vs source 2D, cross-correlation of velocities).",
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted"
+}

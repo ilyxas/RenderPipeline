@@ -1,0 +1,75 @@
+{
+ "clip_content": "high front kick with the actor's LEFT leg, held in the air (verified in source)",
+ "verdict": "fail, new failure mode: the thigh now goes forward-up correctly (sagittal 150 deg, forward component 0.49; v1 176 deg = vertical split), but from f95 the shin depth flips behind the knee and the leg stays folded (knee 80 deg, ankle 9 cm behind the hip) for the whole hold while the source leg is straight; stance foot dips 1-2 cm below the floor f99-105",
+ "visual_findings": {
+  "method": "preview frames (source|front|side|top) at key frames vs source, v1 preview below (plots/keyframes_v1_v2.png); numbers from v1_vs_v2 and depth_rebuild_diagnostics",
+  "findings": [
+   "f42 rest: left shin rebuilt 37 deg BACKWARD out of plane (ratio 0.80) -> knee_l hinge bias 40.1.",
+   "f86-90: leg extended forward-up, ankle 55-67 cm in front of the hip - matches the source.",
+   "f95-98: shin depth sign flips 4 times, 71 cm jump in one frame; limits bridge [94,98] for the thigh but the final state is the wrong sign.",
+   "f100-144 side view: knee forward, shin going back-up, foot behind the body: Z-folded leg; source leg straight. Thigh twist now steady at +80..+88 deg (v1 wandered 0..-68) but in this wrong configuration.",
+   "Peaks: foot_l 27296 (f86), shin_l 23733 (f84), thigh_l 19717 (f85) - all above v1."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "B2",
+   "severity": "blocker",
+   "area": "depth rebuild: sign of dz",
+   "file": "altline/depth.py reconstruct()",
+   "change": "The sign of each segment's depth is taken from the tracker per frame. When the tracker depth crosses zero the rebuilt depth jumps by 2*sqrt(L^2-d^2): up to 71 cm in one frame. Make the sign temporal: keep the previous frame's sign unless the opposite sign is supported for >= 3 frames (or solve the sign sequence by dynamic programming minimising depth jumps + joint-limit violations: knee/elbow cannot bend backwards, ankle behind the knee while the thigh points forward-up is a fold). Only then filter.",
+   "expected": "no rebuilt depth jump > 10 cm/frame on any segment; df1e knee flex in the hold < 25 deg and ankle in front of the hip; 0663 f27-33 / 061c f79 / 0663 neck f57 jumps gone.",
+   "fail": "df1e still folds the leg in the hold."
+  },
+  {
+   "id": "B1",
+   "severity": "blocker",
+   "area": "depth rebuild: segment length L",
+   "file": "altline/depth.py planar_lengths(); calibration._rebuild_depth()",
+   "change": "L = max(rest projection, 98th percentile of the projection over the clip) is wrong under real (not weak) perspective: a limb moved toward the camera is magnified, so the p98 is 10-25 % longer than the true length. Every other frame, including the rest pose, then gets sqrt(L^2-d^2) of invented depth. Take L from the rest projection only (rest limbs are in-plane by the baseline definition) and either model perspective (scale each joint's image offset by its depth; focal length from the actor height in pixels, iterate 2-3 times) or cap L at the rest projection x 1.03. Add a test: a planar rest pose plus one limb swung toward a perspective camera must give 0 deg out-of-plane at rest.",
+   "expected": "rest out-of-plane of every limb segment < 5 deg (depth_rebuild_diagnostics); hinge_bias_deg back to <= 35 deg in all clips; df1e/619b standing shin vertical in the side view.",
+   "fail": "any rest segment still > 10 deg out of plane, or hinge bias > 40 deg."
+  },
+  {
+   "id": "B6",
+   "severity": "major",
+   "area": "jitter peaks",
+   "file": "depth.py (B2) + limits.py",
+   "change": "Frames above the 3000 deg/s^2 gate fell 311 -> 184 over the 8 clips, but the filter-only ablation (depth rebuild off) gives 86, and several peaks are higher than v1 (0663 forearm_r 39663 vs 20776, df1e foot_l 27296 vs 11852, 690b forearm_l 9110 vs 5262, 619b forearm_r 7554 vs 3150). The depth rebuild injects them (sign flips, entry into the length zone). Fix B1/B2 first, then re-measure; keep the filter (it does not lag).",
+   "expected": "total frames above gate <= 90 over the 8 clips, no peak above v1's.",
+   "fail": "peaks above v1 remain."
+  },
+  {
+   "id": "B8",
+   "severity": "major",
+   "area": "hinge de-bias with inflated bias",
+   "file": "solver.debias_bend; calibration.hinge_bias",
+   "change": "The A2 formula is fixed (fade to 0 at 2*bias), but the bias is now measured on the rebuilt rest pose, where false depth bends the limbs: elbow_r 61.6 (061c), elbow_l 51.5 (690b), knee_r 39.4 (619b), knee_l 40.1 (df1e). Any real bend below the bias is erased and bends up to 2*bias are doubled (slope 2, noise doubled). After B1, cap the bias at ~30 deg and log a warning when the rest bend is larger.",
+   "expected": "hinge_bias_deg <= 30 in all clips.",
+   "fail": "> 35."
+  },
+  {
+   "id": "B9",
+   "severity": "minor",
+   "area": "limits (v1 A4, partly fixed)",
+   "file": "limits.py",
+   "change": "Child re-expression works (061c forearm_r twist error p95 25.2 -> 0.2 deg). Remaining: hand_r twist error p95 13.8 (v1 19.1) in 061c; df1e shin_l twist up to -42 deg is still hard-clamped to -30 in 55 frames (flex > 20, so no transfer) and foot_l is off its target by up to 30 deg (v1 40). Hard clamps still jolt (not addressed).",
+   "expected": "hand_r twist p95 < 5; foot_l fk-vs-target < 10 deg.",
+   "fail": "-"
+  }
+ ],
+ "v1_action_items_status": {
+  "A1 depth loss": "PARTLY FIXED with regressions: 2D-plane agreement is now near exact (0663 arm 2D direction p95 20-32 -> 2-4 deg), elbows bend more, df1e thigh goes forward; but invented rest depth (B1) and sign flips (B2) create new failures (df1e folded leg, false trunk/head yaw).",
+  "A2 debias_bend": "FORMULA FIXED (fades to 0 at 2*bias); undermined by inflated biases up to 61.6 deg (B8).",
+  "A3 temporal filter / anomalies": "PARTLY FIXED: zero-phase One-Euro, no measurable lag (|lag| <= 0.5 frame in 6 moving clips), bridging now fires; frames above gate 311 -> 184, but peaks rose in 5 clips because of the depth rebuild (B6).",
+  "A4 limits child re-expression / twist transfer": "MOSTLY FIXED: 061c forearm_r twist error p95 25.2 -> 0.2; hand_r 19.1 -> 13.8; df1e foot_l 40 -> 30 deg (B9).",
+  "A5 thigh twist": "UNCLEAR: no longer wanders in df1e (+80..88 steady) but in a wrong folded configuration; re-check after B2.",
+  "A6 head yaw": "FIXED for head-turn clips (9645 hold error 30.2 -> 4.8, 5313 25.5 -> 5.5, rest yaw 6-8 -> 0) - REGRESSION in static-head clips (0663 -20 deg) (B3).",
+  "A7 trunk lean": "NOT ADDRESSED (0663 20.2 -> 16.8, 85a9 17.7 -> 12.5 as a side effect).",
+  "A8 preview": "FIXED: top view and head arrow make head yaw, trunk yaw and depth errors visible.",
+  "A9 feet above floor": "NOT FIXED (2.9-4.4 cm).",
+  "A10 forearm interpenetration": "NOT ADDRESSED (0663 104 frames < 5 cm)."
+ },
+ "filter_lag_check": "zero-phase One-Euro does not lag: see v1_vs_v2.filter_lag (rig image-plane chord angle vs source 2D, cross-correlation of velocities).",
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted"
+}

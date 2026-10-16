@@ -1,0 +1,83 @@
+{
+ "clip_content": "both hands brought up to cover the face (verified in source)",
+ "verdict": "fail, better than v1: elbows 59-66 deg (v1 21-31), hands 34 / 49 cm from the face (v1 48 / 52), zombie-arm glitch gone (forearm_r peak 27643 -> 8792, frames above gate 62 -> 24), but trunk turns 34 deg (f51) and the hands sit beside/in front of the face",
+ "visual_findings": {
+  "method": "preview frames (source|front|side|top) at key frames vs source, v1 preview below (plots/keyframes_v1_v2.png); numbers from v1_vs_v2 and depth_rebuild_diagnostics",
+  "findings": [
+   "f9 rest: both forearms rebuilt 33-36 deg out of plane (ratio 0.81-0.84) -> elbow biases 41.6 / 39.2.",
+   "f16: upper_arm_r / forearm_r 9225 / 8792 deg/s^2 (v1 forearm_r 27643 f23).",
+   "f42: clavicle depth sign flip (14 cm) -> chest yaw +34 deg at f51 (ablation without depth: 8.5).",
+   "f51/f100 side view: forearms vertical, hands 20-30 cm in front of the face; source palms on the face."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "B5",
+   "severity": "major",
+   "area": "self-contact poses (hands on body)",
+   "file": "new step after depth rebuild (contact/collision prior)",
+   "change": "Even with rebuilt depth the hands stay 26-29 cm from the opposite shoulders (0663) and 34/49 cm from the face (85a9): a forearm lying across the chest is closer to the camera and looks full length, so it is treated as in-plane. Needs either a perspective model (B1) or a contact prior (hand landmark inside the torso/face silhouette in 2D -> pull depth to the body surface). Hypothesis level: verify on 0663/85a9 before building more.",
+   "expected": "0663 hand tip <= 12 cm from the opposite shoulder; 85a9 hand tip <= 10 cm from the face.",
+   "fail": "> 15 cm."
+  },
+  {
+   "id": "B4",
+   "severity": "major",
+   "area": "false trunk yaw",
+   "file": "altline/depth.py TREE clavicle/half_hip_width/trunk; solver chest facing",
+   "change": "Clavicle depth from the length formula turns the shoulder line when the shoulder landmark moves medially/upwards (arm raised, hands to face). Do not rebuild clavicle depth from length (shoulder landmarks are not a rigid segment end); take shoulder-line yaw from the hip line plus a bounded spine twist, or from the tracker (v1 behaviour).",
+   "expected": "061c chest yaw <= 8 deg (now 33.1 f144; v1 5.0), 85a9 <= 10 (now 34.0 f51; v1 8.9).",
+   "fail": "> 15 deg in any clip without a trunk turn."
+  },
+  {
+   "id": "B1",
+   "severity": "blocker",
+   "area": "depth rebuild: segment length L",
+   "file": "altline/depth.py planar_lengths(); calibration._rebuild_depth()",
+   "change": "L = max(rest projection, 98th percentile of the projection over the clip) is wrong under real (not weak) perspective: a limb moved toward the camera is magnified, so the p98 is 10-25 % longer than the true length. Every other frame, including the rest pose, then gets sqrt(L^2-d^2) of invented depth. Take L from the rest projection only (rest limbs are in-plane by the baseline definition) and either model perspective (scale each joint's image offset by its depth; focal length from the actor height in pixels, iterate 2-3 times) or cap L at the rest projection x 1.03. Add a test: a planar rest pose plus one limb swung toward a perspective camera must give 0 deg out-of-plane at rest.",
+   "expected": "rest out-of-plane of every limb segment < 5 deg (depth_rebuild_diagnostics); hinge_bias_deg back to <= 35 deg in all clips; df1e/619b standing shin vertical in the side view.",
+   "fail": "any rest segment still > 10 deg out of plane, or hinge bias > 40 deg."
+  },
+  {
+   "id": "B2",
+   "severity": "blocker",
+   "area": "depth rebuild: sign of dz",
+   "file": "altline/depth.py reconstruct()",
+   "change": "The sign of each segment's depth is taken from the tracker per frame. When the tracker depth crosses zero the rebuilt depth jumps by 2*sqrt(L^2-d^2): up to 71 cm in one frame. Make the sign temporal: keep the previous frame's sign unless the opposite sign is supported for >= 3 frames (or solve the sign sequence by dynamic programming minimising depth jumps + joint-limit violations: knee/elbow cannot bend backwards, ankle behind the knee while the thigh points forward-up is a fold). Only then filter.",
+   "expected": "no rebuilt depth jump > 10 cm/frame on any segment; df1e knee flex in the hold < 25 deg and ankle in front of the hip; 0663 f27-33 / 061c f79 / 0663 neck f57 jumps gone.",
+   "fail": "df1e still folds the leg in the hold."
+  },
+  {
+   "id": "B7",
+   "severity": "major",
+   "area": "trunk lean (v1 A7, not addressed)",
+   "file": "solver.bone_targets pelvis/spine/chest",
+   "change": "Unchanged from v1 A7: cap spine+chest pitch relative to rest unless the 2D shoulder-hip distance shrinks.",
+   "expected": "0663 chest pitch < 5 deg (now 16.8 f37; v1 20.2), 85a9 < 5 (now 12.5 f54; v1 17.7).",
+   "fail": "> 10 deg."
+  },
+  {
+   "id": "B8",
+   "severity": "major",
+   "area": "hinge de-bias with inflated bias",
+   "file": "solver.debias_bend; calibration.hinge_bias",
+   "change": "The A2 formula is fixed (fade to 0 at 2*bias), but the bias is now measured on the rebuilt rest pose, where false depth bends the limbs: elbow_r 61.6 (061c), elbow_l 51.5 (690b), knee_r 39.4 (619b), knee_l 40.1 (df1e). Any real bend below the bias is erased and bends up to 2*bias are doubled (slope 2, noise doubled). After B1, cap the bias at ~30 deg and log a warning when the rest bend is larger.",
+   "expected": "hinge_bias_deg <= 30 in all clips.",
+   "fail": "> 35."
+  }
+ ],
+ "v1_action_items_status": {
+  "A1 depth loss": "PARTLY FIXED with regressions: 2D-plane agreement is now near exact (0663 arm 2D direction p95 20-32 -> 2-4 deg), elbows bend more, df1e thigh goes forward; but invented rest depth (B1) and sign flips (B2) create new failures (df1e folded leg, false trunk/head yaw).",
+  "A2 debias_bend": "FORMULA FIXED (fades to 0 at 2*bias); undermined by inflated biases up to 61.6 deg (B8).",
+  "A3 temporal filter / anomalies": "PARTLY FIXED: zero-phase One-Euro, no measurable lag (|lag| <= 0.5 frame in 6 moving clips), bridging now fires; frames above gate 311 -> 184, but peaks rose in 5 clips because of the depth rebuild (B6).",
+  "A4 limits child re-expression / twist transfer": "MOSTLY FIXED: 061c forearm_r twist error p95 25.2 -> 0.2; hand_r 19.1 -> 13.8; df1e foot_l 40 -> 30 deg (B9).",
+  "A5 thigh twist": "UNCLEAR: no longer wanders in df1e (+80..88 steady) but in a wrong folded configuration; re-check after B2.",
+  "A6 head yaw": "FIXED for head-turn clips (9645 hold error 30.2 -> 4.8, 5313 25.5 -> 5.5, rest yaw 6-8 -> 0) - REGRESSION in static-head clips (0663 -20 deg) (B3).",
+  "A7 trunk lean": "NOT ADDRESSED (0663 20.2 -> 16.8, 85a9 17.7 -> 12.5 as a side effect).",
+  "A8 preview": "FIXED: top view and head arrow make head yaw, trunk yaw and depth errors visible.",
+  "A9 feet above floor": "NOT FIXED (2.9-4.4 cm).",
+  "A10 forearm interpenetration": "NOT ADDRESSED (0663 104 frames < 5 cm)."
+ },
+ "filter_lag_check": "zero-phase One-Euro does not lag: see v1_vs_v2.filter_lag (rig image-plane chord angle vs source 2D, cross-correlation of velocities).",
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted"
+}
