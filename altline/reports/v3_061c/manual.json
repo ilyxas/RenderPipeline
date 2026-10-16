@@ -1,0 +1,56 @@
+{
+ "verdict": "partial (as v2): raised arm correct, head yaw now right (-15 vs 2D -17), arms at rest in the frontal plane; trunk still turns 33 deg (f144) and frames above gate rose 17 -> 50 (upper_arm_r 16264 f91, upper-arm twist snap f40)",
+ "visual_findings": {
+  "method": "v3 preview frames (source|front|side|top) vs source, v2 row below (plots/keyframes_v2_v3.png)",
+  "findings": [
+   "Rest (f22): all limbs within 1 deg of the frontal plane (v2: right arm 30 deg).",
+   "f140 top view: shoulder line rotated 33 deg, left arm behind the body - unchanged from v2.",
+   "f38-41 left (static) upper arm twist -24 -> 0 deg while the de-biased elbow bend crosses 2-10 deg."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "C3",
+   "severity": "major",
+   "area": "false trunk yaw (v2 B4, not addressed)",
+   "file": "altline/depth.py clavicle entries / solver chest facing",
+   "change": "Unchanged from v2 B4: clavicle depth from the length formula rotates the shoulder line when the shoulder landmarks move with the arms.",
+   "expected": "061c chest yaw <= 8 deg, 85a9 <= 10.",
+   "fail": "> 15.",
+   "evidence": "061c chest yaw 33.2 deg f144 (v1 5.0), 85a9 31.3 f52 (v1 8.9); the left arm in 061c swings behind the body in the side/top view."
+  },
+  {
+   "id": "C2",
+   "severity": "major",
+   "area": "upper-arm twist snaps (new jitter in quiet clips)",
+   "file": "altline/solver.py bone_targets upper_arm twist weight; config.SolverConfig.bend_twist_zero_deg/full_deg",
+   "change": "With the hinge bias now 4-9 deg, static and slowly moving arms show de-biased elbow bends of 5-20 deg, right inside the 2-10 deg window where the upper-arm twist weight goes 0 -> 1. The twist then snaps by 20-40 deg in 1-2 frames. Widen the window (zero ~15, full ~35 deg, as in v1 A5) and/or low-pass the twist weight; a nearly straight arm should inherit its twist smoothly.",
+   "expected": "9645 and 5313 back to 0 frames above the gate; 690b f5 and 061c f40 peaks < 3000.",
+   "fail": "-",
+   "evidence": "9645 upper_arm_r twist 40.8 -> 21.8 -> 0.5 deg over f56-58 while the bend falls 8.9 -> 2.4 deg: 12049 deg/s^2 f56; 5313 upper_arm_l -19 -> 0 at f25-26 (11205); 690b -31 at f5 (20711); 061c f38-41 (4896)."
+  },
+  {
+   "id": "C4",
+   "severity": "major",
+   "area": "perspective: projection longer than the rest length",
+   "file": "altline/depth.py (needs a perspective model)",
+   "change": "L is now the rest projection (correct at rest), but a limb that comes toward the camera is magnified and its projection exceeds L (ratio up to 1.33). Depth is then clipped to 0 and the limb is laid flat in the image plane exactly when it points at the camera. Model perspective: scale each joint's image offset by (Z_cam + z)/Z_cam with Z_cam from the actor's pixel height and a nominal focal length, iterate 2-3 times.",
+   "expected": "projection/L <= 1.03 after correction; df1e knee flex in the hold < 20 deg; 85a9 hands <= 10 cm from the face; 0663 hands <= 12 cm from the shoulders.",
+   "fail": "df1e knee still > 30 deg in the hold.",
+   "evidence": "max projection ratio 1.32 df1e shin_l, 1.27 619b shin_r, 1.26 / 1.22 85a9 forearms, 1.20 690b forearm_l; df1e knee 45 deg in the hold (source straight); 85a9 hands 16 / 36 cm from the face; 0663 hands 27 / 23 cm from the shoulders."
+  }
+ ],
+ "v2_action_items_status": {
+  "B1 rest-length L": "FIXED at rest: rest out-of-plane <= 2.8 deg for every limb in every clip (v2 up to 37 deg); hinge biases 2.4-17.8 deg (v2 up to 61.6). Exposed the missing perspective model (C4).",
+  "B2 depth sign": "PARTLY FIXED: no flip on near-plane noise any more (619b, 061c, 85a9 now clean), but confident tracker flips still pass (0663 f28-39, df1e f83/86) (C1).",
+  "B3 false head yaw": "FIXED in 0663 (-20 -> -2 deg) and 061c (hold -15.1 vs 2D -16.8); NOT in 619b (+20.5) (C5). Head-turn clips stay good (5313 -51 vs -49, 9645 +43 vs +45).",
+  "B4 false trunk yaw": "NOT ADDRESSED: 061c 33.2, 85a9 31.3 deg (0663 fixed as a side effect, -3.8) (C3).",
+  "B5 hands to body": "PARTLY BETTER as a side effect: 85a9 16 / 36 cm (v2 34 / 49), 0663 27 / 23 (v2 26 / 29) (C4).",
+  "B6 jitter peaks": "WORSE: frames above gate 184 -> 270 (v1 311); quiet clips gained jitter (9645 0 -> 10, 5313 0 -> 19). Ablation of v3 code without depth rebuild: 75 (C1, C2).",
+  "B7 trunk lean": "FIXED as a side effect: chest pitch back <= 1.0 deg in every clip (v2 0663 16.8, 85a9 12.5).",
+  "B8 hinge bias cap": "DONE (cap 30; actual biases now 2-18).",
+  "B10 feet above floor": "IMPROVED: rest lowest foot point 2.0-2.3 cm = the rig's toe height (v2 2.9-4.4).",
+  "filter": "Still no lag: |lag| <= 1.05 frame in all moving clips, excursion within 3 deg of the source."
+ },
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted"
+}

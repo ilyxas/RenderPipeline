@@ -1,0 +1,56 @@
+{
+ "verdict": "fail, improved: no backward fold any more - ankle 20 cm in front of the hip (v2 9 cm behind), thigh forward-up; but the knee stays bent 45 deg in the hold while the source leg is straight; shin sign flips f83/86 (45 cm)",
+ "visual_findings": {
+  "method": "v3 preview frames (source|front|side|top) vs source, v2 row below (plots/keyframes_v2_v3.png)",
+  "findings": [
+   "f130 side view: thigh forward-up, shin goes straight up from the knee (bent ~45 deg); source leg straight.",
+   "Shin projection up to 1.32 x rest length: perspective magnification, depth clipped to 0.",
+   "Peaks: upper_arm_l 32018 f97, shin_l 21550 f85."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "C4",
+   "severity": "major",
+   "area": "perspective: projection longer than the rest length",
+   "file": "altline/depth.py (needs a perspective model)",
+   "change": "L is now the rest projection (correct at rest), but a limb that comes toward the camera is magnified and its projection exceeds L (ratio up to 1.33). Depth is then clipped to 0 and the limb is laid flat in the image plane exactly when it points at the camera. Model perspective: scale each joint's image offset by (Z_cam + z)/Z_cam with Z_cam from the actor's pixel height and a nominal focal length, iterate 2-3 times.",
+   "expected": "projection/L <= 1.03 after correction; df1e knee flex in the hold < 20 deg; 85a9 hands <= 10 cm from the face; 0663 hands <= 12 cm from the shoulders.",
+   "fail": "df1e knee still > 30 deg in the hold.",
+   "evidence": "max projection ratio 1.32 df1e shin_l, 1.27 619b shin_r, 1.26 / 1.22 85a9 forearms, 1.20 690b forearm_l; df1e knee 45 deg in the hold (source straight); 85a9 hands 16 / 36 cm from the face; 0663 hands 27 / 23 cm from the shoulders."
+  },
+  {
+   "id": "C1",
+   "severity": "blocker",
+   "area": "depth sign still flips when the tracker is 'confident'",
+   "file": "altline/depth.py reconstruct() (SIGN_CONFIDENT)",
+   "change": "Sign continuity only applies while |tracker dz| < 0.3 L. When the tracker itself flips with a large depth (arms crossing in 0663, kick in df1e), the rebuilt joint still jumps 36-47 cm in one frame. Keep the previous sign unless the opposite sign persists for >= 3 frames, or choose the whole sign sequence per segment by dynamic programming (cost = depth jump + joint-limit violation, e.g. elbow/knee bending backwards).",
+   "expected": "no rebuilt depth jump > 10 cm/frame (depth_rebuild_diagnostics); 0663 hand_l peak < 10000 deg/s^2.",
+   "fail": "any jump > 20 cm/frame.",
+   "evidence": "0663 sign flips f28/31/32/39, jumps 41.8 / 46.9 / 36.1 cm -> hand_l 103718 deg/s^2 f37, upper_arm_l 45607 f29; df1e shin flips f83/86, jump 45.4 cm."
+  },
+  {
+   "id": "C2",
+   "severity": "major",
+   "area": "upper-arm twist snaps (new jitter in quiet clips)",
+   "file": "altline/solver.py bone_targets upper_arm twist weight; config.SolverConfig.bend_twist_zero_deg/full_deg",
+   "change": "With the hinge bias now 4-9 deg, static and slowly moving arms show de-biased elbow bends of 5-20 deg, right inside the 2-10 deg window where the upper-arm twist weight goes 0 -> 1. The twist then snaps by 20-40 deg in 1-2 frames. Widen the window (zero ~15, full ~35 deg, as in v1 A5) and/or low-pass the twist weight; a nearly straight arm should inherit its twist smoothly.",
+   "expected": "9645 and 5313 back to 0 frames above the gate; 690b f5 and 061c f40 peaks < 3000.",
+   "fail": "-",
+   "evidence": "9645 upper_arm_r twist 40.8 -> 21.8 -> 0.5 deg over f56-58 while the bend falls 8.9 -> 2.4 deg: 12049 deg/s^2 f56; 5313 upper_arm_l -19 -> 0 at f25-26 (11205); 690b -31 at f5 (20711); 061c f38-41 (4896)."
+  }
+ ],
+ "v2_action_items_status": {
+  "B1 rest-length L": "FIXED at rest: rest out-of-plane <= 2.8 deg for every limb in every clip (v2 up to 37 deg); hinge biases 2.4-17.8 deg (v2 up to 61.6). Exposed the missing perspective model (C4).",
+  "B2 depth sign": "PARTLY FIXED: no flip on near-plane noise any more (619b, 061c, 85a9 now clean), but confident tracker flips still pass (0663 f28-39, df1e f83/86) (C1).",
+  "B3 false head yaw": "FIXED in 0663 (-20 -> -2 deg) and 061c (hold -15.1 vs 2D -16.8); NOT in 619b (+20.5) (C5). Head-turn clips stay good (5313 -51 vs -49, 9645 +43 vs +45).",
+  "B4 false trunk yaw": "NOT ADDRESSED: 061c 33.2, 85a9 31.3 deg (0663 fixed as a side effect, -3.8) (C3).",
+  "B5 hands to body": "PARTLY BETTER as a side effect: 85a9 16 / 36 cm (v2 34 / 49), 0663 27 / 23 (v2 26 / 29) (C4).",
+  "B6 jitter peaks": "WORSE: frames above gate 184 -> 270 (v1 311); quiet clips gained jitter (9645 0 -> 10, 5313 0 -> 19). Ablation of v3 code without depth rebuild: 75 (C1, C2).",
+  "B7 trunk lean": "FIXED as a side effect: chest pitch back <= 1.0 deg in every clip (v2 0663 16.8, 85a9 12.5).",
+  "B8 hinge bias cap": "DONE (cap 30; actual biases now 2-18).",
+  "B10 feet above floor": "IMPROVED: rest lowest foot point 2.0-2.3 cm = the rig's toe height (v2 2.9-4.4).",
+  "filter": "Still no lag: |lag| <= 1.05 frame in all moving clips, excursion within 3 deg of the source."
+ },
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted"
+}
