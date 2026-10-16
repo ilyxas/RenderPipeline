@@ -1,0 +1,18 @@
+{
+  "schema_version": "xms.look.v1",
+  "id": "xandra_wardrobe_v08_corset",
+  "mode": "asset",
+  "reference": "Xandra_Wardrobe_v08.blend = v07 body + CLO-SET Black Leather Corset Dress (Zeinab Dahgani) draped in Marvelous Designer on Xandra, leather material and leg collision (Shrinkwrap on Collide_Legs) built by Voyager work/md_*.py; render applies nothing.",
+  "surface_qa_pairs": [
+    [
+      "F4_Hands",
+      "OF_CorsetMD"
+    ]
+  ],
+  "glb": {
+    "influences": 8,
+    "hair_alpha": {
+      "material": "MI_X3D_Hair_V7"
+    }
+  }
+}

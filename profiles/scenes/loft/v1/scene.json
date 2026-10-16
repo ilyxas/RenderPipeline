@@ -1,0 +1,100 @@
+{
+  "schema_version": "xms.scene.v1",
+  "id": "loft",
+  "asset_sha256": "3e903a6ea717b8609675541eea00da4670c7705b90caaf6a8bddf83100470944",
+  "collection": "Loft_Studio",
+  "world": "Loft_World",
+  "camera": {
+    "position_blender_m": [
+      0,
+      -3.8,
+      0.88
+    ],
+    "rotation_euler_degrees": [
+      90,
+      0,
+      0
+    ],
+    "vertical_fov_degrees": 36
+  },
+  "floor_transform": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "resolution": [
+    540,
+    960
+  ],
+  "samples": 16,
+  "exposure": 0.45,
+  "disable_character_objects": [
+    "Xa_Floor",
+    "stage"
+  ],
+  "disable_character_lights": true,
+  "profile_revision": 1,
+  "diagnostic_views": {
+    "face": {
+      "bone": "head",
+      "offset_blender_m": [
+        0,
+        -1.1,
+        0.04
+      ],
+      "vertical_fov_degrees": 24,
+      "resolution": [
+        360,
+        640
+      ]
+    },
+    "hand_l": {
+      "bone": "hand_l",
+      "offset_blender_m": [
+        0,
+        -0.75,
+        0
+      ],
+      "vertical_fov_degrees": 30,
+      "resolution": [
+        360,
+        640
+      ]
+    },
+    "hand_r": {
+      "bone": "hand_r",
+      "offset_blender_m": [
+        0,
+        -0.75,
+        0
+      ],
+      "vertical_fov_degrees": 30,
+      "resolution": [
+        360,
+        640
+      ]
+    }
+  },
+  "profile_hash": "c35a6e13237b89c9691f61ff04f21db83b215834043ce1e31741fce57ae64a0c"
+}

@@ -25,3 +25,6 @@ frames/
 
 
 .xms/
+
+# Asset textures next to local .blend files (outside Git like the .blend itself)
+blender/textures_*/
