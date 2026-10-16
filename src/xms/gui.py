@@ -1,8 +1,16 @@
-"""Loopback-only browser launcher for the existing CLI; one local process group."""
+"""Browser launcher for the existing CLI; one local process group.
+
+Listens on loopback by default; `--tailscale` / `--host` add explicit addresses (never all
+interfaces implicitly). Remote browsers upload the source video instead of using Finder.
+"""
+import hashlib
+import ipaddress
 import json
 import math
 import os
+import re
 import secrets
+import shutil
 import signal
 import subprocess
 import sys
@@ -13,10 +21,15 @@ from collections import deque
 from fractions import Fraction
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse,parse_qs
+from urllib.parse import urlparse,parse_qs,unquote
 
 ROOT=Path(__file__).resolve().parents[2]
 ASSETS=Path(__file__).with_name('gui_assets')
+UPLOAD_SUFFIXES=('.mp4','.mov','.m4v','.3gp','.webm','.mkv','.avi')
+MEDIA_TYPES={'.mov':'video/quicktime','.webm':'video/webm','.mkv':'video/x-matroska','.avi':'video/x-msvideo','.3gp':'video/3gpp'}
+TAILSCALE_V4=ipaddress.ip_network('100.64.0.0/10')
+TAILSCALE_V6=ipaddress.ip_network('fd7a:115c:a1e0::/48')
+REMOTE_PORT=8765
 PHASES={'prepare':'Подготовка','pose':'Ориентиры тела','face':'Мимика','hands':'Ориентиры кистей','solve':'Реконструкция движения','surface':'Проверка пересечений','preview':'Предварительный рендер','render':'Рендер видео','encode':'Сборка MP4 и проверка','closeup':'Рендер лица','compare':'Сравнение и отчёт'}
 
 
@@ -34,7 +47,10 @@ def video_info(path,config_path=None):
     rate=v.get('avg_frame_rate','0/1');fps=float(Fraction(rate)) if rate!='0/0' else 0
     from .observations.viggle import cache_dir
     viggle_cached=bool(fps) and (cache_dir(path,fps)/'metahuman_body.glb').exists()
-    return {'path':str(path),'name':path.name,'duration':duration,'width':v['width'],'height':v['height'],'fps':fps,'audio':any(s['codec_type']=='audio' for s in data['streams']),'viggle_cached':viggle_cached,'viggle_key':bool(os.environ.get('VIGGLE_API_KEY'))}
+    # Phones store portrait video as landscape plus a rotation; show the size as it plays.
+    rotation=next((int(d['rotation']) for d in v.get('side_data_list',[]) if 'rotation' in d),int(v.get('tags',{}).get('rotate',0)))
+    width,height=(v['height'],v['width']) if rotation%180 else (v['width'],v['height'])
+    return {'path':str(path),'name':path.name,'duration':duration,'width':width,'height':height,'fps':fps,'audio':any(s['codec_type']=='audio' for s in data['streams']),'viggle_cached':viggle_cached,'viggle_key':bool(os.environ.get('VIGGLE_API_KEY'))}
 
 
 def env_for(settings,base):
@@ -51,10 +67,10 @@ def command_for(settings,runs_root,config_path=None):
     start=float(settings.get('start',0));duration=float(settings['duration'])
     if not math.isfinite(start) or not math.isfinite(duration) or start<0 or duration<=0:raise ValueError('Проверьте начало и длительность фрагмента')
     resolution=settings.get('resolution','540x960');parse_resolution(resolution)
-    quality=settings.get('quality','preview');solver=settings.get('solver','video');audio=settings.get('audio','envelope');surface=settings.get('surface_qa','sampled')
-    for value,choices in [(quality,('preview','final')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
+    quality=settings.get('quality','preview');engine=settings.get('engine','eevee');solver=settings.get('solver','video');audio=settings.get('audio','envelope');surface=settings.get('surface_qa','sampled')
+    for value,choices in [(quality,('preview','final')),(engine,('eevee','cycles')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
         if value not in choices:raise ValueError('Неизвестная настройка: '+str(value))
-    cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
+    cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--engine',engine,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
     if not settings.get('to_end'):cmd+=['--end',str(start+duration)]
     if settings.get('face_closeup') and not settings.get('body_only'):cmd+=['--face-closeup']
     if settings.get('no_refine'):cmd+=['--no-refine']
@@ -184,21 +200,107 @@ def choose_file(kind):
     return result.stdout.strip()
 
 
-def serve(port=0,open_browser=True):
+def _tailscale_cli():
+    for candidate in (shutil.which('tailscale'),'/Applications/Tailscale.app/Contents/MacOS/Tailscale','/opt/homebrew/bin/tailscale','/usr/local/bin/tailscale'):
+        if candidate and Path(candidate).is_file():return candidate
+    return None
+
+
+def _run_text(cmd):
+    try:
+        result=subprocess.run(cmd,capture_output=True,text=True,timeout=5)
+        return result.stdout if result.returncode==0 else ''
+    except (OSError,subprocess.SubprocessError):return ''
+
+
+def is_tailscale_address(text):
+    try:address=ipaddress.ip_address(text.split('%')[0])
+    except ValueError:return False
+    return address in (TAILSCALE_V4 if address.version==4 else TAILSCALE_V6)
+
+
+def tailscale_addresses():
+    """This machine's Tailscale IPv4 addresses: `tailscale ip -4`, else 100.64/10 addresses on the interfaces."""
+    cli=_tailscale_cli();text=_run_text([cli,'ip','-4']) if cli else ''
+    if not text.strip():text=_run_text(['ifconfig']) or _run_text(['ip','-4','addr'])
+    found=[]
+    for token in re.findall(r'(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])',text):
+        if is_tailscale_address(token) and token not in found:found.append(token)
+    return found
+
+
+def tailscale_dns_name():
+    cli=_tailscale_cli()
+    try:return json.loads(_run_text([cli,'status','--json']) or '{}').get('Self',{}).get('DNSName','').rstrip('.') if cli else ''
+    except (json.JSONDecodeError,AttributeError):return ''
+
+
+def resolve_hosts(hosts=(),tailscale=False):
+    """Addresses to bind: loopback always, plus explicit --host values and the Tailscale IPs."""
+    result=['127.0.0.1']
+    for host in hosts:
+        if host in ('0.0.0.0','::'):raise ValueError('Открытие на всех интерфейсах не поддерживается: укажите конкретный адрес или --tailscale')
+        try:ipaddress.ip_address(host)
+        except ValueError:raise ValueError('--host ожидает IP-адрес: '+host) from None
+        if host not in result:result.append(host)
+    if tailscale:
+        found=tailscale_addresses()
+        if not found:raise ValueError('Tailscale-адрес не найден. Проверьте, что Tailscale запущен и подключён (tailscale ip -4).')
+        result+=[a for a in found if a not in result]
+    return result
+
+
+def safe_upload_name(name):
+    name=Path(unquote(name or '').replace('\\','/')).name
+    suffix=Path(name).suffix.lower()
+    if suffix not in UPLOAD_SUFFIXES:raise ValueError('Поддерживаются видео: '+', '.join(UPLOAD_SUFFIXES))
+    stem=re.sub(r'[^\w.\- ]+','_',Path(name).stem).strip(' ._')[:80] or 'video'
+    return stem+suffix
+
+
+def receive_upload(stream,size,name,folder,max_bytes):
+    """Stream an uploaded video into `folder`, named by content hash so a repeated upload reuses the file."""
+    name=safe_upload_name(name)
+    if size<=0:raise ValueError('Пустой файл')
+    if size>max_bytes:raise ValueError(f'Файл больше лимита {max_bytes//2**20} МБ (XMS_GUI_MAX_UPLOAD_MB)')
+    folder=Path(folder);folder.mkdir(parents=True,exist_ok=True)
+    if shutil.disk_usage(folder).free<size+2**30:raise ValueError('Недостаточно места на диске для загрузки')
+    digest=hashlib.sha256();partial=folder/f'.upload-{secrets.token_hex(8)}.part';remaining=size
+    try:
+        with partial.open('wb') as f:
+            while remaining:
+                chunk=stream.read(min(2**20,remaining))
+                if not chunk:raise ValueError('Загрузка прервана')
+                f.write(chunk);digest.update(chunk);remaining-=len(chunk)
+        target=folder/f'{digest.hexdigest()[:12]}-{name}'
+        if target.exists():partial.unlink()
+        else:partial.replace(target)
+        return target
+    finally:
+        if partial.exists():partial.unlink()
+
+
+def serve(port=0,open_browser=True,hosts=('127.0.0.1',),uploads_root=None,max_upload_mb=None):
     runner=Runner();token=secrets.token_urlsafe(32)
+    uploads=Path(uploads_root or runner.runs_root/'uploads')
+    max_bytes=int(max_upload_mb or os.environ.get('XMS_GUI_MAX_UPLOAD_MB') or 8192)*2**20
     class Handler(BaseHTTPRequestHandler):
         def log_message(self,*args):pass
         def send(self,data,status=200,content_type='application/json'):
             body=json.dumps(data,ensure_ascii=False).encode() if content_type=='application/json' else data
             self.send_response(status);self.send_header('Content-Type',content_type+'; charset=utf-8');self.send_header('Content-Length',str(len(body)));self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(body)
+        def remote(self):
+            try:return not ipaddress.ip_address(self.client_address[0].split('%')[0]).is_loopback
+            except ValueError:return True
         def do_GET(self):
             parsed=urlparse(self.path);path=parsed.path
-            if path=='/':self.send((ASSETS/'index.html').read_text().replace('__TOKEN__',token).encode(),content_type='text/html')
+            if path=='/':self.send((ASSETS/'index.html').read_text().replace('__TOKEN__',token).replace('__REMOTE__','1' if self.remote() else '0').encode(),content_type='text/html')
             elif path in ('/app.js','/style.css'):self.send((ASSETS/path[1:]).read_bytes(),content_type='application/javascript' if path.endswith('.js') else 'text/css')
             elif path=='/api/state' and self.headers.get('X-XMS-Token')==token:self.send(runner.snapshot())
             elif path=='/api/media' and parse_qs(parsed.query).get('token')==[token]:
                 kind=parse_qs(parsed.query).get('kind',['input'])[0]
                 media=runner.selected_input if kind=='input' else runner.snapshot()['outputs'].get(kind)
+                if media and Path(media).suffix.lower() not in UPLOAD_SUFFIXES:self.send({'error':'Not a video'},404);return
                 if not media or not Path(media).is_file():self.send({'error':'Video not ready'},404);return
                 size=Path(media).stat().st_size;start=0;end=size-1;partial=False
                 try:
@@ -207,7 +309,7 @@ def serve(port=0,open_browser=True):
                         a,b=header.removeprefix('bytes=').split('-');start=int(a) if a else max(0,size-int(b));end=min(int(b),size-1) if b and a else size-1;partial=True
                         if start<0 or start>end:raise ValueError
                 except ValueError:self.send({'error':'Invalid range'},416);return
-                self.send_response(206 if partial else 200);self.send_header('Content-Type','video/mp4');self.send_header('Accept-Ranges','bytes');self.send_header('Content-Length',str(end-start+1))
+                self.send_response(206 if partial else 200);self.send_header('Content-Type',MEDIA_TYPES.get(Path(media).suffix.lower(),'video/mp4'));self.send_header('Accept-Ranges','bytes');self.send_header('Content-Length',str(end-start+1))
                 if partial:self.send_header('Content-Range',f'bytes {start}-{end}/{size}')
                 self.end_headers()
                 try:
@@ -221,10 +323,21 @@ def serve(port=0,open_browser=True):
             else:self.send({'error':'Not found'},404)
         def do_POST(self):
             if self.headers.get('X-XMS-Token')!=token:self.send({'error':'Invalid session'},403);return
+            path=urlparse(self.path).path
             try:
+                if path=='/api/upload':
+                    if 'Content-Length' not in self.headers:self.send({'error':'Нужен Content-Length'},411);return
+                    try:target=receive_upload(self.rfile,int(self.headers['Content-Length']),self.headers.get('X-XMS-Filename',''),uploads,max_bytes)
+                    except ValueError:
+                        self.close_connection=True;raise
+                    try:info=video_info(target,self.headers.get('X-XMS-Config') or None)
+                    except ValueError:
+                        target.unlink(missing_ok=True);raise
+                    runner.selected_input=info['path'];self.send(info);return
                 size=int(self.headers.get('Content-Length','0'))
                 if size>65536:raise ValueError('Request too large')
-                data=json.loads(self.rfile.read(size) or b'{}');path=urlparse(self.path).path
+                data=json.loads(self.rfile.read(size) or b'{}')
+                if path in ('/api/pick','/api/open') and self.remote():raise ValueError('Это действие открывает окно на Маке и недоступно с другого устройства')
                 if path=='/api/probe':
                     info=video_info(data['path'],data.get('config') or None);runner.selected_input=info['path'];self.send(info)
                 elif path=='/api/pick':self.send({'path':choose_file(data.get('kind','input'))})
@@ -236,7 +349,22 @@ def serve(port=0,open_browser=True):
                 elif path=='/api/open':runner.open_output(data['kind']);self.send({'ok':True})
                 else:self.send({'error':'Not found'},404)
             except (ValueError,KeyError,OSError,subprocess.SubprocessError) as error:self.send({'error':str(error)},400)
-    server=ThreadingHTTPServer(('127.0.0.1',port),Handler);url=f'http://127.0.0.1:{server.server_port}/';print('XMS GUI '+url,flush=True)
+    hosts=list(hosts) or ['127.0.0.1']
+    if not port and any(h!='127.0.0.1' for h in hosts):port=REMOTE_PORT  # stable address for a phone bookmark
+    servers=[]
+    try:
+        for host in hosts:
+            servers.append(ThreadingHTTPServer((host,port),Handler) if ':' not in host else _v6_server(host,port,Handler));port=servers[0].server_port
+    except OSError as error:
+        for s in servers:s.server_close()
+        raise ValueError(f'Не удалось открыть {host}:{port}: {error}') from None
+    def url_for(host):return f'http://[{host}]:{port}/' if ':' in host else f'http://{host}:{port}/'
+    url=url_for(hosts[0]);print('XMS GUI '+url,flush=True)
+    for host in hosts[1:]:print(('XMS GUI Tailscale ' if is_tailscale_address(host) else 'XMS GUI ')+url_for(host),flush=True)
+    name=tailscale_dns_name() if any(is_tailscale_address(h) for h in hosts) else ''
+    if name:print(f'XMS GUI Tailscale http://{name}:{port}/',flush=True)
+    server=servers[0]
+    for extra in servers[1:]:threading.Thread(target=extra.serve_forever,kwargs={'poll_interval':.3},daemon=True).start()
     if open_browser:webbrowser.open(url)
     def terminate(*_):raise KeyboardInterrupt
     # SIGHUP: the launcher's Terminal window was closed; the run lives in its own session and must be stopped here.
@@ -244,8 +372,16 @@ def serve(port=0,open_browser=True):
     try:server.serve_forever(poll_interval=.3)
     except KeyboardInterrupt:pass
     finally:
-        runner.stop();server.server_close()
+        runner.stop()
+        for extra in servers[1:]:extra.shutdown()
+        for s in servers:s.server_close()
         for s,h in old_handlers.items():signal.signal(s,h)
+
+
+def _v6_server(host,port,handler):
+    import socket
+    class V6(ThreadingHTTPServer):address_family=socket.AF_INET6
+    return V6((host,port),handler)
 
 
 if __name__=='__main__':serve()

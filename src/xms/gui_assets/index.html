@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="xms-token" content="__TOKEN__"><title>Xandra Motion Studio</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="xms-token" content="__TOKEN__"><meta name="xms-remote" content="__REMOTE__"><title>Xandra Motion Studio</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
 <body><div class="app">
-<header><div class="brand"><span class="mark">X</span><div><h1>Xandra <span>Motion Studio</span></h1><p>Видео → движение → анимация</p></div></div><div class="local"><i></i> Локальный запуск <span>· Xandra / Bedroom</span></div></header>
+<header><div class="brand"><span class="mark">X</span><div><h1>Xandra <span>Motion Studio</span></h1><p>Видео → движение → анимация</p></div></div><div class="local"><i></i> <b id="mode-label" style="font-weight:inherit">Локальный запуск</b> <span>· Xandra / Bedroom</span></div></header>
 <main>
 <section class="source card"><div class="section-title"><span class="step">01</span><h2>Исходное видео</h2></div>
-<button id="pick-input" class="dropzone"><span class="file-icon">＋</span><strong id="input-name">Выбрать видео</strong><span id="input-meta">Откроется системное окно выбора файла</span></button>
+<button id="pick-input" class="dropzone"><span class="file-icon">＋</span><strong id="input-name">Выбрать видео</strong><span id="input-meta">Откроется системное окно выбора файла</span></button><input id="upload-input" type="file" accept="video/*,.mov,.mp4,.m4v" hidden>
 <div class="preview" id="preview"><div id="empty-preview"><span class="preview-x">X</span><p>Ваш следующий эксперимент</p><small>Выберите видео, затем задайте фрагмент</small></div><video id="player" controls playsinline preload="metadata" hidden></video></div>
 <div class="preview-tabs" id="preview-tabs" hidden><button class="active" data-media="input">Исходник</button><button data-media="video" id="result-tab" disabled>Результат</button><button id="seek-start">К началу фрагмента ↗</button></div>
 <div class="source-note">Обрабатывается один человек. Исходный звук сохраняется в результате.</div>
@@ -16,7 +16,9 @@
 </section>
 <section class="card"><div class="section-title"><span class="step">03</span><h2>Рендер</h2></div>
 <div class="two"><label>Разрешение<select id="resolution"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920 · Full HD</option><option value="1440x2560">1440 × 2560 · 2K</option><option value="2160x3840">2160 × 3840 · 4K</option></select></label><label>Качество<select id="quality"><option value="preview">Preview · 16 сэмплов</option><option value="final">Final · 64 сэмпла</option></select></label></div>
+<label>Движок<select id="engine"><option value="eevee">EEVEE · быстро</option><option value="cycles">Cycles · фотореализм, медленно</option></select></label>
 <p class="hint" id="quality-hint">Быстрый рендер для оценки движения.</p>
+<p class="hint" id="engine-hint"></p>
 <label>Метод реконструкции<select id="solver"><option value="video">Video · основной</option><option value="baseline">Baseline · исходный</option><option value="temporal">Temporal · экспериментальный</option><option value="viggle">Viggle · внешний мокап (эксперимент)</option></select></label>
 <div id="viggle-box" hidden><p class="hint" id="viggle-hint"></p><div class="checks"><label><input id="viggle-upload" type="checkbox"><span>Разрешить платную отправку в Viggle<small>Видео целиком уходит во внешний сервис, ~$0.05 за секунду. Без галочки используется только кэш.</small></span></label></div></div>
 </section>
@@ -28,5 +30,5 @@
 </fieldset></form>
 </main>
 <section class="run-panel card"><div class="run-top"><div><div class="status-line"><span id="status-dot" class="status-dot"></span><strong id="status">Готов к запуску</strong><span id="elapsed"></span></div><p id="phase-detail">Выберите видео и параметры обработки</p></div><div class="run-actions"><button id="stop" disabled>■ Stop</button><button id="run" class="primary" disabled>▶ Run</button></div></div><div id="progress" class="progress" role="progressbar" aria-label="Прогресс текущего этапа" aria-valuemin="0" aria-valuemax="100"><div id="progress-fill"></div></div><div id="error" role="alert" hidden></div><div id="outputs" class="outputs" hidden><button data-open="video">Открыть видео ↗</button><button data-open="compare">Сравнение ↗</button><button data-open="report">Отчёт ↗</button><button data-open="folder">Папка запуска ↗</button><button data-open="bundle">AnimationBundle ↗</button></div><details id="log-details"><summary>Журнал запуска <span id="log-state"></span></summary><pre id="logs" aria-live="off">Здесь появятся сообщения пайплайна.</pre><p id="run-path"></p></details></section>
-<footer>Данные и результаты остаются на этом компьютере. Прогресс показывается для текущего этапа.</footer>
+<footer id="footer">Данные и результаты остаются на этом компьютере. Прогресс показывается для текущего этапа.</footer>
 </div></body></html>

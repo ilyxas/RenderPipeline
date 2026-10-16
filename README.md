@@ -43,7 +43,30 @@ the current stage; buttons open the video, comparison, report, run folder and bu
 - **Stop** ends the run and every Blender/FFmpeg process under it; the run folder is
   kept and its manifest says `cancelled`. Closing the launcher's Terminal window or
   pressing Ctrl+C there also stops an active run.
-- The server listens only on 127.0.0.1 and needs no extra dependencies.
+- By default the server listens only on 127.0.0.1 and needs no extra dependencies.
+
+#### From a phone over Tailscale
+
+Double-click **Xandra Studio (Tailscale).command**, or run `./xms gui --tailscale`
+(or `XMS_GUI_TAILSCALE=1 ./xms gui`). The server then also listens on this Mac's
+Tailscale address (found with `tailscale ip -4`, or the 100.64.0.0/10 address on the
+interfaces) on the fixed port 8765 and prints the phone URL:
+
+```text
+XMS GUI http://127.0.0.1:8765/
+XMS GUI Tailscale http://100.x.y.z:8765/
+XMS GUI Tailscale http://my-mac.tailnet-name.ts.net:8765/   # when MagicDNS is on
+```
+
+Open that URL on the phone (Tailscale connected there too). It never listens on all
+interfaces: `--host IP` adds one explicit address (repeatable), `0.0.0.0` is refused,
+`--port` overrides 8765.
+
+From another device **Выбрать видео** opens the phone's photo library / files instead of
+Finder; the video is uploaded to `runs/uploads/` (named by content hash, so a repeated
+upload reuses the file; `.mov` from iPhone, HEVC and portrait rotation are fine; limit
+8 GB, `XMS_GUI_MAX_UPLOAD_MB` changes it). *Открыть видео* and *Сравнение* play the
+result in the phone's browser; report, folder and bundle stay on the Mac.
 
 ### Command line
 
@@ -52,7 +75,10 @@ the current stage; buttons open the video, comparison, report, run folder and bu
 ./xms run input.mp4 --start 3 --end 8 --resolution 720x1280
 ./xms run input.mp4 --solver viggle --channels full --quality final --resolution 720x1280
 ./xms run input.mp4 --quality final --output ~/Movies/xandra.mp4
+./xms run input.mp4 --solver viggle --quality final --engine cycles   # path traced finals: ~15 s/frame at 1080x1920 on an M4
 ```
+
+`--engine eevee` (default) is fast for iteration; `--engine cycles` renders with OpenImageDenoise and motion blur. A scene profile may set `engine_exposure` per engine. Studio has the same choice with a time estimate.
 
 Omitting `--start/--end` processes the whole video. A successful render exits 0; motion
 and visual acceptance are reported separately (`needs_review`). Ctrl+C, SIGTERM or

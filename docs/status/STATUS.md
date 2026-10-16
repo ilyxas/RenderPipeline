@@ -20,6 +20,8 @@
 
 ## Персонаж и ассеты (локально, вне Git)
 
+- **С 2026-10-16 основной конфиг: профиль `v8` (корсетное платье, `blender/Xandra_Wardrobe_v08.blend`) + сцена `loft/v3` (`blender/Loft_Studio_v09.blend`, экспозиция по движку: EEVEE 0.0, Cycles 0.45).** Движок выбирается `--engine eevee|cycles` и в Студии. Модели MediaPipe и сцена спальни — в `asset_store/` (вне Git). Подробно: [sessions/2026-10-16.md](sessions/2026-10-16.md).
+
 - Конфиг: `.xms/config.json` (в Git не попадает). Запасной для старого вида: `.xms/config.v3-top-shorts.json`.
 - Для Wardrobe v07 правильный профиль **`v7`**: `.xms/config.v7-wardrobe-v07-asset.json`. Режим look `asset`: пайплайн не перекрашивает ассет, GLB с 8 весами, маской кожи и real-time конверсиями ткани. Проверочный прогон: `20261014-213538-4bf23915`. Подробно в [sessions/2026-10-14.md](sessions/2026-10-14.md). `.xms/config.json` указывает на `v7`. Профиль `v6` — это тот же ассет со старой подкраской, все его подмены теперь видны в манифесте и в отчёте.
 - `blender/Xandra_Wardrobe_v07.blend` лежит вне Git, sha256 `f63cef81…`. Запасные конфиги: `.xms/config.v6-wardrobe-v07.json`, `.xms/config.v5-wardrobe.json` (v06; ассета на диске уже нет, не запустится), `.xms/config.v4-blacklace.json`.
