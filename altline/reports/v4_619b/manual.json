@@ -1,0 +1,8 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "stability good (0 frames at the damper input, damper ~0 deg); head yaw still wrong (C5): rig +21.5 deg vs image -24 deg",
+ "reviewer_verified_findings": [
+  "Frames over the gate (6 joints): BEFORE 88 -> per-frame 18 -> temporal 0; damper touched 6 bone-frames, deviation < 0.1 deg.",
+  "C5 not fixed: head yaw hold median +21.5 deg (v3 +20.5) against -24.0 from the image; error 45.6 deg."
+ ]
+}

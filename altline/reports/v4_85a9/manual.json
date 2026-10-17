@@ -1,0 +1,10 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "fail (pose): palms 23/40 cm from the face (worse than v3 16/36), chest yaw 32 deg (C3); remaining jerks are the C2 twist split",
+ "reviewer_verified_findings": [
+  "elbow_l f15-17 / elbow_r f16-18: C2 twist split still in the per-frame solver. Debiased elbow bend runs 5 -> 17 deg in 2 frames (raw 20 -> 26: the hinge de-bias doubles the slope), so the bend-plane twist weight goes 0 -> 1 and the upper-arm twist jumps 0 -> -72 deg (left) / 9 -> 84 deg (right) in 2-3 frames while the forearm counter-rotates. Local acc 21k vs world 2.4k (x8.5). Raw tracker under the gate (2.1-2.3k). Damper input 6-7k, deviations 12.9-18.7 deg, hand tips moved up to 8.8 cm.",
+  "Not visible in the stick preview (frames 15-17, 22 identical to v3); on a skinned mesh it is a 70 deg upper-arm roll in 0.1 s.",
+  "C4 worse: hand_l tip to face 16.4 -> 22.8 cm, hand_r 35.6 -> 39.9 cm (v4raw 21.1 / 39.7: mostly from non-Phase-2 code since v3). Preview f100: palms in front of the face as in v3.",
+  "Arm peak speed 245 -> 144 deg/s (right, -41 % vs source 2D), mostly before the solver (225 raw per-frame -> 145)."
+ ]
+}

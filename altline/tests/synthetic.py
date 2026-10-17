@@ -48,12 +48,18 @@ def landmarks_from_pose(skel: Skeleton, basis: np.ndarray) -> dict[str, np.ndarr
     return j
 
 
+IMAGE_W, IMAGE_H, PIXEL_M = 720, 1280, 0.002  # orthographic synthetic camera, 2 mm per pixel
+
+
 def to_mediapipe_frame(j: dict[str, np.ndarray], index: int, fps: float) -> dict:
+    """MediaPipe-style frame: hip-centred world landmarks plus an orthographic image projection."""
     hip = 0.5 * (j["left_hip"] + j["right_hip"])
     joints = {k: [float(v[0] - hip[0]), float(-(v[1] - hip[1])), float(-(v[2] - hip[2])), 1.0]
               for k, v in j.items() if not k.startswith("_")}
+    image = {k: [0.5 + float(v[0]) / (IMAGE_W * PIXEL_M), 0.9 - float(v[1]) / (IMAGE_H * PIXEL_M), 0.0, 1.0]
+             for k, v in j.items() if not k.startswith("_")}
     return {"frame_index": index, "timestamp_s": index / fps, "detected": True,
-            "joints": joints, "image_joints": {}}
+            "joints": joints, "image_joints": image}
 
 
 def q(axis, deg) -> np.ndarray:
@@ -81,6 +87,6 @@ def random_pose(skel: Skeleton, rng: np.random.Generator) -> np.ndarray:
 
 
 NEUTRAL_PROFILE = {
-    "reference_pitch_offsets_rad": {"head_forward": 0.0, "neck_up": 0.0},
+    "rest_references": {"head_rest_bias": np.eye(3).tolist(), "neck_up": 0.0, "foot_pitch_l": 0.0, "foot_pitch_r": 0.0},
     "hinge_bias_deg": {"elbow_l": 0.0, "elbow_r": 0.0, "knee_l": 0.0, "knee_r": 0.0},
 }

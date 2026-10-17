@@ -1,0 +1,8 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "good overall; stability 134 -> 4 frames at the damper input (damper max 5 deg); left forearm slightly worse in 2D than v3 (p95 6.4 -> 10.1 deg) because of the 5-20 deg twist window",
+ "reviewer_verified_findings": [
+  "elbow_l f18: calibration flattens the left forearm depth: filtered dz +0.100 m, calibrated 0.041 (f17) -> 0.000 (f18) while the arm rises; forearm 1.19 L (C4). Upper-arm twist -54 -> -87 deg in one frame. Landmark forearm acc 384 (filtered) -> 6,318 (calibrated). Internal (calibration).",
+  "Twist-window ablation: v4a (2-10 deg) forearm_l 2D p95 6.5 deg, v4 (5-20 deg) 10.1 deg."
+ ]
+}

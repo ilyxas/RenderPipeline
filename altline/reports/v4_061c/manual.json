@@ -1,0 +1,9 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "partial: stability better than v3 at the damper input (6 joints 105 -> 10 frames), no visible regression; remaining peaks are internal; chest yaw 33 deg (C3) unchanged",
+ "reviewer_verified_findings": [
+  "elbow_r frames 83-92: twist split. Elbow bend crosses the 5-20 deg twist window (debiased 18 -> 2.5 -> 15 deg); upper-arm twist 19 -> 0 -> 28 deg, forearm roll counter-rotates; per-frame local acc 14-16k while the solved forearm world frame is 3-6x lower. Internal (solver).",
+  "elbow_r/wrist_r frames 96-103: calibration flattens the right forearm depth: filtered dz +0.08 m -> calibrated -0.002 m from frame 94, forearm stretched to 1.15 L (C4). Raw tracker palm turns 63 deg smoothly over frames 94-104; after calibration it turns ~100 deg within frames 98-102. Damper input 14,059 deg/s^2 at f101, damper deviation 15.9 deg. Internal (calibration).",
+  "Preview frames 89, 98-105, 120 checked: stick figure matches v3 and the tracker dots; forearm roll is not visible in the stick preview (needs a skinned mesh)."
+ ]
+}

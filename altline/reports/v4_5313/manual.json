@@ -1,0 +1,8 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "good for stability: nothing over the gate at the damper input, damper did nothing; head -50.9 vs -49.4 deg (2D) as in v3",
+ "reviewer_verified_findings": [
+  "C2 symptom gone here: v3 upper_arm_l peak 11,205 at f25; v4 per-frame 7,612 (filtered input), damper input 1,575.",
+  "Frames over the gate (6 joints): BEFORE 33 -> per-frame 7 -> temporal 0. Damper: 0 frames, 0 deg."
+ ]
+}

@@ -1,0 +1,5434 @@
+{
+ "clip": "619b",
+ "motion": "колено вверх",
+ "fps": 24.0,
+ "n_frames": 145,
+ "gate_deg_s2": 3000.0,
+ "honesty_note": "damped (= motion_bundle) is under the gate BY CONSTRUCTION of damper.py; the evidence is the damper input ('limits'), frames damped and the deviation.",
+ "all_bones_frames_over_gate": {
+  "before_solve": 175,
+  "before": 179,
+  "frame": 37,
+  "temporal": 0,
+  "limits": 0,
+  "damped": 0
+ },
+ "all_bones_max": {
+  "before_solve": {
+   "max": 15710.0,
+   "bone": "forearm_l",
+   "frame": 6
+  },
+  "before": {
+   "max": 15964.0,
+   "bone": "forearm_l",
+   "frame": 6
+  },
+  "frame": {
+   "max": 7777.0,
+   "bone": "upper_arm_l",
+   "frame": 128
+  },
+  "temporal": {
+   "max": 2347.0,
+   "bone": "thigh_r",
+   "frame": 56
+  },
+  "limits": {
+   "max": 2347.0,
+   "bone": "thigh_r",
+   "frame": 56
+  },
+  "damped": {
+   "max": 2323.0,
+   "bone": "thigh_r",
+   "frame": 56
+  }
+ },
+ "all_bones_over_gate_per_bone": {
+  "before_solve": {
+   "neck": 14,
+   "upper_arm_l": 34,
+   "forearm_l": 37,
+   "hand_l": 4,
+   "thigh_l": 4,
+   "shin_l": 5,
+   "foot_l": 3,
+   "upper_arm_r": 16,
+   "forearm_r": 26,
+   "hand_r": 5,
+   "thigh_r": 5,
+   "shin_r": 16,
+   "foot_r": 6
+  },
+  "before": {
+   "neck": 14,
+   "upper_arm_l": 34,
+   "forearm_l": 35,
+   "hand_l": 8,
+   "thigh_l": 4,
+   "shin_l": 3,
+   "foot_l": 5,
+   "upper_arm_r": 16,
+   "forearm_r": 24,
+   "hand_r": 9,
+   "thigh_r": 5,
+   "shin_r": 15,
+   "foot_r": 7
+  },
+  "frame": {
+   "upper_arm_l": 10,
+   "forearm_l": 13,
+   "hand_l": 1,
+   "upper_arm_r": 2,
+   "forearm_r": 2,
+   "thigh_r": 2,
+   "shin_r": 5,
+   "foot_r": 2
+  },
+  "temporal": {},
+  "limits": {},
+  "damped": {}
+ },
+ "damper": {
+  "bones_damped": {
+   "thigh_r": {
+    "frames_damped": 4,
+    "max_deviation_deg": 0.0,
+    "max_deviation_frame": 55,
+    "frames_deviation_over_10deg": 0,
+    "input_max_acc": 2347.0,
+    "input_frames_over_gate": 0,
+    "output_max_acc": 2323.0
+   },
+   "shin_r": {
+    "frames_damped": 2,
+    "max_deviation_deg": 0.0,
+    "max_deviation_frame": 57,
+    "frames_deviation_over_10deg": 0,
+    "input_max_acc": 2145.0,
+    "input_frames_over_gate": 0,
+    "output_max_acc": 2144.0
+   }
+  },
+  "total_frames_damped(bone-frames)": 6,
+  "max_deviation_deg": 0.0,
+  "max_deviation_bone": "thigh_r",
+  "max_deviation_frame": 55,
+  "end_effector_displacement_cm(damped vs damper input, world FK)": {
+   "hand_l": {
+    "max": 0.0,
+    "argmax": 118
+   },
+   "hand_r": {
+    "max": 0.0,
+    "argmax": 129
+   },
+   "foot_l": {
+    "max": 0.0,
+    "argmax": 20
+   },
+   "foot_r": {
+    "max": 0.0,
+    "argmax": 55
+   }
+  },
+  "bundle_check_output_frames_over_gate": 0
+ },
+ "flip_guard": {
+  "left_arm": {
+   "bridged_runs": [],
+   "kept_runs_over_threshold": [],
+   "frames_bridged": 0,
+   "max_step_deg": 5.8
+  },
+  "left_leg": {
+   "bridged_runs": [],
+   "kept_runs_over_threshold": [],
+   "frames_bridged": 0,
+   "max_step_deg": 2.5
+  },
+  "right_arm": {
+   "bridged_runs": [],
+   "kept_runs_over_threshold": [],
+   "frames_bridged": 0,
+   "max_step_deg": 3.7
+  },
+  "right_leg": {
+   "bridged_runs": [],
+   "kept_runs_over_threshold": [],
+   "frames_bridged": 0,
+   "max_step_deg": 18.0
+  }
+ },
+ "temporal_solver_max_change_deg": {
+  "forearm_l": {
+   "max": 4.8,
+   "frame": 45
+  },
+  "forearm_r": {
+   "max": 2.2,
+   "frame": 104
+  },
+  "hand_l": {
+   "max": 2.1,
+   "frame": 45
+  },
+  "hand_r": {
+   "max": 1.3,
+   "frame": 8
+  },
+  "foot_l": {
+   "max": 0.4,
+   "frame": 121
+  },
+  "foot_r": {
+   "max": 4.2,
+   "frame": 64
+  }
+ },
+ "joints": {
+  "elbow_l": {
+   "bone": "forearm_l",
+   "local_acc_by_stage": {
+    "before_solve": {
+     "max": 15710.0,
+     "argmax": 6,
+     "p95": 8418.0,
+     "frames_over_gate": 37
+    },
+    "before": {
+     "max": 15964.0,
+     "argmax": 6,
+     "p95": 8389.0,
+     "frames_over_gate": 35
+    },
+    "frame": {
+     "max": 7748.0,
+     "argmax": 128,
+     "p95": 4018.0,
+     "frames_over_gate": 13
+    },
+    "temporal": {
+     "max": 1917.0,
+     "argmax": 42,
+     "p95": 1417.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 1938.0,
+     "argmax": 42,
+     "p95": 1411.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 1938.0,
+     "argmax": 42,
+     "p95": 1411.0,
+     "frames_over_gate": 0
+    }
+   },
+   "world_acc_by_stage": {
+    "before": {
+     "max": 6283.0,
+     "argmax": 27,
+     "p95": 3352.0,
+     "frames_over_gate": 10
+    },
+    "frame": {
+     "max": 4138.0,
+     "argmax": 45,
+     "p95": 1088.0,
+     "frames_over_gate": 1
+    },
+    "temporal": {
+     "max": 951.0,
+     "argmax": 45,
+     "p95": 592.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 1079.0,
+     "argmax": 45,
+     "p95": 627.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 1079.0,
+     "argmax": 45,
+     "p95": 627.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_frame_world_acc": {
+    "raw": {
+     "max": 1740.0,
+     "argmax": 60,
+     "p95": 1050.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 473.0,
+     "argmax": 61,
+     "p95": 274.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 3314.0,
+     "argmax": 45,
+     "p95": 1410.0,
+     "frames_over_gate": 1
+    },
+    "guarded": {
+     "max": 3314.0,
+     "argmax": 45,
+     "p95": 1410.0,
+     "frames_over_gate": 1
+    },
+    "v4raw_calibrated": {
+     "max": 4765.0,
+     "argmax": 27,
+     "p95": 2462.0,
+     "frames_over_gate": 5
+    }
+   },
+   "landmark_direction_only_acc": {
+    "raw": {
+     "max": 1147.0,
+     "argmax": 61,
+     "p95": 588.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 324.0,
+     "argmax": 64,
+     "p95": 134.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 3312.0,
+     "argmax": 45,
+     "p95": 1410.0,
+     "frames_over_gate": 1
+    },
+    "guarded": {
+     "max": 3312.0,
+     "argmax": 45,
+     "p95": 1410.0,
+     "frames_over_gate": 1
+    },
+    "v4raw_calibrated": {
+     "max": 4652.0,
+     "argmax": 27,
+     "p95": 2111.0,
+     "frames_over_gate": 5
+    }
+   },
+   "image_2d_angle_acc": {
+    "direction": {
+     "max": 352.0,
+     "argmax": 65,
+     "p95": 261.0,
+     "frames_over_gate": 0
+    },
+    "twist_ref_vector": {
+     "max": 7044.0,
+     "argmax": 60,
+     "p95": 4070.0,
+     "frames_over_gate": 15
+    }
+   },
+   "landmark_left_elbow_position_acc_m_s2": {
+    "raw": {
+     "max": 22.2,
+     "p95": 7.3,
+     "median": 1.37
+    },
+    "filtered": {
+     "max": 5.1,
+     "p95": 1.7,
+     "median": 0.23
+    }
+   },
+   "world_orientation_departure_from_per_frame_solve_deg": {
+    "temporal": {
+     "max": 2.8,
+     "argmax": 45,
+     "frames_over_30deg": 0
+    },
+    "limits": {
+     "max": 5.6,
+     "argmax": 100,
+     "frames_over_30deg": 0
+    },
+    "damped": {
+     "max": 5.6,
+     "argmax": 100,
+     "frames_over_30deg": 0
+    }
+   },
+   "damper": {
+    "frames_damped": 0,
+    "max_deviation_deg": 4.0490758257626455e-14,
+    "max_deviation_frame": 121,
+    "mean_deviation_deg": 2.4365578160100033e-14,
+    "damped_frames": []
+   },
+   "events_over_gate(any pre-damper stage, ±3 frames)": [
+    {
+     "frame": 6,
+     "window": [
+      3,
+      9
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 15710.0,
+      "before": 15964.0,
+      "frame": 3341.0,
+      "temporal": 1293.0,
+      "limits": 1308.0,
+      "damped": 1308.0
+     },
+     "world_acc_max_in_window": {
+      "before": 5632.0,
+      "frame": 1068.0,
+      "temporal": 471.0,
+      "limits": 627.0,
+      "damped": 627.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 756.0,
+      "filtered": 177.0,
+      "calibrated": 997.0,
+      "guarded": 997.0,
+      "v4raw_calibrated": 3782.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 510.0,
+      "filtered": 168.0,
+      "calibrated": 996.0,
+      "guarded": 996.0,
+      "v4raw_calibrated": 3777.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.0,
+      "filtered": 0.8,
+      "calibrated": 2.7,
+      "guarded": 2.7
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.93,
+      0.98
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 284.0,
+      "twist_ref_vector": 2933.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.8,
+      "limits": 4.3,
+      "damped": 4.3
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 756,
+       "filtered": 177,
+       "calibrated": 997,
+       "guarded": 997,
+       "frame": 3341,
+       "temporal": 1293,
+       "limits": 1308
+      },
+      "local_over_world_frame_stage": 3.13,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 27,
+     "window": [
+      24,
+      30
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 12522.0,
+      "before": 12659.0,
+      "frame": 3685.0,
+      "temporal": 1338.0,
+      "limits": 1355.0,
+      "damped": 1355.0
+     },
+     "world_acc_max_in_window": {
+      "before": 6283.0,
+      "frame": 2636.0,
+      "temporal": 731.0,
+      "limits": 794.0,
+      "damped": 794.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 994.0,
+      "filtered": 98.0,
+      "calibrated": 1481.0,
+      "guarded": 1481.0,
+      "v4raw_calibrated": 4765.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 248.0,
+      "filtered": 52.0,
+      "calibrated": 1481.0,
+      "guarded": 1481.0,
+      "v4raw_calibrated": 4652.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.0,
+      "filtered": 0.5,
+      "calibrated": 3.7,
+      "guarded": 3.7
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.93,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 343.0,
+      "twist_ref_vector": 4806.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 1.9,
+      "limits": 3.1,
+      "damped": 3.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 994,
+       "filtered": 98,
+       "calibrated": 1481,
+       "guarded": 1481,
+       "frame": 3685,
+       "temporal": 1338,
+       "limits": 1355
+      },
+      "local_over_world_frame_stage": 1.4,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 39,
+     "window": [
+      36,
+      42
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3889.0,
+      "before": 3803.0,
+      "frame": 1534.0,
+      "temporal": 1917.0,
+      "limits": 1938.0,
+      "damped": 1938.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1517.0,
+      "frame": 777.0,
+      "temporal": 785.0,
+      "limits": 861.0,
+      "damped": 861.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 421.0,
+      "filtered": 77.0,
+      "calibrated": 525.0,
+      "guarded": 525.0,
+      "v4raw_calibrated": 1170.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 399.0,
+      "filtered": 50.0,
+      "calibrated": 503.0,
+      "guarded": 503.0,
+      "v4raw_calibrated": 1170.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.3,
+      "filtered": 0.2,
+      "calibrated": 0.6,
+      "guarded": 0.6
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.93,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 172.0,
+      "twist_ref_vector": 3437.0
+     },
+     "raw_visibility_min": 1.0,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.8,
+      "limits": 1.7,
+      "damped": 1.7
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 421,
+       "filtered": 77,
+       "calibrated": 525,
+       "guarded": 525,
+       "frame": 1534,
+       "temporal": 1917,
+       "limits": 1938
+      },
+      "local_over_world_frame_stage": 1.97,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 43,
+     "window": [
+      40,
+      46
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 8973.0,
+      "before": 9045.0,
+      "frame": 7013.0,
+      "temporal": 1917.0,
+      "limits": 1938.0,
+      "damped": 1938.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3022.0,
+      "frame": 4138.0,
+      "temporal": 951.0,
+      "limits": 1079.0,
+      "damped": 1079.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 624.0,
+      "filtered": 167.0,
+      "calibrated": 3314.0,
+      "guarded": 3314.0,
+      "v4raw_calibrated": 2626.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 573.0,
+      "filtered": 102.0,
+      "calibrated": 3312.0,
+      "guarded": 3312.0,
+      "v4raw_calibrated": 2604.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.1,
+      "filtered": 1.0,
+      "calibrated": 5.8,
+      "guarded": 5.8
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.92,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 186.0,
+      "twist_ref_vector": 3437.0
+     },
+     "raw_visibility_min": 1.0,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 2.8,
+      "limits": 3.2,
+      "damped": 3.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 624,
+       "filtered": 167,
+       "calibrated": 3314,
+       "guarded": 3314,
+       "frame": 7013,
+       "temporal": 1917,
+       "limits": 1938
+      },
+      "local_over_world_frame_stage": 1.69,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 58,
+     "window": [
+      55,
+      61
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 7432.0,
+      "before": 7551.0,
+      "frame": 1848.0,
+      "temporal": 983.0,
+      "limits": 996.0,
+      "damped": 996.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2955.0,
+      "frame": 1038.0,
+      "temporal": 538.0,
+      "limits": 557.0,
+      "damped": 557.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1740.0,
+      "filtered": 473.0,
+      "calibrated": 1001.0,
+      "guarded": 1001.0,
+      "v4raw_calibrated": 1911.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 1147.0,
+      "filtered": 192.0,
+      "calibrated": 1001.0,
+      "guarded": 1001.0,
+      "v4raw_calibrated": 1870.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.9,
+      "filtered": 0.9,
+      "calibrated": 4.1,
+      "guarded": 4.1
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.88,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 263.0,
+      "twist_ref_vector": 7044.0
+     },
+     "raw_visibility_min": 1.0,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.8,
+      "limits": 4.1,
+      "damped": 4.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1740,
+       "filtered": 473,
+       "calibrated": 1001,
+       "guarded": 1001,
+       "frame": 1848,
+       "temporal": 983,
+       "limits": 996
+      },
+      "local_over_world_frame_stage": 1.78,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 65,
+     "window": [
+      62,
+      68
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 8945.0,
+      "before": 9033.0,
+      "frame": 4302.0,
+      "temporal": 1582.0,
+      "limits": 1605.0,
+      "damped": 1605.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3692.0,
+      "frame": 955.0,
+      "temporal": 650.0,
+      "limits": 738.0,
+      "damped": 738.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1064.0,
+      "filtered": 338.0,
+      "calibrated": 692.0,
+      "guarded": 692.0,
+      "v4raw_calibrated": 2097.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 612.0,
+      "filtered": 324.0,
+      "calibrated": 651.0,
+      "guarded": 651.0,
+      "v4raw_calibrated": 2072.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 2.4,
+      "filtered": 1.7,
+      "calibrated": 2.4,
+      "guarded": 2.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.88,
+      0.98
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 352.0,
+      "twist_ref_vector": 4289.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.9,
+      "limits": 3.5,
+      "damped": 3.5
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1064,
+       "filtered": 338,
+       "calibrated": 692,
+       "guarded": 692,
+       "frame": 4302,
+       "temporal": 1582,
+       "limits": 1605
+      },
+      "local_over_world_frame_stage": 4.5,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 82,
+     "window": [
+      79,
+      85
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4398.0,
+      "before": 4460.0,
+      "frame": 708.0,
+      "temporal": 510.0,
+      "limits": 518.0,
+      "damped": 518.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1595.0,
+      "frame": 217.0,
+      "temporal": 157.0,
+      "limits": 203.0,
+      "damped": 203.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 469.0,
+      "filtered": 107.0,
+      "calibrated": 158.0,
+      "guarded": 158.0,
+      "v4raw_calibrated": 827.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 314.0,
+      "filtered": 102.0,
+      "calibrated": 154.0,
+      "guarded": 154.0,
+      "v4raw_calibrated": 807.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.0,
+      "filtered": 0.8,
+      "calibrated": 0.8,
+      "guarded": 0.8
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.79,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 217.0,
+      "twist_ref_vector": 2133.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.2,
+      "limits": 4.2,
+      "damped": 4.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 469,
+       "filtered": 107,
+       "calibrated": 158,
+       "guarded": 158,
+       "frame": 708,
+       "temporal": 510,
+       "limits": 518
+      },
+      "local_over_world_frame_stage": 3.26,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 88,
+     "window": [
+      85,
+      91
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4822.0,
+      "before": 4891.0,
+      "frame": 758.0,
+      "temporal": 665.0,
+      "limits": 677.0,
+      "damped": 677.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1736.0,
+      "frame": 178.0,
+      "temporal": 163.0,
+      "limits": 230.0,
+      "damped": 230.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 510.0,
+      "filtered": 58.0,
+      "calibrated": 157.0,
+      "guarded": 157.0,
+      "v4raw_calibrated": 972.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 314.0,
+      "filtered": 30.0,
+      "calibrated": 157.0,
+      "guarded": 157.0,
+      "v4raw_calibrated": 916.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.8,
+      "filtered": 0.4,
+      "calibrated": 0.6,
+      "guarded": 0.6
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.78,
+      1.0
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 217.0,
+      "twist_ref_vector": 1803.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.2,
+      "limits": 5.1,
+      "damped": 5.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 510,
+       "filtered": 58,
+       "calibrated": 157,
+       "guarded": 157,
+       "frame": 758,
+       "temporal": 665,
+       "limits": 677
+      },
+      "local_over_world_frame_stage": 4.26,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 93,
+     "window": [
+      90,
+      96
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3589.0,
+      "before": 3671.0,
+      "frame": 1259.0,
+      "temporal": 665.0,
+      "limits": 677.0,
+      "damped": 677.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1701.0,
+      "frame": 1611.0,
+      "temporal": 359.0,
+      "limits": 400.0,
+      "damped": 400.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 643.0,
+      "filtered": 27.0,
+      "calibrated": 2149.0,
+      "guarded": 2149.0,
+      "v4raw_calibrated": 1645.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 136.0,
+      "filtered": 13.0,
+      "calibrated": 2148.0,
+      "guarded": 2148.0,
+      "v4raw_calibrated": 1645.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.6,
+      "filtered": 0.1,
+      "calibrated": 3.7,
+      "guarded": 3.7
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.78,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 106.0,
+      "twist_ref_vector": 1134.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 1.1,
+      "limits": 5.6,
+      "damped": 5.6
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 643,
+       "filtered": 27,
+       "calibrated": 2149,
+       "guarded": 2149,
+       "frame": 1259,
+       "temporal": 665,
+       "limits": 677
+      },
+      "local_over_world_frame_stage": 0.78,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 99,
+     "window": [
+      96,
+      102
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3013.0,
+      "before": 3064.0,
+      "frame": 1259.0,
+      "temporal": 636.0,
+      "limits": 635.0,
+      "damped": 635.0
+     },
+     "world_acc_max_in_window": {
+      "before": 433.0,
+      "frame": 1611.0,
+      "temporal": 359.0,
+      "limits": 400.0,
+      "damped": 400.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 323.0,
+      "filtered": 27.0,
+      "calibrated": 2149.0,
+      "guarded": 2149.0,
+      "v4raw_calibrated": 387.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 123.0,
+      "filtered": 17.0,
+      "calibrated": 2148.0,
+      "guarded": 2148.0,
+      "v4raw_calibrated": 311.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.3,
+      "filtered": 0.1,
+      "calibrated": 3.7,
+      "guarded": 3.7
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.79,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 126.0,
+      "twist_ref_vector": 1735.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 1.1,
+      "limits": 5.6,
+      "damped": 5.6
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 323,
+       "filtered": 27,
+       "calibrated": 2149,
+       "guarded": 2149,
+       "frame": 1259,
+       "temporal": 636,
+       "limits": 635
+      },
+      "local_over_world_frame_stage": 0.78,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 115,
+     "window": [
+      112,
+      118
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3847.0,
+      "before": 3936.0,
+      "frame": 4604.0,
+      "temporal": 1475.0,
+      "limits": 1496.0,
+      "damped": 1496.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1626.0,
+      "frame": 2414.0,
+      "temporal": 455.0,
+      "limits": 532.0,
+      "damped": 532.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 298.0,
+      "filtered": 58.0,
+      "calibrated": 2372.0,
+      "guarded": 2372.0,
+      "v4raw_calibrated": 1171.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 274.0,
+      "filtered": 52.0,
+      "calibrated": 2372.0,
+      "guarded": 2372.0,
+      "v4raw_calibrated": 1164.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.2,
+      "filtered": 0.1,
+      "calibrated": 4.1,
+      "guarded": 4.1
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.77,
+      1.0
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 143.0,
+      "twist_ref_vector": 4997.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 1.5,
+      "limits": 5.2,
+      "damped": 5.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 298,
+       "filtered": 58,
+       "calibrated": 2372,
+       "guarded": 2372,
+       "frame": 4604,
+       "temporal": 1475,
+       "limits": 1496
+      },
+      "local_over_world_frame_stage": 1.91,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 120,
+     "window": [
+      117,
+      123
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 8590.0,
+      "before": 8598.0,
+      "frame": 4074.0,
+      "temporal": 1475.0,
+      "limits": 1496.0,
+      "damped": 1496.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2995.0,
+      "frame": 551.0,
+      "temporal": 345.0,
+      "limits": 438.0,
+      "damped": 438.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 429.0,
+      "filtered": 71.0,
+      "calibrated": 312.0,
+      "guarded": 312.0,
+      "v4raw_calibrated": 1171.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 376.0,
+      "filtered": 42.0,
+      "calibrated": 312.0,
+      "guarded": 312.0,
+      "v4raw_calibrated": 1164.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.3,
+      "filtered": 0.2,
+      "calibrated": 1.5,
+      "guarded": 1.5
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.79,
+      1.0
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 176.0,
+      "twist_ref_vector": 2540.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.7,
+      "limits": 5.2,
+      "damped": 5.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 429,
+       "filtered": 71,
+       "calibrated": 312,
+       "guarded": 312,
+       "frame": 4074,
+       "temporal": 1475,
+       "limits": 1496
+      },
+      "local_over_world_frame_stage": 7.39,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 125,
+     "window": [
+      122,
+      128
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 9421.0,
+      "before": 9432.0,
+      "frame": 7748.0,
+      "temporal": 575.0,
+      "limits": 586.0,
+      "damped": 586.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3755.0,
+      "frame": 591.0,
+      "temporal": 169.0,
+      "limits": 209.0,
+      "damped": 209.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 429.0,
+      "filtered": 85.0,
+      "calibrated": 223.0,
+      "guarded": 223.0,
+      "v4raw_calibrated": 1793.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 376.0,
+      "filtered": 42.0,
+      "calibrated": 219.0,
+      "guarded": 219.0,
+      "v4raw_calibrated": 1790.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.3,
+      "filtered": 0.2,
+      "calibrated": 0.8,
+      "guarded": 0.8
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.79,
+      1.0
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 176.0,
+      "twist_ref_vector": 2540.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.3,
+      "limits": 5.1,
+      "damped": 5.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 429,
+       "filtered": 85,
+       "calibrated": 223,
+       "guarded": 223,
+       "frame": 7748,
+       "temporal": 575,
+       "limits": 586
+      },
+      "local_over_world_frame_stage": 13.11,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 133,
+     "window": [
+      130,
+      136
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3207.0,
+      "before": 3280.0,
+      "frame": 4360.0,
+      "temporal": 1862.0,
+      "limits": 1899.0,
+      "damped": 1899.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1458.0,
+      "frame": 1948.0,
+      "temporal": 446.0,
+      "limits": 568.0,
+      "damped": 568.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 420.0,
+      "filtered": 58.0,
+      "calibrated": 1960.0,
+      "guarded": 1960.0,
+      "v4raw_calibrated": 1181.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 78.0,
+      "filtered": 31.0,
+      "calibrated": 1960.0,
+      "guarded": 1960.0,
+      "v4raw_calibrated": 1181.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.4,
+      "filtered": 0.2,
+      "calibrated": 3.4,
+      "guarded": 3.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.79,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 79.0,
+      "twist_ref_vector": 1336.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 1.3,
+      "limits": 5.4,
+      "damped": 5.4
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 420,
+       "filtered": 58,
+       "calibrated": 1960,
+       "guarded": 1960,
+       "frame": 4360,
+       "temporal": 1862,
+       "limits": 1899
+      },
+      "local_over_world_frame_stage": 2.24,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    }
+   ]
+  },
+  "elbow_r": {
+   "bone": "forearm_r",
+   "local_acc_by_stage": {
+    "before_solve": {
+     "max": 12624.0,
+     "argmax": 83,
+     "p95": 5419.0,
+     "frames_over_gate": 26
+    },
+    "before": {
+     "max": 12822.0,
+     "argmax": 83,
+     "p95": 5128.0,
+     "frames_over_gate": 24
+    },
+    "frame": {
+     "max": 3620.0,
+     "argmax": 52,
+     "p95": 1664.0,
+     "frames_over_gate": 2
+    },
+    "temporal": {
+     "max": 1224.0,
+     "argmax": 86,
+     "p95": 844.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 1243.0,
+     "argmax": 86,
+     "p95": 859.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 1243.0,
+     "argmax": 86,
+     "p95": 859.0,
+     "frames_over_gate": 0
+    }
+   },
+   "world_acc_by_stage": {
+    "before": {
+     "max": 4915.0,
+     "argmax": 10,
+     "p95": 3823.0,
+     "frames_over_gate": 10
+    },
+    "frame": {
+     "max": 1197.0,
+     "argmax": 96,
+     "p95": 771.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 402.0,
+     "argmax": 137,
+     "p95": 317.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 453.0,
+     "argmax": 85,
+     "p95": 359.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 453.0,
+     "argmax": 85,
+     "p95": 359.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_frame_world_acc": {
+    "raw": {
+     "max": 3000.0,
+     "argmax": 61,
+     "p95": 1243.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 661.0,
+     "argmax": 61,
+     "p95": 295.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 1851.0,
+     "argmax": 8,
+     "p95": 704.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 1851.0,
+     "argmax": 8,
+     "p95": 704.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 6171.0,
+     "argmax": 10,
+     "p95": 3298.0,
+     "frames_over_gate": 10
+    }
+   },
+   "landmark_direction_only_acc": {
+    "raw": {
+     "max": 1068.0,
+     "argmax": 62,
+     "p95": 478.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 169.0,
+     "argmax": 61,
+     "p95": 85.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 1844.0,
+     "argmax": 8,
+     "p95": 699.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 1844.0,
+     "argmax": 8,
+     "p95": 699.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 6148.0,
+     "argmax": 10,
+     "p95": 2582.0,
+     "frames_over_gate": 5
+    }
+   },
+   "image_2d_angle_acc": {
+    "direction": {
+     "max": 465.0,
+     "argmax": 50,
+     "p95": 306.0,
+     "frames_over_gate": 0
+    },
+    "twist_ref_vector": {
+     "max": 17658.0,
+     "argmax": 74,
+     "p95": 9168.0,
+     "frames_over_gate": 44
+    }
+   },
+   "landmark_right_elbow_position_acc_m_s2": {
+    "raw": {
+     "max": 12.1,
+     "p95": 5.1,
+     "median": 1.2
+    },
+    "filtered": {
+     "max": 3.3,
+     "p95": 1.3,
+     "median": 0.2
+    }
+   },
+   "world_orientation_departure_from_per_frame_solve_deg": {
+    "temporal": {
+     "max": 0.7,
+     "argmax": 96,
+     "frames_over_30deg": 0
+    },
+    "limits": {
+     "max": 5.7,
+     "argmax": 116,
+     "frames_over_30deg": 0
+    },
+    "damped": {
+     "max": 5.7,
+     "argmax": 116,
+     "frames_over_30deg": 0
+    }
+   },
+   "damper": {
+    "frames_damped": 0,
+    "max_deviation_deg": 1.7233968625102474e-14,
+    "max_deviation_frame": 54,
+    "mean_deviation_deg": 8.163629660157409e-15,
+    "damped_frames": []
+   },
+   "events_over_gate(any pre-damper stage, ±3 frames)": [
+    {
+     "frame": 10,
+     "window": [
+      7,
+      13
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4451.0,
+      "before": 3890.0,
+      "frame": 765.0,
+      "temporal": 390.0,
+      "limits": 311.0,
+      "damped": 311.0
+     },
+     "world_acc_max_in_window": {
+      "before": 4915.0,
+      "frame": 916.0,
+      "temporal": 376.0,
+      "limits": 374.0,
+      "damped": 374.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 507.0,
+      "filtered": 67.0,
+      "calibrated": 1851.0,
+      "guarded": 1851.0,
+      "v4raw_calibrated": 6171.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 312.0,
+      "filtered": 59.0,
+      "calibrated": 1844.0,
+      "guarded": 1844.0,
+      "v4raw_calibrated": 6148.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.4,
+      "filtered": 0.1,
+      "calibrated": 3.3,
+      "guarded": 3.3
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.96,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 166.0,
+      "twist_ref_vector": 13301.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.5,
+      "limits": 1.7,
+      "damped": 1.7
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 507,
+       "filtered": 67,
+       "calibrated": 1851,
+       "guarded": 1851,
+       "frame": 765,
+       "temporal": 390,
+       "limits": 311
+      },
+      "local_over_world_frame_stage": 0.84,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 47,
+     "window": [
+      44,
+      50
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4433.0,
+      "before": 4470.0,
+      "frame": 1615.0,
+      "temporal": 663.0,
+      "limits": 667.0,
+      "damped": 667.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2494.0,
+      "frame": 579.0,
+      "temporal": 316.0,
+      "limits": 309.0,
+      "damped": 309.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1139.0,
+      "filtered": 166.0,
+      "calibrated": 205.0,
+      "guarded": 205.0,
+      "v4raw_calibrated": 1855.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 430.0,
+      "filtered": 66.0,
+      "calibrated": 195.0,
+      "guarded": 195.0,
+      "v4raw_calibrated": 1433.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.4,
+      "filtered": 0.6,
+      "calibrated": 1.7,
+      "guarded": 1.7
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.96,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 465.0,
+      "twist_ref_vector": 9508.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.5,
+      "limits": 2.9,
+      "damped": 2.9
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1139,
+       "filtered": 166,
+       "calibrated": 205,
+       "guarded": 205,
+       "frame": 1615,
+       "temporal": 663,
+       "limits": 667
+      },
+      "local_over_world_frame_stage": 2.79,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 52,
+     "window": [
+      49,
+      55
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4271.0,
+      "before": 4292.0,
+      "frame": 3620.0,
+      "temporal": 620.0,
+      "limits": 623.0,
+      "damped": 623.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2489.0,
+      "frame": 760.0,
+      "temporal": 216.0,
+      "limits": 267.0,
+      "damped": 267.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 981.0,
+      "filtered": 158.0,
+      "calibrated": 205.0,
+      "guarded": 205.0,
+      "v4raw_calibrated": 1855.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 762.0,
+      "filtered": 66.0,
+      "calibrated": 194.0,
+      "guarded": 194.0,
+      "v4raw_calibrated": 1800.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 2.4,
+      "filtered": 1.4,
+      "calibrated": 1.0,
+      "guarded": 1.0
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.96,
+      0.98
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 465.0,
+      "twist_ref_vector": 9508.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.5,
+      "limits": 2.6,
+      "damped": 2.6
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 981,
+       "filtered": 158,
+       "calibrated": 205,
+       "guarded": 205,
+       "frame": 3620,
+       "temporal": 620,
+       "limits": 623
+      },
+      "local_over_world_frame_stage": 4.76,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 75,
+     "window": [
+      72,
+      78
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4322.0,
+      "before": 4322.0,
+      "frame": 398.0,
+      "temporal": 264.0,
+      "limits": 264.0,
+      "damped": 264.0
+     },
+     "world_acc_max_in_window": {
+      "before": 4803.0,
+      "frame": 256.0,
+      "temporal": 167.0,
+      "limits": 167.0,
+      "damped": 167.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1252.0,
+      "filtered": 185.0,
+      "calibrated": 256.0,
+      "guarded": 256.0,
+      "v4raw_calibrated": 4803.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 488.0,
+      "filtered": 52.0,
+      "calibrated": 144.0,
+      "guarded": 144.0,
+      "v4raw_calibrated": 1876.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 4.7,
+      "filtered": 3.3,
+      "calibrated": 1.4,
+      "guarded": 1.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.84,
+      1.0
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 312.0,
+      "twist_ref_vector": 17658.0
+     },
+     "raw_visibility_min": 0.96,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.2,
+      "limits": 0.2,
+      "damped": 0.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1252,
+       "filtered": 185,
+       "calibrated": 256,
+       "guarded": 256,
+       "frame": 398,
+       "temporal": 264,
+       "limits": 264
+      },
+      "local_over_world_frame_stage": 1.55,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 83,
+     "window": [
+      80,
+      86
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 12624.0,
+      "before": 12822.0,
+      "frame": 2506.0,
+      "temporal": 1224.0,
+      "limits": 1243.0,
+      "damped": 1243.0
+     },
+     "world_acc_max_in_window": {
+      "before": 4698.0,
+      "frame": 585.0,
+      "temporal": 104.0,
+      "limits": 453.0,
+      "damped": 453.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 702.0,
+      "filtered": 160.0,
+      "calibrated": 532.0,
+      "guarded": 532.0,
+      "v4raw_calibrated": 3356.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 228.0,
+      "filtered": 48.0,
+      "calibrated": 526.0,
+      "guarded": 526.0,
+      "v4raw_calibrated": 3327.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 2.0,
+      "filtered": 1.5,
+      "calibrated": 1.4,
+      "guarded": 1.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.84,
+      0.97
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 135.0,
+      "twist_ref_vector": 9938.0
+     },
+     "raw_visibility_min": 0.95,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.3,
+      "limits": 5.1,
+      "damped": 5.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 702,
+       "filtered": 160,
+       "calibrated": 532,
+       "guarded": 532,
+       "frame": 2506,
+       "temporal": 1224,
+       "limits": 1243
+      },
+      "local_over_world_frame_stage": 4.28,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 87,
+     "window": [
+      84,
+      90
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 10174.0,
+      "before": 10240.0,
+      "frame": 2506.0,
+      "temporal": 1224.0,
+      "limits": 1243.0,
+      "damped": 1243.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3967.0,
+      "frame": 949.0,
+      "temporal": 380.0,
+      "limits": 453.0,
+      "damped": 453.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1209.0,
+      "filtered": 255.0,
+      "calibrated": 718.0,
+      "guarded": 718.0,
+      "v4raw_calibrated": 3356.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 254.0,
+      "filtered": 33.0,
+      "calibrated": 712.0,
+      "guarded": 712.0,
+      "v4raw_calibrated": 3327.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.5,
+      "filtered": 1.2,
+      "calibrated": 2.2,
+      "guarded": 2.2
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.85,
+      0.95
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 114.0,
+      "twist_ref_vector": 4710.0
+     },
+     "raw_visibility_min": 0.95,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.7,
+      "limits": 5.1,
+      "damped": 5.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1209,
+       "filtered": 255,
+       "calibrated": 718,
+       "guarded": 718,
+       "frame": 2506,
+       "temporal": 1224,
+       "limits": 1243
+      },
+      "local_over_world_frame_stage": 2.64,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 111,
+     "window": [
+      108,
+      114
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 8746.0,
+      "before": 8880.0,
+      "frame": 1069.0,
+      "temporal": 862.0,
+      "limits": 877.0,
+      "damped": 877.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2139.0,
+      "frame": 84.0,
+      "temporal": 72.0,
+      "limits": 177.0,
+      "damped": 177.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1907.0,
+      "filtered": 128.0,
+      "calibrated": 52.0,
+      "guarded": 52.0,
+      "v4raw_calibrated": 952.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 180.0,
+      "filtered": 16.0,
+      "calibrated": 21.0,
+      "guarded": 21.0,
+      "v4raw_calibrated": 280.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 2.2,
+      "filtered": 0.9,
+      "calibrated": 0.3,
+      "guarded": 0.3
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.83,
+      0.97
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 280.0,
+      "twist_ref_vector": 3377.0
+     },
+     "raw_visibility_min": 0.94,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.1,
+      "limits": 5.5,
+      "damped": 5.5
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1907,
+       "filtered": 128,
+       "calibrated": 52,
+       "guarded": 52,
+       "frame": 1069,
+       "temporal": 862,
+       "limits": 877
+      },
+      "local_over_world_frame_stage": 12.73,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 118,
+     "window": [
+      115,
+      121
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3085.0,
+      "before": 3118.0,
+      "frame": 268.0,
+      "temporal": 229.0,
+      "limits": 232.0,
+      "damped": 232.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1205.0,
+      "frame": 77.0,
+      "temporal": 64.0,
+      "limits": 96.0,
+      "damped": 96.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 405.0,
+      "filtered": 73.0,
+      "calibrated": 76.0,
+      "guarded": 76.0,
+      "v4raw_calibrated": 1208.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 295.0,
+      "filtered": 29.0,
+      "calibrated": 28.0,
+      "guarded": 28.0,
+      "v4raw_calibrated": 170.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.7,
+      "filtered": 0.3,
+      "calibrated": 0.6,
+      "guarded": 0.6
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.83,
+      0.98
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 170.0,
+      "twist_ref_vector": 5537.0
+     },
+     "raw_visibility_min": 0.94,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.1,
+      "limits": 5.7,
+      "damped": 5.7
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 405,
+       "filtered": 73,
+       "calibrated": 76,
+       "guarded": 76,
+       "frame": 268,
+       "temporal": 229,
+       "limits": 232
+      },
+      "local_over_world_frame_stage": 3.48,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 134,
+     "window": [
+      131,
+      137
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3958.0,
+      "before": 3958.0,
+      "frame": 498.0,
+      "temporal": 405.0,
+      "limits": 402.0,
+      "damped": 402.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3972.0,
+      "frame": 466.0,
+      "temporal": 402.0,
+      "limits": 402.0,
+      "damped": 402.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 956.0,
+      "filtered": 135.0,
+      "calibrated": 464.0,
+      "guarded": 464.0,
+      "v4raw_calibrated": 3973.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 114.0,
+      "filtered": 22.0,
+      "calibrated": 37.0,
+      "guarded": 37.0,
+      "v4raw_calibrated": 95.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.3,
+      "filtered": 0.5,
+      "calibrated": 2.0,
+      "guarded": 2.0
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.83,
+      0.89
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 95.0,
+      "twist_ref_vector": 7528.0
+     },
+     "raw_visibility_min": 0.94,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.5,
+      "limits": 1.3,
+      "damped": 1.3
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 956,
+       "filtered": 135,
+       "calibrated": 464,
+       "guarded": 464,
+       "frame": 498,
+       "temporal": 405,
+       "limits": 402
+      },
+      "local_over_world_frame_stage": 1.07,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    }
+   ]
+  },
+  "wrist_l": {
+   "bone": "hand_l",
+   "local_acc_by_stage": {
+    "before_solve": {
+     "max": 4539.0,
+     "argmax": 27,
+     "p95": 2274.0,
+     "frames_over_gate": 4
+    },
+    "before": {
+     "max": 4844.0,
+     "argmax": 27,
+     "p95": 3412.0,
+     "frames_over_gate": 8
+    },
+    "frame": {
+     "max": 3339.0,
+     "argmax": 45,
+     "p95": 1388.0,
+     "frames_over_gate": 1
+    },
+    "temporal": {
+     "max": 663.0,
+     "argmax": 54,
+     "p95": 481.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 765.0,
+     "argmax": 54,
+     "p95": 581.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 765.0,
+     "argmax": 54,
+     "p95": 581.0,
+     "frames_over_gate": 0
+    }
+   },
+   "world_acc_by_stage": {
+    "before": {
+     "max": 2132.0,
+     "argmax": 27,
+     "p95": 1688.0,
+     "frames_over_gate": 0
+    },
+    "frame": {
+     "max": 1351.0,
+     "argmax": 26,
+     "p95": 892.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 374.0,
+     "argmax": 26,
+     "p95": 290.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 374.0,
+     "argmax": 26,
+     "p95": 290.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 374.0,
+     "argmax": 26,
+     "p95": 290.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_frame_world_acc": {
+    "raw": {
+     "max": 1747.0,
+     "argmax": 60,
+     "p95": 1209.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 579.0,
+     "argmax": 61,
+     "p95": 250.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 418.0,
+     "argmax": 61,
+     "p95": 173.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 418.0,
+     "argmax": 61,
+     "p95": 173.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 1786.0,
+     "argmax": 60,
+     "p95": 1121.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_direction_only_acc": {
+    "raw": {
+     "max": 1263.0,
+     "argmax": 60,
+     "p95": 743.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 364.0,
+     "argmax": 61,
+     "p95": 157.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 205.0,
+     "argmax": 61,
+     "p95": 136.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 205.0,
+     "argmax": 61,
+     "p95": 136.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 1204.0,
+     "argmax": 60,
+     "p95": 613.0,
+     "frames_over_gate": 0
+    }
+   },
+   "image_2d_angle_acc": {
+    "direction": {
+     "max": 868.0,
+     "argmax": 60,
+     "p95": 494.0,
+     "frames_over_gate": 0
+    },
+    "twist_ref_vector": {
+     "max": 7044.0,
+     "argmax": 60,
+     "p95": 4070.0,
+     "frames_over_gate": 15
+    }
+   },
+   "landmark_left_wrist_position_acc_m_s2": {
+    "raw": {
+     "max": 24.5,
+     "p95": 7.6,
+     "median": 1.6
+    },
+    "filtered": {
+     "max": 5.8,
+     "p95": 1.7,
+     "median": 0.35
+    }
+   },
+   "world_orientation_departure_from_per_frame_solve_deg": {
+    "temporal": {
+     "max": 1.0,
+     "argmax": 26,
+     "frames_over_30deg": 0
+    },
+    "limits": {
+     "max": 1.0,
+     "argmax": 26,
+     "frames_over_30deg": 0
+    },
+    "damped": {
+     "max": 1.0,
+     "argmax": 26,
+     "frames_over_30deg": 0
+    }
+   },
+   "damper": {
+    "frames_damped": 0,
+    "max_deviation_deg": 4.5027312049029286e-14,
+    "max_deviation_frame": 37,
+    "mean_deviation_deg": 3.0026067622071376e-14,
+    "damped_frames": []
+   },
+   "events_over_gate(any pre-damper stage, ±3 frames)": [
+    {
+     "frame": 7,
+     "window": [
+      4,
+      10
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3653.0,
+      "before": 4726.0,
+      "frame": 972.0,
+      "temporal": 327.0,
+      "limits": 554.0,
+      "damped": 554.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1854.0,
+      "frame": 1167.0,
+      "temporal": 294.0,
+      "limits": 294.0,
+      "damped": 294.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 708.0,
+      "filtered": 160.0,
+      "calibrated": 107.0,
+      "guarded": 107.0,
+      "v4raw_calibrated": 851.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 454.0,
+      "filtered": 156.0,
+      "calibrated": 94.0,
+      "guarded": 94.0,
+      "v4raw_calibrated": 398.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.1,
+      "filtered": 0.8,
+      "calibrated": 0.3,
+      "guarded": 0.3
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.86,
+      0.87
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 442.0,
+      "twist_ref_vector": 2933.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.7,
+      "limits": 0.7,
+      "damped": 0.7
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 708,
+       "filtered": 160,
+       "calibrated": 107,
+       "guarded": 107,
+       "frame": 972,
+       "temporal": 327,
+       "limits": 554
+      },
+      "local_over_world_frame_stage": 0.83,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 27,
+     "window": [
+      24,
+      30
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4539.0,
+      "before": 4844.0,
+      "frame": 1458.0,
+      "temporal": 454.0,
+      "limits": 578.0,
+      "damped": 578.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2132.0,
+      "frame": 1351.0,
+      "temporal": 374.0,
+      "limits": 374.0,
+      "damped": 374.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1231.0,
+      "filtered": 104.0,
+      "calibrated": 82.0,
+      "guarded": 82.0,
+      "v4raw_calibrated": 1699.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 525.0,
+      "filtered": 60.0,
+      "calibrated": 73.0,
+      "guarded": 73.0,
+      "v4raw_calibrated": 711.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.2,
+      "filtered": 0.4,
+      "calibrated": 0.4,
+      "guarded": 0.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.86,
+      0.87
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 807.0,
+      "twist_ref_vector": 4806.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 1.0,
+      "limits": 1.0,
+      "damped": 1.0
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1231,
+       "filtered": 104,
+       "calibrated": 82,
+       "guarded": 82,
+       "frame": 1458,
+       "temporal": 454,
+       "limits": 578
+      },
+      "local_over_world_frame_stage": 1.08,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 44,
+     "window": [
+      41,
+      47
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 2690.0,
+      "before": 3999.0,
+      "frame": 3339.0,
+      "temporal": 647.0,
+      "limits": 750.0,
+      "damped": 750.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1765.0,
+      "frame": 1335.0,
+      "temporal": 342.0,
+      "limits": 342.0,
+      "damped": 342.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 568.0,
+      "filtered": 146.0,
+      "calibrated": 180.0,
+      "guarded": 180.0,
+      "v4raw_calibrated": 822.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 506.0,
+      "filtered": 64.0,
+      "calibrated": 49.0,
+      "guarded": 49.0,
+      "v4raw_calibrated": 676.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.3,
+      "filtered": 0.9,
+      "calibrated": 0.4,
+      "guarded": 0.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.85,
+      0.86
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 497.0,
+      "twist_ref_vector": 2465.0
+     },
+     "raw_visibility_min": 1.0,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.9,
+      "limits": 0.9,
+      "damped": 0.9
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 568,
+       "filtered": 146,
+       "calibrated": 180,
+       "guarded": 180,
+       "frame": 3339,
+       "temporal": 647,
+       "limits": 750
+      },
+      "local_over_world_frame_stage": 2.5,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 125,
+     "window": [
+      122,
+      128
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 1730.0,
+      "before": 3519.0,
+      "frame": 185.0,
+      "temporal": 157.0,
+      "limits": 189.0,
+      "damped": 189.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1170.0,
+      "frame": 645.0,
+      "temporal": 85.0,
+      "limits": 85.0,
+      "damped": 85.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 482.0,
+      "filtered": 100.0,
+      "calibrated": 69.0,
+      "guarded": 69.0,
+      "v4raw_calibrated": 278.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 443.0,
+      "filtered": 52.0,
+      "calibrated": 57.0,
+      "guarded": 57.0,
+      "v4raw_calibrated": 278.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.5,
+      "filtered": 0.3,
+      "calibrated": 0.2,
+      "guarded": 0.2
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.74,
+      0.93
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 301.0,
+      "twist_ref_vector": 2540.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.4,
+      "limits": 0.4,
+      "damped": 0.4
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 482,
+       "filtered": 100,
+       "calibrated": 69,
+       "guarded": 69,
+       "frame": 185,
+       "temporal": 157,
+       "limits": 189
+      },
+      "local_over_world_frame_stage": 0.29,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    }
+   ]
+  },
+  "wrist_r": {
+   "bone": "hand_r",
+   "local_acc_by_stage": {
+    "before_solve": {
+     "max": 5866.0,
+     "argmax": 10,
+     "p95": 2888.0,
+     "frames_over_gate": 5
+    },
+    "before": {
+     "max": 6177.0,
+     "argmax": 10,
+     "p95": 3282.0,
+     "frames_over_gate": 9
+    },
+    "frame": {
+     "max": 1915.0,
+     "argmax": 8,
+     "p95": 672.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 496.0,
+     "argmax": 8,
+     "p95": 297.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 550.0,
+     "argmax": 7,
+     "p95": 391.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 550.0,
+     "argmax": 7,
+     "p95": 391.0,
+     "frames_over_gate": 0
+    }
+   },
+   "world_acc_by_stage": {
+    "before": {
+     "max": 5179.0,
+     "argmax": 75,
+     "p95": 2105.0,
+     "frames_over_gate": 5
+    },
+    "frame": {
+     "max": 1142.0,
+     "argmax": 8,
+     "p95": 528.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 433.0,
+     "argmax": 137,
+     "p95": 282.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 433.0,
+     "argmax": 137,
+     "p95": 282.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 433.0,
+     "argmax": 137,
+     "p95": 282.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_frame_world_acc": {
+    "raw": {
+     "max": 3274.0,
+     "argmax": 61,
+     "p95": 1465.0,
+     "frames_over_gate": 2
+    },
+    "filtered": {
+     "max": 757.0,
+     "argmax": 61,
+     "p95": 308.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 512.0,
+     "argmax": 136,
+     "p95": 311.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 512.0,
+     "argmax": 136,
+     "p95": 311.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 5179.0,
+     "argmax": 75,
+     "p95": 1953.0,
+     "frames_over_gate": 4
+    }
+   },
+   "landmark_direction_only_acc": {
+    "raw": {
+     "max": 2521.0,
+     "argmax": 63,
+     "p95": 907.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 209.0,
+     "argmax": 58,
+     "p95": 140.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 198.0,
+     "argmax": 6,
+     "p95": 142.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 198.0,
+     "argmax": 6,
+     "p95": 142.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 2007.0,
+     "argmax": 63,
+     "p95": 824.0,
+     "frames_over_gate": 0
+    }
+   },
+   "image_2d_angle_acc": {
+    "direction": {
+     "max": 1043.0,
+     "argmax": 54,
+     "p95": 708.0,
+     "frames_over_gate": 0
+    },
+    "twist_ref_vector": {
+     "max": 17658.0,
+     "argmax": 74,
+     "p95": 9168.0,
+     "frames_over_gate": 44
+    }
+   },
+   "landmark_right_wrist_position_acc_m_s2": {
+    "raw": {
+     "max": 15.1,
+     "p95": 5.6,
+     "median": 1.28
+    },
+    "filtered": {
+     "max": 2.6,
+     "p95": 1.2,
+     "median": 0.21
+    }
+   },
+   "world_orientation_departure_from_per_frame_solve_deg": {
+    "temporal": {
+     "max": 0.9,
+     "argmax": 8,
+     "frames_over_30deg": 0
+    },
+    "limits": {
+     "max": 0.9,
+     "argmax": 8,
+     "frames_over_30deg": 0
+    },
+    "damped": {
+     "max": 0.9,
+     "argmax": 8,
+     "frames_over_30deg": 0
+    }
+   },
+   "damper": {
+    "frames_damped": 0,
+    "max_deviation_deg": 3.6810739497075667e-14,
+    "max_deviation_frame": 106,
+    "mean_deviation_deg": 2.0576593241626297e-14,
+    "damped_frames": []
+   },
+   "events_over_gate(any pre-damper stage, ±3 frames)": [
+    {
+     "frame": 10,
+     "window": [
+      7,
+      13
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 5866.0,
+      "before": 6177.0,
+      "frame": 1915.0,
+      "temporal": 496.0,
+      "limits": 550.0,
+      "damped": 550.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2512.0,
+      "frame": 1142.0,
+      "temporal": 370.0,
+      "limits": 370.0,
+      "damped": 370.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 675.0,
+      "filtered": 84.0,
+      "calibrated": 215.0,
+      "guarded": 215.0,
+      "v4raw_calibrated": 1731.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 608.0,
+      "filtered": 65.0,
+      "calibrated": 186.0,
+      "guarded": 186.0,
+      "v4raw_calibrated": 868.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.6,
+      "filtered": 0.1,
+      "calibrated": 0.6,
+      "guarded": 0.6
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.89,
+      0.9
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 1009.0,
+      "twist_ref_vector": 13301.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.9,
+      "limits": 0.9,
+      "damped": 0.9
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 675,
+       "filtered": 84,
+       "calibrated": 215,
+       "guarded": 215,
+       "frame": 1915,
+       "temporal": 496,
+       "limits": 550
+      },
+      "local_over_world_frame_stage": 1.68,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 16,
+     "window": [
+      13,
+      19
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3094.0,
+      "before": 3320.0,
+      "frame": 176.0,
+      "temporal": 198.0,
+      "limits": 257.0,
+      "damped": 257.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1363.0,
+      "frame": 208.0,
+      "temporal": 183.0,
+      "limits": 183.0,
+      "damped": 183.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 429.0,
+      "filtered": 65.0,
+      "calibrated": 152.0,
+      "guarded": 152.0,
+      "v4raw_calibrated": 577.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 429.0,
+      "filtered": 64.0,
+      "calibrated": 144.0,
+      "guarded": 144.0,
+      "v4raw_calibrated": 284.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.4,
+      "filtered": 0.2,
+      "calibrated": 0.4,
+      "guarded": 0.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.89,
+      0.9
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 298.0,
+      "twist_ref_vector": 4654.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.2,
+      "limits": 0.2,
+      "damped": 0.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 429,
+       "filtered": 65,
+       "calibrated": 152,
+       "guarded": 152,
+       "frame": 176,
+       "temporal": 198,
+       "limits": 257
+      },
+      "local_over_world_frame_stage": 0.85,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 43,
+     "window": [
+      40,
+      46
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4115.0,
+      "before": 4115.0,
+      "frame": 1814.0,
+      "temporal": 397.0,
+      "limits": 397.0,
+      "damped": 397.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3042.0,
+      "frame": 973.0,
+      "temporal": 284.0,
+      "limits": 284.0,
+      "damped": 284.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 842.0,
+      "filtered": 88.0,
+      "calibrated": 121.0,
+      "guarded": 121.0,
+      "v4raw_calibrated": 1970.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 639.0,
+      "filtered": 53.0,
+      "calibrated": 79.0,
+      "guarded": 79.0,
+      "v4raw_calibrated": 648.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.2,
+      "filtered": 0.8,
+      "calibrated": 0.1,
+      "guarded": 0.1
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.88,
+      0.91
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 730.0,
+      "twist_ref_vector": 9132.0
+     },
+     "raw_visibility_min": 0.99,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.6,
+      "limits": 0.6,
+      "damped": 0.6
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 842,
+       "filtered": 88,
+       "calibrated": 121,
+       "guarded": 121,
+       "frame": 1814,
+       "temporal": 397,
+       "limits": 397
+      },
+      "local_over_world_frame_stage": 1.86,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 80,
+     "window": [
+      77,
+      83
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 2999.0,
+      "before": 4088.0,
+      "frame": 190.0,
+      "temporal": 122.0,
+      "limits": 251.0,
+      "damped": 251.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2130.0,
+      "frame": 238.0,
+      "temporal": 194.0,
+      "limits": 194.0,
+      "damped": 194.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1983.0,
+      "filtered": 263.0,
+      "calibrated": 238.0,
+      "guarded": 238.0,
+      "v4raw_calibrated": 1977.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 909.0,
+      "filtered": 102.0,
+      "calibrated": 73.0,
+      "guarded": 73.0,
+      "v4raw_calibrated": 505.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 4.3,
+      "filtered": 2.7,
+      "calibrated": 0.5,
+      "guarded": 0.5
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.8,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 549.0,
+      "twist_ref_vector": 9938.0
+     },
+     "raw_visibility_min": 0.96,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.2,
+      "limits": 0.2,
+      "damped": 0.2
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1983,
+       "filtered": 263,
+       "calibrated": 238,
+       "guarded": 238,
+       "frame": 190,
+       "temporal": 122,
+       "limits": 251
+      },
+      "local_over_world_frame_stage": 0.8,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 85,
+     "window": [
+      82,
+      88
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3286.0,
+      "before": 4357.0,
+      "frame": 679.0,
+      "temporal": 286.0,
+      "limits": 499.0,
+      "damped": 499.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1698.0,
+      "frame": 395.0,
+      "temporal": 182.0,
+      "limits": 182.0,
+      "damped": 182.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 721.0,
+      "filtered": 255.0,
+      "calibrated": 86.0,
+      "guarded": 86.0,
+      "v4raw_calibrated": 1112.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 329.0,
+      "filtered": 57.0,
+      "calibrated": 48.0,
+      "guarded": 48.0,
+      "v4raw_calibrated": 343.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 2.3,
+      "filtered": 1.3,
+      "calibrated": 0.5,
+      "guarded": 0.5
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.81,
+      0.99
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 370.0,
+      "twist_ref_vector": 4710.0
+     },
+     "raw_visibility_min": 0.95,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.3,
+      "limits": 0.3,
+      "damped": 0.3
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 721,
+       "filtered": 255,
+       "calibrated": 86,
+       "guarded": 86,
+       "frame": 679,
+       "temporal": 286,
+       "limits": 499
+      },
+      "local_over_world_frame_stage": 1.72,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    }
+   ]
+  },
+  "ankle_l": {
+   "bone": "foot_l",
+   "local_acc_by_stage": {
+    "before_solve": {
+     "max": 3995.0,
+     "argmax": 55,
+     "p95": 2133.0,
+     "frames_over_gate": 3
+    },
+    "before": {
+     "max": 4037.0,
+     "argmax": 55,
+     "p95": 2305.0,
+     "frames_over_gate": 5
+    },
+    "frame": {
+     "max": 445.0,
+     "argmax": 121,
+     "p95": 304.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 312.0,
+     "argmax": 121,
+     "p95": 188.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 436.0,
+     "argmax": 55,
+     "p95": 273.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 436.0,
+     "argmax": 55,
+     "p95": 273.0,
+     "frames_over_gate": 0
+    }
+   },
+   "world_acc_by_stage": {
+    "before": {
+     "max": 2308.0,
+     "argmax": 125,
+     "p95": 1423.0,
+     "frames_over_gate": 0
+    },
+    "frame": {
+     "max": 685.0,
+     "argmax": 56,
+     "p95": 440.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 304.0,
+     "argmax": 124,
+     "p95": 218.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 304.0,
+     "argmax": 124,
+     "p95": 218.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 304.0,
+     "argmax": 124,
+     "p95": 218.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_frame_world_acc": {
+    "raw": {
+     "max": 1274.0,
+     "argmax": 56,
+     "p95": 946.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 215.0,
+     "argmax": 69,
+     "p95": 172.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 246.0,
+     "argmax": 65,
+     "p95": 176.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 246.0,
+     "argmax": 65,
+     "p95": 176.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 1480.0,
+     "argmax": 64,
+     "p95": 974.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_direction_only_acc": {
+    "raw": {
+     "max": 1213.0,
+     "argmax": 54,
+     "p95": 772.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 175.0,
+     "argmax": 82,
+     "p95": 155.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 173.0,
+     "argmax": 65,
+     "p95": 133.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 173.0,
+     "argmax": 65,
+     "p95": 133.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 1233.0,
+     "argmax": 64,
+     "p95": 597.0,
+     "frames_over_gate": 0
+    }
+   },
+   "image_2d_angle_acc": {
+    "direction": {
+     "max": 1266.0,
+     "argmax": 64,
+     "p95": 741.0,
+     "frames_over_gate": 0
+    },
+    "twist_ref_vector": {
+     "max": 398.0,
+     "argmax": 40,
+     "p95": 183.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_left_ankle_position_acc_m_s2": {
+    "raw": {
+     "max": 6.6,
+     "p95": 4.8,
+     "median": 1.47
+    },
+    "filtered": {
+     "max": 1.2,
+     "p95": 0.8,
+     "median": 0.2
+    }
+   },
+   "world_orientation_departure_from_per_frame_solve_deg": {
+    "temporal": {
+     "max": 0.5,
+     "argmax": 124,
+     "frames_over_30deg": 0
+    },
+    "limits": {
+     "max": 0.5,
+     "argmax": 124,
+     "frames_over_30deg": 0
+    },
+    "damped": {
+     "max": 0.5,
+     "argmax": 124,
+     "frames_over_30deg": 0
+    }
+   },
+   "damper": {
+    "frames_damped": 0,
+    "max_deviation_deg": 1.2027569810939267e-14,
+    "max_deviation_frame": 11,
+    "mean_deviation_deg": 7.021814783944264e-15,
+    "damped_frames": []
+   },
+   "events_over_gate(any pre-damper stage, ±3 frames)": [
+    {
+     "frame": 27,
+     "window": [
+      24,
+      30
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 2685.0,
+      "before": 3854.0,
+      "frame": 34.0,
+      "temporal": 107.0,
+      "limits": 153.0,
+      "damped": 153.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1841.0,
+      "frame": 55.0,
+      "temporal": 88.0,
+      "limits": 88.0,
+      "damped": 88.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 949.0,
+      "filtered": 62.0,
+      "calibrated": 48.0,
+      "guarded": 48.0,
+      "v4raw_calibrated": 592.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 672.0,
+      "filtered": 49.0,
+      "calibrated": 31.0,
+      "guarded": 31.0,
+      "v4raw_calibrated": 459.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.9,
+      "filtered": 0.2,
+      "calibrated": 0.2,
+      "guarded": 0.2
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.94,
+      0.7
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 540.0,
+      "twist_ref_vector": 75.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.1,
+      "limits": 0.1,
+      "damped": 0.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 949,
+       "filtered": 62,
+       "calibrated": 48,
+       "guarded": 48,
+       "frame": 34,
+       "temporal": 107,
+       "limits": 153
+      },
+      "local_over_world_frame_stage": 0.62,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 55,
+     "window": [
+      52,
+      58
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3995.0,
+      "before": 4037.0,
+      "frame": 340.0,
+      "temporal": 179.0,
+      "limits": 436.0,
+      "damped": 436.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2111.0,
+      "frame": 685.0,
+      "temporal": 293.0,
+      "limits": 293.0,
+      "damped": 293.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1274.0,
+      "filtered": 123.0,
+      "calibrated": 159.0,
+      "guarded": 159.0,
+      "v4raw_calibrated": 799.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 1213.0,
+      "filtered": 124.0,
+      "calibrated": 97.0,
+      "guarded": 97.0,
+      "v4raw_calibrated": 551.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.8,
+      "filtered": 0.2,
+      "calibrated": 0.6,
+      "guarded": 0.6
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.93,
+      0.77
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 585.0,
+      "twist_ref_vector": 189.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.5,
+      "limits": 0.5,
+      "damped": 0.5
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1274,
+       "filtered": 123,
+       "calibrated": 159,
+       "guarded": 159,
+       "frame": 340,
+       "temporal": 179,
+       "limits": 436
+      },
+      "local_over_world_frame_stage": 0.5,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 119,
+     "window": [
+      116,
+      122
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3587.0,
+      "before": 3587.0,
+      "frame": 445.0,
+      "temporal": 312.0,
+      "limits": 313.0,
+      "damped": 313.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2061.0,
+      "frame": 588.0,
+      "temporal": 203.0,
+      "limits": 203.0,
+      "damped": 203.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 518.0,
+      "filtered": 40.0,
+      "calibrated": 117.0,
+      "guarded": 117.0,
+      "v4raw_calibrated": 1022.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 439.0,
+      "filtered": 39.0,
+      "calibrated": 41.0,
+      "guarded": 41.0,
+      "v4raw_calibrated": 325.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.4,
+      "filtered": 0.3,
+      "calibrated": 0.3,
+      "guarded": 0.3
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.9,
+      0.72
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 119.0,
+      "twist_ref_vector": 86.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.4,
+      "limits": 0.4,
+      "damped": 0.4
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 518,
+       "filtered": 40,
+       "calibrated": 117,
+       "guarded": 117,
+       "frame": 445,
+       "temporal": 312,
+       "limits": 313
+      },
+      "local_over_world_frame_stage": 0.76,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 124,
+     "window": [
+      121,
+      127
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3343.0,
+      "before": 3756.0,
+      "frame": 445.0,
+      "temporal": 312.0,
+      "limits": 313.0,
+      "damped": 313.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2308.0,
+      "frame": 632.0,
+      "temporal": 304.0,
+      "limits": 304.0,
+      "damped": 304.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 525.0,
+      "filtered": 87.0,
+      "calibrated": 117.0,
+      "guarded": 117.0,
+      "v4raw_calibrated": 817.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 524.0,
+      "filtered": 77.0,
+      "calibrated": 57.0,
+      "guarded": 57.0,
+      "v4raw_calibrated": 393.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.5,
+      "filtered": 0.3,
+      "calibrated": 0.4,
+      "guarded": 0.4
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.9,
+      0.72
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 175.0,
+      "twist_ref_vector": 87.0
+     },
+     "raw_visibility_min": 0.98,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.5,
+      "limits": 0.5,
+      "damped": 0.5
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 525,
+       "filtered": 87,
+       "calibrated": 117,
+       "guarded": 117,
+       "frame": 445,
+       "temporal": 312,
+       "limits": 313
+      },
+      "local_over_world_frame_stage": 0.7,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    }
+   ]
+  },
+  "ankle_r": {
+   "bone": "foot_r",
+   "local_acc_by_stage": {
+    "before_solve": {
+     "max": 12539.0,
+     "argmax": 63,
+     "p95": 2787.0,
+     "frames_over_gate": 6
+    },
+    "before": {
+     "max": 12539.0,
+     "argmax": 63,
+     "p95": 2808.0,
+     "frames_over_gate": 7
+    },
+    "frame": {
+     "max": 5449.0,
+     "argmax": 64,
+     "p95": 686.0,
+     "frames_over_gate": 2
+    },
+    "temporal": {
+     "max": 1453.0,
+     "argmax": 64,
+     "p95": 566.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 1453.0,
+     "argmax": 64,
+     "p95": 665.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 1453.0,
+     "argmax": 64,
+     "p95": 665.0,
+     "frames_over_gate": 0
+    }
+   },
+   "world_acc_by_stage": {
+    "before": {
+     "max": 4963.0,
+     "argmax": 77,
+     "p95": 2787.0,
+     "frames_over_gate": 6
+    },
+    "frame": {
+     "max": 834.0,
+     "argmax": 64,
+     "p95": 348.0,
+     "frames_over_gate": 0
+    },
+    "temporal": {
+     "max": 366.0,
+     "argmax": 62,
+     "p95": 269.0,
+     "frames_over_gate": 0
+    },
+    "limits": {
+     "max": 366.0,
+     "argmax": 62,
+     "p95": 269.0,
+     "frames_over_gate": 0
+    },
+    "damped": {
+     "max": 366.0,
+     "argmax": 62,
+     "p95": 269.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_frame_world_acc": {
+    "raw": {
+     "max": 2525.0,
+     "argmax": 60,
+     "p95": 1276.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 457.0,
+     "argmax": 61,
+     "p95": 317.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 369.0,
+     "argmax": 61,
+     "p95": 310.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 369.0,
+     "argmax": 61,
+     "p95": 310.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 5548.0,
+     "argmax": 77,
+     "p95": 2876.0,
+     "frames_over_gate": 5
+    }
+   },
+   "landmark_direction_only_acc": {
+    "raw": {
+     "max": 2540.0,
+     "argmax": 60,
+     "p95": 1100.0,
+     "frames_over_gate": 0
+    },
+    "filtered": {
+     "max": 458.0,
+     "argmax": 61,
+     "p95": 260.0,
+     "frames_over_gate": 0
+    },
+    "calibrated": {
+     "max": 348.0,
+     "argmax": 61,
+     "p95": 195.0,
+     "frames_over_gate": 0
+    },
+    "guarded": {
+     "max": 348.0,
+     "argmax": 61,
+     "p95": 195.0,
+     "frames_over_gate": 0
+    },
+    "v4raw_calibrated": {
+     "max": 3791.0,
+     "argmax": 77,
+     "p95": 1971.0,
+     "frames_over_gate": 2
+    }
+   },
+   "image_2d_angle_acc": {
+    "direction": {
+     "max": 2516.0,
+     "argmax": 81,
+     "p95": 1401.0,
+     "frames_over_gate": 0
+    },
+    "twist_ref_vector": {
+     "max": 1091.0,
+     "argmax": 59,
+     "p95": 548.0,
+     "frames_over_gate": 0
+    }
+   },
+   "landmark_right_ankle_position_acc_m_s2": {
+    "raw": {
+     "max": 65.6,
+     "p95": 9.8,
+     "median": 2.0
+    },
+    "filtered": {
+     "max": 12.0,
+     "p95": 5.6,
+     "median": 0.33
+    }
+   },
+   "world_orientation_departure_from_per_frame_solve_deg": {
+    "temporal": {
+     "max": 0.6,
+     "argmax": 64,
+     "frames_over_30deg": 0
+    },
+    "limits": {
+     "max": 0.6,
+     "argmax": 64,
+     "frames_over_30deg": 0
+    },
+    "damped": {
+     "max": 0.6,
+     "argmax": 64,
+     "frames_over_30deg": 0
+    }
+   },
+   "damper": {
+    "frames_damped": 0,
+    "max_deviation_deg": 4.63853952269793e-14,
+    "max_deviation_frame": 85,
+    "mean_deviation_deg": 2.2870522563332097e-14,
+    "damped_frames": []
+   },
+   "events_over_gate(any pre-damper stage, ±3 frames)": [
+    {
+     "frame": 17,
+     "window": [
+      14,
+      20
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 4960.0,
+      "before": 5771.0,
+      "frame": 221.0,
+      "temporal": 90.0,
+      "limits": 155.0,
+      "damped": 155.0
+     },
+     "world_acc_max_in_window": {
+      "before": 2213.0,
+      "frame": 166.0,
+      "temporal": 82.0,
+      "limits": 82.0,
+      "damped": 82.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 271.0,
+      "filtered": 18.0,
+      "calibrated": 21.0,
+      "guarded": 21.0,
+      "v4raw_calibrated": 444.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 271.0,
+      "filtered": 14.0,
+      "calibrated": 11.0,
+      "guarded": 11.0,
+      "v4raw_calibrated": 155.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.1,
+      "filtered": 0.1,
+      "calibrated": 0.0,
+      "guarded": 0.0
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.93,
+      0.73
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 153.0,
+      "twist_ref_vector": 82.0
+     },
+     "raw_visibility_min": 0.97,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.1,
+      "limits": 0.1,
+      "damped": 0.1
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 271,
+       "filtered": 18,
+       "calibrated": 21,
+       "guarded": 21,
+       "frame": 221,
+       "temporal": 90,
+       "limits": 155
+      },
+      "local_over_world_frame_stage": 1.33,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    },
+    {
+     "frame": 51,
+     "window": [
+      48,
+      54
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 2254.0,
+      "before": 1395.0,
+      "frame": 3385.0,
+      "temporal": 623.0,
+      "limits": 1093.0,
+      "damped": 1093.0
+     },
+     "world_acc_max_in_window": {
+      "before": 1795.0,
+      "frame": 440.0,
+      "temporal": 285.0,
+      "limits": 285.0,
+      "damped": 297.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 389.0,
+      "filtered": 197.0,
+      "calibrated": 225.0,
+      "guarded": 225.0,
+      "v4raw_calibrated": 1825.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 364.0,
+      "filtered": 197.0,
+      "calibrated": 225.0,
+      "guarded": 225.0,
+      "v4raw_calibrated": 1228.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 0.5,
+      "filtered": 0.4,
+      "calibrated": 0.9,
+      "guarded": 0.9
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.94,
+      0.7
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 1728.0,
+      "twist_ref_vector": 277.0
+     },
+     "raw_visibility_min": 0.97,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.4,
+      "limits": 0.4,
+      "damped": 0.4
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 389,
+       "filtered": 197,
+       "calibrated": 225,
+       "guarded": 225,
+       "frame": 3385,
+       "temporal": 623,
+       "limits": 1093
+      },
+      "local_over_world_frame_stage": 7.69,
+      "status": "under the gate before the damper",
+      "origin": "none (pre-damper stages over the gate only transiently)"
+     }
+    },
+    {
+     "frame": 63,
+     "window": [
+      60,
+      66
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 12539.0,
+      "before": 12539.0,
+      "frame": 5449.0,
+      "temporal": 1453.0,
+      "limits": 1453.0,
+      "damped": 1453.0
+     },
+     "world_acc_max_in_window": {
+      "before": 3014.0,
+      "frame": 834.0,
+      "temporal": 366.0,
+      "limits": 366.0,
+      "damped": 366.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 2525.0,
+      "filtered": 457.0,
+      "calibrated": 369.0,
+      "guarded": 369.0,
+      "v4raw_calibrated": 2962.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 2540.0,
+      "filtered": 458.0,
+      "calibrated": 348.0,
+      "guarded": 348.0,
+      "v4raw_calibrated": 2962.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 4.7,
+      "filtered": 2.6,
+      "calibrated": 1.9,
+      "guarded": 1.9
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.88,
+      0.51
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 1086.0,
+      "twist_ref_vector": 724.0
+     },
+     "raw_visibility_min": 0.97,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.6,
+      "limits": 0.6,
+      "damped": 0.6
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 2525,
+       "filtered": 457,
+       "calibrated": 369,
+       "guarded": 369,
+       "frame": 5449,
+       "temporal": 1453,
+       "limits": 1453
+      },
+      "local_over_world_frame_stage": 6.53,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it (dropped under the gate at: temporal)"
+     }
+    },
+    {
+     "frame": 77,
+     "window": [
+      74,
+      80
+     ],
+     "local_acc_max_in_window": {
+      "before_solve": 3361.0,
+      "before": 3361.0,
+      "frame": 176.0,
+      "temporal": 117.0,
+      "limits": 117.0,
+      "damped": 117.0
+     },
+     "world_acc_max_in_window": {
+      "before": 4963.0,
+      "frame": 376.0,
+      "temporal": 280.0,
+      "limits": 280.0,
+      "damped": 280.0
+     },
+     "landmark_frame_acc_max_in_window": {
+      "raw": 1281.0,
+      "filtered": 250.0,
+      "calibrated": 360.0,
+      "guarded": 360.0,
+      "v4raw_calibrated": 5548.0
+     },
+     "landmark_direction_acc_max_in_window": {
+      "raw": 1254.0,
+      "filtered": 196.0,
+      "calibrated": 147.0,
+      "guarded": 147.0,
+      "v4raw_calibrated": 3791.0
+     },
+     "landmark_twist_ref_step_max_deg": {
+      "raw": 1.4,
+      "filtered": 0.7,
+      "calibrated": 0.8,
+      "guarded": 0.8
+     },
+     "twist_ref_perp_fraction_min(raw/guarded)": [
+      0.74,
+      0.48
+     ],
+     "image_2d_acc_max_in_window": {
+      "direction": 1842.0,
+      "twist_ref_vector": 655.0
+     },
+     "raw_visibility_min": 0.96,
+     "damper_deviation_max_deg": 0.0,
+     "world_departure_from_per_frame_solve_max_deg": {
+      "temporal": 0.4,
+      "limits": 0.4,
+      "damped": 0.4
+     },
+     "damper_frames_in_window": [],
+     "attribution": {
+      "chain_max_deg_s2": {
+       "raw": 1281,
+       "filtered": 250,
+       "calibrated": 360,
+       "guarded": 360,
+       "frame": 176,
+       "temporal": 117,
+       "limits": 117
+      },
+      "local_over_world_frame_stage": 0.47,
+      "status": "under the gate before the damper",
+      "origin": "only in BEFORE (v4raw); Phase 2 removed it"
+     }
+    }
+   ]
+  }
+ },
+ "preview_frames_checked": [
+  "preview_f039.png",
+  "preview_f043.png",
+  "preview_f133.png",
+  "zoom_f039.png",
+  "zoom_f043.png",
+  "zoom_f133.png"
+ ],
+ "plots": [
+  "acc_before_after_joints.png",
+  "stage_attribution.png",
+  "event_elbow_l_f039.png",
+  "event_elbow_l_f043.png",
+  "event_elbow_l_f133.png"
+ ],
+ "versions_v3_v4raw_v4": {
+  "v3_vs_v4": {
+   "frames_above_gate_total": {
+    "v3": 34,
+    "v4": 0,
+    "verdict": "better"
+   },
+   "chest_yaw_deg": {
+    "v3": {
+     "min": -0.2,
+     "max": 12.0,
+     "abs_argmax": 119
+    },
+    "v4": {
+     "min": -0.2,
+     "max": 12.0,
+     "abs_argmax": 119
+    },
+    "verdict_abs_max": "same"
+   },
+   "chest_pitch_deg(+ back)": {
+    "v3": {
+     "min": -11.6,
+     "max": 0.6,
+     "argmax": 28
+    },
+    "v4": {
+     "min": -12.9,
+     "max": 0.4,
+     "argmax": 39
+    },
+    "verdict_max": "same"
+   },
+   "semantic": {
+    "thigh_r_sagittal_angle_deg(hold median / max)": {
+     "v3": [
+      124.5,
+      126.3
+     ],
+     "v4": [
+      124.4,
+      126.4
+     ]
+    },
+    "knee_r_flex_max_deg": {
+     "v3": 126.1,
+     "v4": 126.4
+    }
+   },
+   "static_limb_forward_angle_deg": {
+    "v3": {
+     "thigh_l": {
+      "median": 0.5,
+      "abs_max": 1.9,
+      "argmax": 37,
+      "range": 3.4
+     },
+     "shin_l": {
+      "median": -5.2,
+      "abs_max": 11.0,
+      "argmax": 132,
+      "range": 12.8
+     }
+    },
+    "v4": {
+     "thigh_l": {
+      "median": 0.4,
+      "abs_max": 2.1,
+      "argmax": 61,
+      "range": 3.6
+     },
+     "shin_l": {
+      "median": -5.2,
+      "abs_max": 11.7,
+      "argmax": 132,
+      "range": 13.5
+     }
+    },
+    "verdict_abs_max": {
+     "thigh_l": "same",
+     "shin_l": "same"
+    }
+   },
+   "direction_error_2d_vs_image_landmarks_deg": {
+    "upper_arm_l": {
+     "v3": {
+      "median": 1.7,
+      "p95": 3.9,
+      "max": 4.5,
+      "n": 145
+     },
+     "v4": {
+      "median": 1.6,
+      "p95": 3.8,
+      "max": 4.5,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "upper_arm_r": {
+     "v3": {
+      "median": 2.1,
+      "p95": 3.5,
+      "max": 3.6,
+      "n": 145
+     },
+     "v4": {
+      "median": 1.9,
+      "p95": 3.4,
+      "max": 3.7,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "forearm_l": {
+     "v3": {
+      "median": 2.6,
+      "p95": 6.3,
+      "max": 6.6,
+      "n": 145
+     },
+     "v4": {
+      "median": 4.9,
+      "p95": 7.9,
+      "max": 8.2,
+      "n": 145
+     },
+     "verdict_p95": "WORSE"
+    },
+    "forearm_r": {
+     "v3": {
+      "median": 2.9,
+      "p95": 5.5,
+      "max": 5.8,
+      "n": 145
+     },
+     "v4": {
+      "median": 4.0,
+      "p95": 7.0,
+      "max": 7.2,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "thigh_l": {
+     "v3": {
+      "median": 0.1,
+      "p95": 2.0,
+      "max": 2.2,
+      "n": 145
+     },
+     "v4": {
+      "median": 0.1,
+      "p95": 2.0,
+      "max": 2.1,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "thigh_r": {
+     "v3": {
+      "median": 0.3,
+      "p95": 0.9,
+      "max": 3.0,
+      "n": 138
+     },
+     "v4": {
+      "median": 0.2,
+      "p95": 1.0,
+      "max": 1.8,
+      "n": 138
+     },
+     "verdict_p95": "same"
+    },
+    "shin_l": {
+     "v3": {
+      "median": 3.4,
+      "p95": 5.4,
+      "max": 5.7,
+      "n": 145
+     },
+     "v4": {
+      "median": 3.3,
+      "p95": 5.5,
+      "max": 5.8,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "shin_r": {
+     "v3": {
+      "median": 0.3,
+      "p95": 5.7,
+      "max": 8.4,
+      "n": 145
+     },
+     "v4": {
+      "median": 0.3,
+      "p95": 5.5,
+      "max": 8.1,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "chest": {
+     "v3": {
+      "median": 0.0,
+      "p95": 0.2,
+      "max": 0.2,
+      "n": 145
+     },
+     "v4": {
+      "median": 0.0,
+      "p95": 0.1,
+      "max": 0.2,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    }
+   },
+   "hand_foot_position_2d_vs_source_cm(rig scale)": {
+    "wrist_l": {
+     "v3": {
+      "median": 0.3,
+      "p95": 1.5,
+      "max": 1.6
+     },
+     "v4": {
+      "median": 1.5,
+      "p95": 2.3,
+      "max": 2.5
+     },
+     "verdict_p95": "same"
+    },
+    "ankle_l": {
+     "v3": {
+      "median": 2.6,
+      "p95": 4.6,
+      "max": 4.6
+     },
+     "v4": {
+      "median": 2.6,
+      "p95": 4.7,
+      "max": 4.7
+     },
+     "verdict_p95": "same"
+    },
+    "wrist_r": {
+     "v3": {
+      "median": 1.1,
+      "p95": 2.4,
+      "max": 2.5
+     },
+     "v4": {
+      "median": 1.2,
+      "p95": 3.1,
+      "max": 3.2
+     },
+     "verdict_p95": "same"
+    },
+    "ankle_r": {
+     "v3": {
+      "median": 3.0,
+      "p95": 5.1,
+      "max": 5.8
+     },
+     "v4": {
+      "median": 3.0,
+      "p95": 5.0,
+      "max": 5.4
+     },
+     "verdict_p95": "same"
+    }
+   },
+   "head_yaw": {
+    "rig_hold_median_deg": {
+     "v3": 20.5,
+     "v4": 21.5
+    },
+    "image_hold_median_deg": {
+     "v3": -24.0,
+     "v4": -24.0
+    },
+    "abs_error_hold": {
+     "v3": {
+      "median": 44.5,
+      "p95": 48.8,
+      "max": 48.9,
+      "n": 41
+     },
+     "v4": {
+      "median": 45.6,
+      "p95": 50.0,
+      "max": 50.2,
+      "n": 41
+     }
+    },
+    "verdict_hold_error_median": "same"
+   },
+   "angular_acceleration_per_bone": {
+    "upper_arm_l": {
+     "v3": {
+      "max": 9658.0,
+      "argmax": 44,
+      "p99": 8801.0,
+      "p95": 4088.0,
+      "frames_above_gate": 12
+     },
+     "v4": {
+      "max": 1735.0,
+      "argmax": 130,
+      "p99": 1497.0,
+      "p95": 1215.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "forearm_l": {
+     "v3": {
+      "max": 9740.0,
+      "argmax": 44,
+      "p99": 8791.0,
+      "p95": 4049.0,
+      "frames_above_gate": 12
+     },
+     "v4": {
+      "max": 1938.0,
+      "argmax": 42,
+      "p99": 1829.0,
+      "p95": 1411.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "upper_arm_r": {
+     "v3": {
+      "max": 7558.0,
+      "argmax": 46,
+      "p99": 7372.0,
+      "p95": 1254.0,
+      "frames_above_gate": 3
+     },
+     "v4": {
+      "max": 1173.0,
+      "argmax": 81,
+      "p99": 1159.0,
+      "p95": 819.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "forearm_r": {
+     "v3": {
+      "max": 7707.0,
+      "argmax": 46,
+      "p99": 7414.0,
+      "p95": 1284.0,
+      "frames_above_gate": 3
+     },
+     "v4": {
+      "max": 1243.0,
+      "argmax": 86,
+      "p99": 1178.0,
+      "p95": 859.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "thigh_r": {
+     "v3": {
+      "max": 5045.0,
+      "argmax": 57,
+      "p99": 2088.0,
+      "p95": 919.0,
+      "frames_above_gate": 1
+     },
+     "v4": {
+      "max": 2323.0,
+      "argmax": 56,
+      "p99": 1821.0,
+      "p95": 932.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "same"
+    },
+    "shin_r": {
+     "v3": {
+      "max": 5075.0,
+      "argmax": 57,
+      "p99": 2946.0,
+      "p95": 1398.0,
+      "frames_above_gate": 2
+     },
+     "v4": {
+      "max": 2144.0,
+      "argmax": 56,
+      "p99": 1965.0,
+      "p95": 1148.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "foot_r": {
+     "v3": {
+      "max": 4137.0,
+      "argmax": 63,
+      "p99": 2511.0,
+      "p95": 873.0,
+      "frames_above_gate": 1
+     },
+     "v4": {
+      "max": 1453.0,
+      "argmax": 64,
+      "p99": 1225.0,
+      "p95": 665.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "same"
+    }
+   }
+  },
+  "v4raw_vs_v4": {
+   "frames_above_gate_total": {
+    "v4raw": 179,
+    "v4": 0,
+    "verdict": "better"
+   },
+   "chest_yaw_deg": {
+    "v4raw": {
+     "min": -0.2,
+     "max": 12.2,
+     "abs_argmax": 120
+    },
+    "v4": {
+     "min": -0.2,
+     "max": 12.0,
+     "abs_argmax": 119
+    },
+    "verdict_abs_max": "same"
+   },
+   "chest_pitch_deg(+ back)": {
+    "v4raw": {
+     "min": -14.3,
+     "max": 0.4,
+     "argmax": 40
+    },
+    "v4": {
+     "min": -12.9,
+     "max": 0.4,
+     "argmax": 39
+    },
+    "verdict_max": "same"
+   },
+   "semantic": {
+    "thigh_r_sagittal_angle_deg(hold median / max)": {
+     "v4raw": [
+      124.5,
+      127.0
+     ],
+     "v4": [
+      124.4,
+      126.4
+     ]
+    },
+    "knee_r_flex_max_deg": {
+     "v4raw": 127.0,
+     "v4": 126.4
+    }
+   },
+   "static_limb_forward_angle_deg": {
+    "v4raw": {
+     "thigh_l": {
+      "median": 0.3,
+      "abs_max": 2.9,
+      "argmax": 62,
+      "range": 4.5
+     },
+     "shin_l": {
+      "median": -6.0,
+      "abs_max": 12.4,
+      "argmax": 66,
+      "range": 14.1
+     }
+    },
+    "v4": {
+     "thigh_l": {
+      "median": 0.4,
+      "abs_max": 2.1,
+      "argmax": 61,
+      "range": 3.6
+     },
+     "shin_l": {
+      "median": -5.2,
+      "abs_max": 11.7,
+      "argmax": 132,
+      "range": 13.5
+     }
+    },
+    "verdict_abs_max": {
+     "thigh_l": "same",
+     "shin_l": "same"
+    }
+   },
+   "direction_error_2d_vs_image_landmarks_deg": {
+    "upper_arm_l": {
+     "v4raw": {
+      "median": 1.1,
+      "p95": 3.7,
+      "max": 3.9,
+      "n": 145
+     },
+     "v4": {
+      "median": 1.6,
+      "p95": 3.8,
+      "max": 4.5,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "upper_arm_r": {
+     "v4raw": {
+      "median": 2.0,
+      "p95": 3.5,
+      "max": 3.7,
+      "n": 145
+     },
+     "v4": {
+      "median": 1.9,
+      "p95": 3.4,
+      "max": 3.7,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "forearm_l": {
+     "v4raw": {
+      "median": 4.5,
+      "p95": 8.2,
+      "max": 8.4,
+      "n": 145
+     },
+     "v4": {
+      "median": 4.9,
+      "p95": 7.9,
+      "max": 8.2,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "forearm_r": {
+     "v4raw": {
+      "median": 3.8,
+      "p95": 7.0,
+      "max": 7.1,
+      "n": 145
+     },
+     "v4": {
+      "median": 4.0,
+      "p95": 7.0,
+      "max": 7.2,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "thigh_l": {
+     "v4raw": {
+      "median": 0.0,
+      "p95": 1.9,
+      "max": 2.1,
+      "n": 145
+     },
+     "v4": {
+      "median": 0.1,
+      "p95": 2.0,
+      "max": 2.1,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "thigh_r": {
+     "v4raw": {
+      "median": 0.0,
+      "p95": 0.6,
+      "max": 0.8,
+      "n": 138
+     },
+     "v4": {
+      "median": 0.2,
+      "p95": 1.0,
+      "max": 1.8,
+      "n": 138
+     },
+     "verdict_p95": "same"
+    },
+    "shin_l": {
+     "v4raw": {
+      "median": 3.5,
+      "p95": 5.6,
+      "max": 5.9,
+      "n": 145
+     },
+     "v4": {
+      "median": 3.3,
+      "p95": 5.5,
+      "max": 5.8,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "shin_r": {
+     "v4raw": {
+      "median": 0.0,
+      "p95": 5.7,
+      "max": 8.5,
+      "n": 145
+     },
+     "v4": {
+      "median": 0.3,
+      "p95": 5.5,
+      "max": 8.1,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    },
+    "chest": {
+     "v4raw": {
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0,
+      "n": 145
+     },
+     "v4": {
+      "median": 0.0,
+      "p95": 0.1,
+      "max": 0.2,
+      "n": 145
+     },
+     "verdict_p95": "same"
+    }
+   },
+   "hand_foot_position_2d_vs_source_cm(rig scale)": {
+    "wrist_l": {
+     "v4raw": {
+      "median": 1.3,
+      "p95": 2.6,
+      "max": 2.8
+     },
+     "v4": {
+      "median": 1.5,
+      "p95": 2.3,
+      "max": 2.5
+     },
+     "verdict_p95": "same"
+    },
+    "ankle_l": {
+     "v4raw": {
+      "median": 2.7,
+      "p95": 4.6,
+      "max": 4.9
+     },
+     "v4": {
+      "median": 2.6,
+      "p95": 4.7,
+      "max": 4.7
+     },
+     "verdict_p95": "same"
+    },
+    "wrist_r": {
+     "v4raw": {
+      "median": 1.2,
+      "p95": 2.9,
+      "max": 3.2
+     },
+     "v4": {
+      "median": 1.2,
+      "p95": 3.1,
+      "max": 3.2
+     },
+     "verdict_p95": "same"
+    },
+    "ankle_r": {
+     "v4raw": {
+      "median": 2.9,
+      "p95": 5.0,
+      "max": 5.8
+     },
+     "v4": {
+      "median": 3.0,
+      "p95": 5.0,
+      "max": 5.4
+     },
+     "verdict_p95": "same"
+    }
+   },
+   "head_yaw": {
+    "rig_hold_median_deg": {
+     "v4raw": 21.6,
+     "v4": 21.5
+    },
+    "image_hold_median_deg": {
+     "v4raw": -24.0,
+     "v4": -24.0
+    },
+    "abs_error_hold": {
+     "v4raw": {
+      "median": 45.6,
+      "p95": 50.2,
+      "max": 50.4,
+      "n": 41
+     },
+     "v4": {
+      "median": 45.6,
+      "p95": 50.0,
+      "max": 50.2,
+      "n": 41
+     }
+    },
+    "verdict_hold_error_median": "same"
+   },
+   "angular_acceleration_per_bone": {
+    "neck": {
+     "v4raw": {
+      "max": 7680.0,
+      "argmax": 50,
+      "p99": 6271.0,
+      "p95": 4585.0,
+      "frames_above_gate": 14
+     },
+     "v4": {
+      "max": 646.0,
+      "argmax": 61,
+      "p99": 565.0,
+      "p95": 470.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "upper_arm_l": {
+     "v4raw": {
+      "max": 13197.0,
+      "argmax": 6,
+      "p99": 11594.0,
+      "p95": 7539.0,
+      "frames_above_gate": 34
+     },
+     "v4": {
+      "max": 1735.0,
+      "argmax": 130,
+      "p99": 1497.0,
+      "p95": 1215.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "forearm_l": {
+     "v4raw": {
+      "max": 15964.0,
+      "argmax": 6,
+      "p99": 13964.0,
+      "p95": 8389.0,
+      "frames_above_gate": 35
+     },
+     "v4": {
+      "max": 1938.0,
+      "argmax": 42,
+      "p99": 1829.0,
+      "p95": 1411.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "hand_l": {
+     "v4raw": {
+      "max": 4844.0,
+      "argmax": 27,
+      "p99": 4561.0,
+      "p95": 3412.0,
+      "frames_above_gate": 8
+     },
+     "v4": {
+      "max": 765.0,
+      "argmax": 54,
+      "p99": 746.0,
+      "p95": 581.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "thigh_l": {
+     "v4raw": {
+      "max": 3999.0,
+      "argmax": 62,
+      "p99": 3606.0,
+      "p95": 2413.0,
+      "frames_above_gate": 4
+     },
+     "v4": {
+      "max": 1098.0,
+      "argmax": 75,
+      "p99": 983.0,
+      "p95": 671.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "shin_l": {
+     "v4raw": {
+      "max": 5474.0,
+      "argmax": 125,
+      "p99": 3767.0,
+      "p95": 2420.0,
+      "frames_above_gate": 3
+     },
+     "v4": {
+      "max": 536.0,
+      "argmax": 123,
+      "p99": 517.0,
+      "p95": 329.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "foot_l": {
+     "v4raw": {
+      "max": 4037.0,
+      "argmax": 55,
+      "p99": 3811.0,
+      "p95": 2305.0,
+      "frames_above_gate": 5
+     },
+     "v4": {
+      "max": 436.0,
+      "argmax": 55,
+      "p99": 365.0,
+      "p95": 273.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "upper_arm_r": {
+     "v4raw": {
+      "max": 12704.0,
+      "argmax": 83,
+      "p99": 9684.0,
+      "p95": 4389.0,
+      "frames_above_gate": 16
+     },
+     "v4": {
+      "max": 1173.0,
+      "argmax": 81,
+      "p99": 1159.0,
+      "p95": 819.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "forearm_r": {
+     "v4raw": {
+      "max": 12822.0,
+      "argmax": 83,
+      "p99": 9953.0,
+      "p95": 5128.0,
+      "frames_above_gate": 24
+     },
+     "v4": {
+      "max": 1243.0,
+      "argmax": 86,
+      "p99": 1178.0,
+      "p95": 859.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "hand_r": {
+     "v4raw": {
+      "max": 6177.0,
+      "argmax": 10,
+      "p99": 4740.0,
+      "p95": 3282.0,
+      "frames_above_gate": 9
+     },
+     "v4": {
+      "max": 550.0,
+      "argmax": 7,
+      "p99": 519.0,
+      "p95": 391.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "thigh_r": {
+     "v4raw": {
+      "max": 4635.0,
+      "argmax": 57,
+      "p99": 4151.0,
+      "p95": 2265.0,
+      "frames_above_gate": 5
+     },
+     "v4": {
+      "max": 2323.0,
+      "argmax": 56,
+      "p99": 1821.0,
+      "p95": 932.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "shin_r": {
+     "v4raw": {
+      "max": 9179.0,
+      "argmax": 63,
+      "p99": 7939.0,
+      "p95": 3806.0,
+      "frames_above_gate": 15
+     },
+     "v4": {
+      "max": 2144.0,
+      "argmax": 56,
+      "p99": 1965.0,
+      "p95": 1148.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    },
+    "foot_r": {
+     "v4raw": {
+      "max": 12539.0,
+      "argmax": 63,
+      "p99": 9048.0,
+      "p95": 2808.0,
+      "frames_above_gate": 7
+     },
+     "v4": {
+      "max": 1453.0,
+      "argmax": 64,
+      "p99": 1225.0,
+      "p95": 665.0,
+      "frames_above_gate": 0
+     },
+     "verdict_peak": "better",
+     "verdict_frames_above_gate": "better"
+    }
+   }
+  },
+  "filter_lag_and_peak_speed": {
+   "leg_r_chord_image_angle": {
+    "lag_frames(+ = late)": {
+     "v3": -0.36,
+     "v4raw": -0.02,
+     "v4": -0.15
+    },
+    "peak_speed_deg_s": {
+     "source_2d": 66.2,
+     "v3": 41.5,
+     "v4raw": 52.3,
+     "v4": 28.3
+    },
+    "excursion_max_deg(abs from rest)": {
+     "source_2d": 9.8,
+     "v3": 9.5,
+     "v4raw": 10.3,
+     "v4": 10.0
+    },
+    "abs_error_vs_source_deg": {
+     "v3": {
+      "median": 0.9,
+      "p95": 2.7,
+      "max": 3.9,
+      "n": 145
+     },
+     "v4raw": {
+      "median": 1.1,
+      "p95": 2.6,
+      "max": 3.9,
+      "n": 145
+     },
+     "v4": {
+      "median": 1.1,
+      "p95": 2.5,
+      "max": 3.6,
+      "n": 145
+     }
+    }
+   }
+  },
+  "depth_jumps(solver input)": {
+   "v3": {
+    "upper_arm_l": {
+     "max_depth_jump_cm": 0.6,
+     "argmax_frame": 25,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.013
+    },
+    "forearm_l": {
+     "max_depth_jump_cm": 1.1,
+     "argmax_frame": 4,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.017
+    },
+    "thigh_l": {
+     "max_depth_jump_cm": 0.3,
+     "argmax_frame": 12,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 70,
+     "first_flattened_frame": 75,
+     "max_length_over_L": 1.064
+    },
+    "shin_l": {
+     "max_depth_jump_cm": 1.0,
+     "argmax_frame": 126,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.001
+    },
+    "upper_arm_r": {
+     "max_depth_jump_cm": 0.8,
+     "argmax_frame": 53,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.005
+    },
+    "forearm_r": {
+     "max_depth_jump_cm": 0.8,
+     "argmax_frame": 47,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 34,
+     "first_flattened_frame": 0,
+     "max_length_over_L": 1.038
+    },
+    "thigh_r": {
+     "max_depth_jump_cm": 6.5,
+     "argmax_frame": 59,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.01
+    },
+    "shin_r": {
+     "max_depth_jump_cm": 6.9,
+     "argmax_frame": 63,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 80,
+     "first_flattened_frame": 65,
+     "max_length_over_L": 1.257
+    }
+   },
+   "v4raw": {
+    "upper_arm_l": {
+     "max_depth_jump_cm": 2.5,
+     "argmax_frame": 9,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.019
+    },
+    "forearm_l": {
+     "max_depth_jump_cm": 2.7,
+     "argmax_frame": 27,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 2,
+     "first_flattened_frame": 106,
+     "max_length_over_L": 1.023
+    },
+    "thigh_l": {
+     "max_depth_jump_cm": 1.9,
+     "argmax_frame": 63,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 69,
+     "first_flattened_frame": 76,
+     "max_length_over_L": 1.067
+    },
+    "shin_l": {
+     "max_depth_jump_cm": 3.0,
+     "argmax_frame": 55,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.002
+    },
+    "upper_arm_r": {
+     "max_depth_jump_cm": 1.8,
+     "argmax_frame": 53,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.013
+    },
+    "forearm_r": {
+     "max_depth_jump_cm": 3.4,
+     "argmax_frame": 10,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 32,
+     "first_flattened_frame": 0,
+     "max_length_over_L": 1.043
+    },
+    "thigh_r": {
+     "max_depth_jump_cm": 8.0,
+     "argmax_frame": 58,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.013
+    },
+    "shin_r": {
+     "max_depth_jump_cm": 14.1,
+     "argmax_frame": 63,
+     "sign_flips_out_of_plane": [
+      63
+     ],
+     "frames_flattened_and_stretched": 81,
+     "first_flattened_frame": 64,
+     "max_length_over_L": 1.265
+    }
+   },
+   "v4": {
+    "upper_arm_l": {
+     "max_depth_jump_cm": 1.4,
+     "argmax_frame": 129,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.019
+    },
+    "forearm_l": {
+     "max_depth_jump_cm": 2.3,
+     "argmax_frame": 45,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.019
+    },
+    "thigh_l": {
+     "max_depth_jump_cm": 1.8,
+     "argmax_frame": 63,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 69,
+     "first_flattened_frame": 76,
+     "max_length_over_L": 1.066
+    },
+    "shin_l": {
+     "max_depth_jump_cm": 1.1,
+     "argmax_frame": 126,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.001
+    },
+    "upper_arm_r": {
+     "max_depth_jump_cm": 1.7,
+     "argmax_frame": 52,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.009
+    },
+    "forearm_r": {
+     "max_depth_jump_cm": 1.2,
+     "argmax_frame": 9,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 32,
+     "first_flattened_frame": 0,
+     "max_length_over_L": 1.039
+    },
+    "thigh_r": {
+     "max_depth_jump_cm": 9.7,
+     "argmax_frame": 58,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 0,
+     "first_flattened_frame": null,
+     "max_length_over_L": 1.012
+    },
+    "shin_r": {
+     "max_depth_jump_cm": 6.0,
+     "argmax_frame": 64,
+     "sign_flips_out_of_plane": [],
+     "frames_flattened_and_stretched": 81,
+     "first_flattened_frame": 64,
+     "max_length_over_L": 1.263
+    }
+   }
+  }
+ },
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "stability good (0 frames at the damper input, damper ~0 deg); head yaw still wrong (C5): rig +21.5 deg vs image -24 deg",
+ "reviewer_verified_findings": [
+  "Frames over the gate (6 joints): BEFORE 88 -> per-frame 18 -> temporal 0; damper touched 6 bone-frames, deviation < 0.1 deg.",
+  "C5 not fixed: head yaw hold median +21.5 deg (v3 +20.5) against -24.0 from the image; error 45.6 deg."
+ ]
+}

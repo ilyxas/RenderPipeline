@@ -1,6 +1,6 @@
 """Task 5: animation package serialization.
 
-Input: <run>/limits/clean_rotations.json and the target rig.
+Input: <run>/damper/damped_rotations.json (or any rotations file of that format) and the target rig.
 Output: <run>/animation/motion_bundle.json
 
     {"format": "altline.motion_bundle.v1",
@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--rig", type=Path)
     args = ap.parse_args(argv)
     rd = run_dir(args.run_id)
-    bundle = build_bundle(read_json(rd / "limits" / "clean_rotations.json"), load_skeleton(args.rig))
+    bundle = build_bundle(read_json(rd / "damper" / "damped_rotations.json"), load_skeleton(args.rig))
     print(write_json(rd / "animation" / "motion_bundle.json", bundle))
 
 
