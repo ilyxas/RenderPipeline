@@ -162,6 +162,21 @@ class LimitHierarchyTests(unittest.TestCase):
                                                              [1, 0, 0, 0])), 40.0, places=5)
 
 
+    def test_roll_past_180_keeps_its_side(self):
+        # v4 df1e: a bent forearm's measured roll wrapped 170 -> -170; the clamp must stay at
+        # +90 instead of jumping to -90 (a 180 deg flip in one frame)
+        skel = limits._sub_skeleton(reference_skeleton(), ["forearm_l"])
+        rolls = [150, 170, -175, -160, -150]
+        frames = [{"frame_index": t, "timestamp_s": t / FPS, "valid": True, "confidence": [1.0],
+                   "rotations": [quat_mul(quat_from_axis_angle(X, np.radians(60)),
+                                          quat_from_axis_angle(Y, np.radians(r))).tolist()]}
+                  for t, r in enumerate(rolls)]
+        clean, _ = limits.apply_limits({"meta": {"bones": ["forearm_l"]}, "frames": frames}, skel=skel)
+        qs = [f["rotations"][0] for f in clean["frames"]]
+        steps = [np.degrees(quat_angle_between(a, b)) for a, b in zip(qs, qs[1:])]
+        self.assertLess(max(steps), 1e-6)
+
+
 class DebiasTests(unittest.TestCase):
     def test_bias_only_on_small_bends(self):
         self.assertEqual(solver.debias_bend(30.0, 30.0), 0.0)
@@ -178,14 +193,15 @@ class DepthTests(unittest.TestCase):
         pts = {"hip_mid": np.zeros(2), "a": np.zeros(2), "b": np.array([planar, 0.0]) / 0.002}
         return world, pts
 
-    def rebuild(self, world, pts, L, prev=None):
+    def patched_tree(self):
         from altline import depth
         saved = depth.TREE
         depth.TREE = [("hip_mid", "a", "x", False), ("a", "b", "seg", True)]
-        try:
-            out, _, _ = depth.reconstruct(world, pts, 0.002, {"seg": L}, prev)
-        finally:
-            depth.TREE = saved
+        self.addCleanup(setattr, depth, "TREE", saved)
+        return depth
+
+    def rebuild(self, world, pts, L, signs=None):
+        out, _ = self.patched_tree().reconstruct(world, pts, 0.002, {"seg": L}, signs)
         return out["b"][2]
 
     def test_foreshortened_segment_gets_length_depth(self):
@@ -199,15 +215,53 @@ class DepthTests(unittest.TestCase):
         world, pts = self.segment(0.03, 1.0, L, planar=0.248)  # ratio 0.992
         self.assertAlmostEqual(self.rebuild(world, pts, L), 0.03, places=9)
 
-    def test_unsure_tracker_sign_does_not_flip_the_joint(self):
-        L = 0.25
-        world, pts = self.segment(-0.02, 1.0, L, planar=0.15)  # tracker barely behind: unsure
-        self.assertGreater(self.rebuild(world, pts, L, prev={"a->b": 0.19}), 0.0)
-
     def test_sign_comes_from_tracker(self):
         L = 0.25
         world, pts = self.segment(-0.2, 0.3, L, planar=0.15)
         self.assertLess(self.rebuild(world, pts, L), 0.0)
+
+    def sequence(self, tracker_dz, planar=None):
+        """Segment of length 0.25 with the given tracker depth and projection per frame
+        (default projection ratio 0.6, foreshortened)."""
+        worlds, pts = [], []
+        for k, z in enumerate(tracker_dz):
+            w, p = self.segment(z, 1.0, 0.25, planar=0.15 if planar is None else planar[k])
+            worlds.append(w)
+            pts.append(p)
+        return self.patched_tree().choose_signs(worlds, pts, 0.002, {"seg": 0.25})
+
+    def test_brief_wrong_start_is_not_followed(self):
+        signs = self.sequence([0.15] * 10 + [-0.15] * 40)
+        self.assertTrue(all(s["a->b"] == -1.0 for s in signs))
+
+    def test_short_tracker_flip_is_rejected(self):
+        # the tracker says "in front" except for two confident frames "behind"
+        signs = self.sequence([0.15] * 10 + [-0.12, -0.12] + [0.15] * 10)
+        self.assertTrue(all(s["a->b"] == 1.0 for s in signs))
+
+    def test_lasting_change_is_followed(self):
+        # without a plane crossing a switch is never motion; it is taken only when both
+        # sides of it carry more tracker evidence than the jump costs
+        signs = self.sequence([0.15] * 40 + [-0.15] * 40)
+        self.assertEqual(signs[0]["a->b"], 1.0)
+        self.assertEqual(signs[-1]["a->b"], -1.0)
+
+    def test_onset_disagreement_does_not_cause_a_jump(self):
+        # 0663: an arm leaves the image plane; the tracker first says "behind" for five
+        # frames, then "in front" for good. Both signs are continuous through the plane, so
+        # the rebuilt depth must follow "in front" from the start instead of jumping later.
+        planar = [0.25] * 4 + list(np.linspace(0.24, 0.15, 6)) + [0.15] * 30
+        tracker = [0.0] * 4 + [-0.05, -0.1, -0.15, -0.15, -0.05, 0.06] + [0.15] * 30
+        signs = self.sequence(tracker, planar)
+        self.assertTrue(all(s["a->b"] == 1.0 for s in signs[4:]))
+
+    def test_crossing_the_image_plane_is_free(self):
+        # behind -> through the plane -> in front: both halves follow the tracker
+        planar = list(np.linspace(0.15, 0.25, 10)) + list(np.linspace(0.25, 0.15, 10))
+        tracker = [-0.15] * 9 + [0.0, 0.0] + [0.15] * 9
+        signs = self.sequence(tracker, planar)
+        self.assertEqual(signs[0]["a->b"], -1.0)
+        self.assertEqual(signs[-1]["a->b"], 1.0)
 
 
 class EndToEnd(unittest.TestCase):

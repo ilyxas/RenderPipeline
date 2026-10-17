@@ -5,13 +5,14 @@ It does not read or import anything from `src/xms/`, `blender/` or `tools/`; eve
 lives here and hands off to the next one through files only.
 
 Status: **implemented and functionally verified on synthetic data** (exact round trip, see
-tests). v2 = v1 plus the reviewer's v1 action items (see `reports/v1_overview.md`). Motion quality on real video is **not accepted**; see `reports/` for the reviewer's
-findings per run.
+tests). v2/v3 = the reviewer's v1/v2 action items; v4 = Phase 2 (Butterworth filter, flip
+guard, temporal solver, acceleration damper, Viterbi depth signs). Motion quality on real
+video is **not accepted**; see `reports/` for the reviewer's findings per run.
 
 ```
-MP4 ─► observations.py ─► calibration.py ─► solver.py ─► limits.py ─► animation.py ─► motion_bundle.json
-        raw_pose.json      actor_profile.json  raw_rotations  clean_rotations             (+ preview.py)
-                           calibrated_pose.json
+MP4 ─► observations ─► filters ─► calibration ─► flip_guard ─► solver ─► solver_temporal ─► limits ─► damper ─► animation
+       raw_pose        filtered_   actor_profile  guarded_pose  frame_     raw_rotations      clean_    damped_   motion_bundle
+                       pose        calibrated_pose              rotations                     rotations rotations (+ preview)
 ```
 
 ## Run
@@ -20,9 +21,12 @@ MP4 ─► observations.py ─► calibration.py ─► solver.py ─► limits.
 python3 -m pip install mediapipe opencv-python-headless matplotlib numpy   # once
 python3 -m altline.run "base video/<clip>.mp4" --run-id my_run              # all stages + preview
 python3 -m altline.observations "<clip>.mp4" --run-id my_run                # or stage by stage:
-python3 -m altline.calibration --run-id my_run
+python3 -m altline.calibration --run-id my_run       # reads filtered_pose.json when present
+python3 -m altline.flip_guard  --run-id my_run
 python3 -m altline.solver      --run-id my_run
+python3 -m altline.solver_temporal --run-id my_run
 python3 -m altline.limits      --run-id my_run
+python3 -m altline.damper      --run-id my_run
 python3 -m altline.animation   --run-id my_run
 python3 -m altline.preview     --run-id my_run
 python3 -m unittest discover -s altline/tests -t . -p 'test_*.py'
@@ -38,9 +42,13 @@ reports go to `altline/reports/<run_id>/` (committed).
 | Stage | File | Output | What it does |
 |---|---|---|---|
 | 1 | `observations.py` | `observations/raw_pose.json` | MediaPipe Pose (Tasks API, VIDEO mode). Per frame `joints` = world landmarks in meters (MediaPipe axes, raw), `image_joints` = normalized image coords. Format `{"frames": [{"frame_index", "joints": {name: [x, y, z, visibility]}}]}` plus `meta`. |
-| 2 | `calibration.py` (+ `depth.py`, `filters.py`) | `calibration/actor_profile.json`, `calibrated_pose.json` | Converts to canonical space; finds the rest-pose baseline; actor segment lengths; **rebuilds depth from 2D points + constant lengths**; zero-phase One-Euro filter on joint positions; rest alignment (upright, facing +Z); rest biases of head frame, neck pitch, foot pitch; elbow/knee *hinge bias*. Per-frame `length_ratio` of the raw tracker is kept as a diagnostic. |
-| 3 | `solver.py` | `solver/raw_rotations.json` | Analytic aim + twist per bone, root to leaf; output local basis quaternions. Uses only unit directions, so rig bone lengths stay constant. |
+| 1b | `filters.py` (Task 6) | `observations/filtered_pose.json`, `filter_report.json` | Zero-phase Butterworth (`filtfilt`, 2nd order per pass) on every joint's world and image track. Per-joint cutoff by Winter's residual analysis, clamped to a band per group: core 2–6 Hz, elbows/knees 2.5–6 Hz, distal (wrists, fingers, ankles, feet) 2–5 Hz. Visibility is not filtered. |
+| 2 | `calibration.py` (+ `depth.py`) | `calibration/actor_profile.json`, `calibrated_pose.json` | Converts to canonical space; finds the rest-pose baseline; actor segment lengths; **rebuilds depth from 2D points + constant lengths** with depth signs chosen over the whole clip (Viterbi); (One-Euro filter, off since Phase 2); rest alignment (upright, facing +Z); rest biases of head frame, neck pitch, foot pitch; elbow/knee *hinge bias*. Per-frame `length_ratio` of the raw tracker is kept as a diagnostic. |
+| 2b | `flip_guard.py` (Task 7) | `calibration/guarded_pose.json`, `flip_report.json` | A limb vector (upper arm, forearm, hand, palm normal; thigh, shin, foot, heel) turning > 45° from the last clean frame marks a corrupted run; runs up to 8 frames that end are replaced by a cubic Hermite spline through ±3 clean neighbours (on joint offsets, so the limb root stays put). Longer jumps are kept as real motion and reported. |
+| 3 | `solver.py` | `solver/frame_rotations.json` | Analytic aim + twist per bone, root to leaf, every frame on its own; output local basis quaternions. Uses only unit directions, so rig bone lengths stay constant. |
+| 3b | `solver_temporal.py` (Task 8) | `solver/raw_rotations.json`, `temporal_report.json` | Per bone and frame t, window t−2..t+2 in the tangent space at the per-frame solution: minimise Σ c_k‖x_k − y_k‖² + λ Σ‖x_{k−1} − 2x_k + x_{k+1}‖² (λ = 2, c = solver confidence), keep the centre. Constant angular velocity passes unchanged. |
 | 4 | `limits.py` | `limits/clean_rotations.json`, `limits_report.json` | Swing-twist limits: elbow hinge 0..140°, forearm roll ±90°, wrist ±90°, knee hinge 0..150° (twist ±30°). Clamped root to leaf, children keep their world orientation; excess roll of a straight limb goes to the upper arm / thigh. Spikes/flips/missing frames are bridged with slerp; no frame is dropped. |
+| 4b | `damper.py` (Task 9) | `damper/damped_rotations.json`, `damper_report.json` | Per bone, a follower with angular acceleration soft-capped at the stability gate (3000°/s²): untouched below 0.7×gate, exponential approach to the gate above it; catch-up speed planned so it can brake (no ringing); forward and backward passes averaged. **The output is under the gate by construction**, so the report keeps the input acceleration, frames damped and the deviation from the input. |
 | 5 | `animation.py` | `animation/motion_bundle.json` | `{format, fps, bones, rotation_mode, frames: [{t, q: [[w,x,y,z] per bone]}]}`. |
 | – | `preview.py` | `preview/preview.mp4` | Source | front | side; rig bones vs tracker landmarks (grey dots). |
 
@@ -65,9 +73,12 @@ All thresholds: `config.py`. No per-clip constants anywhere.
   the actor's first pose.
 - **Depth from 2D + lengths.** MediaPipe flattens limbs that point at the camera. For
   segments that lie in the image plane at rest (trunk, widths, clavicles, neck, ears, arm
-  and leg segments) depth is rebuilt as `|dz| = sqrt(L² − d²)` (weak perspective, sign from
-  the tracker). `L` is measured in the image (rest projection or the 98th percentile over
-  the clip), not by the tracker. Within ~14° of the image plane that formula is
+  and leg segments) depth is rebuilt as `|dz| = sqrt(L² − d²)` (weak perspective). `L` is the
+  segment's projection in the rest baseline (v2's 98th percentile over the clip invented
+  depth). The sign is chosen per segment over the whole clip by Viterbi: disagreeing with
+  the tracker costs |tracker dz|/L per frame, a depth jump costs 10×|Δdz|/L. A rigid segment
+  changes sign only through the image plane, where switching is free, so tracker sign
+  flips of a few frames are ignored. Within ~14° of the image plane that formula is
   ill-conditioned, so the tracker's own depth is kept there (blended out by 32°). Forward
   pointing pieces (nose, fingers, heel, toes) keep the tracker depth.
 - **Hinge bias.** MediaPipe reports elbow and knee bend for visibly straight standing

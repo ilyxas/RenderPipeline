@@ -51,8 +51,14 @@ for _s, _side in (("l", "left"), ("r", "right")):
 # length-based depth is used in full (cos 14 deg and cos 32 deg)
 PLANAR_TRACKER_RATIO = 0.97
 PLANAR_FULL_LENGTH_RATIO = 0.85
-# tracker depth of at least this fraction of the segment length decides the depth sign
-SIGN_CONFIDENT = 0.3
+
+# Weight of a depth jump against tracker disagreement in choose_signs. A rigid segment can
+# only change its depth sign by passing through the image plane (dz = 0), where switching is
+# free; a switch at large |dz| is never motion, only the repair of an earlier wrong choice.
+# With weight 1 (v4 first run) a 41 cm elbow jump in one frame (0663, frame 31) was cheaper
+# than disagreeing with the tracker for 5 frames. At 10 the tracker must disagree with the
+# chosen sign for roughly 10x the jump, in L units, before a mid-air switch is taken.
+JUMP_WEIGHT = 10.0
 
 
 def _smoothstep(x: float, lo: float, hi: float) -> float:
@@ -106,43 +112,97 @@ def planar_lengths(frames_2d: list[dict[str, np.ndarray] | None], idx: list[int]
     return out
 
 
-def reconstruct(world: dict[str, np.ndarray], pts: dict[str, np.ndarray], scale: float,
-                lengths: dict[str, float], prev_dz: dict[str, float] | None = None
-                ) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, float]]:
-    """Rebuild canonical joint positions.
+def _segment_dz(world: dict[str, np.ndarray], pts: dict[str, np.ndarray], scale: float,
+                parent: str, child: str, L: float) -> tuple[float, float, float, np.ndarray]:
+    """(tracker dz, length-based |dz|, planar blend weight, scaled 2D vector) of one segment."""
+    d2 = (pts[child] - pts[parent]) * scale
+    tracker = float(world[child][2] - world[parent][2])
+    mag = float(np.sqrt(max(L * L - float(d2 @ d2), 0.0)))
+    w = _smoothstep(float(np.linalg.norm(d2)) / L, PLANAR_FULL_LENGTH_RATIO, PLANAR_TRACKER_RATIO)
+    return tracker, mag, w, d2
 
-    Returns (joints, per-segment depth change vs the tracker in m, per-segment dz in m).
-    `world` holds canonical tracker positions (including midpoints). The depth sign comes
-    from the tracker only when it is confident (|dz| >= SIGN_CONFIDENT * L); otherwise the
-    sign that continues the previous frame's dz is kept (`prev_dz`), so a tracker depth
-    hovering around zero cannot flip a joint from in front of the body to behind it.
+
+def _blend(tracker: float, mag: float, w: float, sign: float) -> float:
+    # Near the image plane sqrt(L^2 - d^2) is ill-conditioned (a 3 % shorter projection
+    # already means 14 deg of depth), so there the tracker's own depth is kept, capped at
+    # what the length allows; clearly foreshortened segments take the length-based depth.
+    return w * float(np.clip(tracker, -mag, mag)) + (1.0 - w) * sign * mag
+
+
+def choose_signs(worlds: list[dict | None], pts: list[dict | None], scale: float,
+                 lengths: dict[str, float], jump_weight: float = JUMP_WEIGHT) -> list[dict[str, float] | None]:
+    """Depth sign of every length-rebuilt segment over the whole clip (Viterbi per segment).
+
+    Each frame has two candidates, in front (+) or behind (-). Cost of a candidate: how
+    strongly the tracker's own depth points the other way (|dz| / L), plus, between
+    consecutive frames, the jump in rebuilt depth (jump_weight * |dz_t - dz_t-1| / L). A real crossing of
+    the image plane is free (both candidates meet at dz = 0 there), while a flip the tracker
+    reports for a frame or two costs more than it explains and is rejected. v3 decided per
+    frame and flipped whenever the tracker was "confident", which made 36-47 cm jumps.
+    """
+    n = len(worlds)
+    signs: list[dict[str, float] | None] = [None if w is None else {} for w in worlds]
+    for parent, child, key, from_length in TREE:
+        L = lengths.get(key)
+        if not from_length or L is None:
+            continue
+        seg = f"{parent}->{child}"
+        cost = {+1.0: 0.0, -1.0: 0.0}
+        back: list[dict[float, float]] = []
+        prev_dz: dict[float, float] | None = None
+        frames: list[int] = []
+        for t in range(n):
+            if worlds[t] is None:
+                continue
+            tracker, mag, w, _ = _segment_dz(worlds[t], pts[t], scale, parent, child, L)
+            dz = {s: _blend(tracker, mag, w, s) for s in (1.0, -1.0)}
+            unary = {s: max(0.0, -s * tracker) / L for s in (1.0, -1.0)}
+            if prev_dz is None:
+                new = {s: unary[s] for s in dz}
+                back.append({1.0: 1.0, -1.0: -1.0})
+            else:
+                new, ptr = {}, {}
+                for s in dz:
+                    options = {p: cost[p] + jump_weight * abs(dz[s] - prev_dz[p]) / L for p in (1.0, -1.0)}
+                    best = min(options, key=options.get)
+                    new[s], ptr[s] = options[best] + unary[s], best
+                back.append(ptr)
+            cost, prev_dz = new, dz
+            frames.append(t)
+        if not frames:
+            continue
+        s = min(cost, key=cost.get)
+        for k in range(len(frames) - 1, -1, -1):
+            signs[frames[k]][seg] = s
+            s = back[k][s]
+    return signs
+
+
+def reconstruct(world: dict[str, np.ndarray], pts: dict[str, np.ndarray], scale: float,
+                lengths: dict[str, float], signs: dict[str, float] | None = None
+                ) -> tuple[dict[str, np.ndarray], dict[str, float]]:
+    """Rebuild canonical joint positions; returns (joints, per-segment depth change in m).
+
+    `world` holds canonical tracker positions (including midpoints). `signs` (from
+    choose_signs) gives each length-rebuilt segment's depth sign; without it the tracker's
+    sign is used.
     """
     out = {"hip_mid": np.zeros(3)}
-    dz_change, dz_out = {}, {}
+    dz_change = {}
     for parent, child, key, from_length in TREE:
         seg = f"{parent}->{child}"
-        d2 = (pts[child] - pts[parent]) * scale
-        tracker = world[child] - world[parent]
         L = lengths.get(key)
         if L is None or not from_length:
-            dz = tracker[2]
+            d2 = (pts[child] - pts[parent]) * scale
+            tracker = float(world[child][2] - world[parent][2])
+            dz = tracker
         else:
-            ratio = float(np.linalg.norm(d2)) / L
-            mag = np.sqrt(max(L * L - float(d2 @ d2), 0.0))
-            sign = 1.0 if tracker[2] >= 0 else -1.0
-            prev = None if prev_dz is None else prev_dz.get(seg)
-            if prev is not None and abs(tracker[2]) < SIGN_CONFIDENT * L:
-                sign = 1.0 if abs(mag - prev) <= abs(-mag - prev) else -1.0
-            # Near the image plane sqrt(L^2 - d^2) is ill-conditioned (a 3 % shorter
-            # projection already means 14 deg of depth), so there the tracker's own depth is
-            # kept, capped at what the length allows; clearly foreshortened segments take
-            # the length-based depth.
-            w = _smoothstep(ratio, PLANAR_FULL_LENGTH_RATIO, PLANAR_TRACKER_RATIO)
-            dz = w * float(np.clip(tracker[2], -mag, mag)) + (1.0 - w) * sign * mag
+            tracker, mag, w, d2 = _segment_dz(world, pts, scale, parent, child, L)
+            sign = (signs or {}).get(seg, 1.0 if tracker >= 0 else -1.0)
+            dz = _blend(tracker, mag, w, sign)
         out[child] = out[parent] + np.array([d2[0], d2[1], dz])
-        dz_change[seg] = float(dz - tracker[2])
-        dz_out[seg] = float(dz)
+        dz_change[seg] = float(dz - tracker)
     for name in FACE_POINTS:
         if name in world:
             out[name] = out["nose"] + (world[name] - world["nose"])
-    return out, dz_change, dz_out
+    return out, dz_change

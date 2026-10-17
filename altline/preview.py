@@ -48,7 +48,8 @@ def render(run: Path, skel: Skeleton, out: Path) -> Path:
     bones, times, quats, fps = load_bundle(run / "animation" / "motion_bundle.json")
     worlds, heads, tails = fk_sequence(skel, quats)
     hb = skel.index["head"]
-    cal = read_json(run / "calibration" / "calibrated_pose.json")
+    cal_path = run / "calibration" / "guarded_pose.json"
+    cal = read_json(cal_path if cal_path.exists() else run / "calibration" / "calibrated_pose.json")
     profile = read_json(run / "calibration" / "actor_profile.json")
     scale = profile["global_scale"]
     pelvis = skel.heads[skel.index["pelvis"]]

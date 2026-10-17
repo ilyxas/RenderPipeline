@@ -28,7 +28,7 @@ from pathlib import Path
 import numpy as np
 
 from .config import CalibrationConfig
-from .depth import image_points, pixel_scale, planar_lengths, reconstruct
+from .depth import choose_signs, image_points, pixel_scale, planar_lengths, reconstruct
 from .filters import one_euro_zero_phase
 from .io_utils import read_json, run_dir, write_json
 from .skeleton import Skeleton, load_skeleton
@@ -263,16 +263,15 @@ def _rebuild_depth(raw: dict, frames, idx, actor) -> tuple[list, dict]:
            for f in raw["frames"]]
     scale = pixel_scale([pts[i] for i in idx], actor)
     lengths = {**actor, **planar_lengths(pts, idx, scale)}
+    signs = choose_signs([None if fr is None else fr[0] for fr in frames], pts, scale, lengths)
     out, max_dz = [], []
-    prev = None
-    for fr, p in zip(frames, pts):
+    for fr, p, sg in zip(frames, pts, signs):
         if fr is None:
             out.append(None)
             max_dz.append(None)
-            prev = None
             continue
         joints, vis = fr
-        rec, dz, prev = reconstruct(joints, p, scale, lengths, prev)
+        rec, dz = reconstruct(joints, p, scale, lengths, sg)
         vis = dict(vis)
         derived_joints(rec, vis)
         out.append((rec, vis))

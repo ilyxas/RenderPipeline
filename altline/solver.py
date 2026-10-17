@@ -1,7 +1,9 @@
 """Task 3: analytical inverse-orientation solver.
 
-Input: <run>/calibration/calibrated_pose.json + actor_profile.json, and the target rig.
-Output: <run>/solver/raw_rotations.json — per frame, per bone local basis quaternions [w,x,y,z].
+Input: <run>/calibration/guarded_pose.json (calibrated_pose.json without the flip guard)
+       + actor_profile.json, and the target rig.
+Output: <run>/solver/frame_rotations.json — per frame, per bone local basis quaternions
+        [w,x,y,z]; solver_temporal.py turns it into raw_rotations.json.
 
 Per frame, every bone gets a target direction (unit vector between landmarks, so the
 actor's segment lengths never reach the rig) and, where the landmarks define one, a twist
@@ -236,8 +238,11 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--rig", type=Path)
     args = ap.parse_args(argv)
     rd = run_dir(args.run_id)
-    print(solve(rd / "calibration" / "calibrated_pose.json", rd / "calibration" / "actor_profile.json",
-                rd / "solver" / "raw_rotations.json", load_skeleton(args.rig)))
+    cal = rd / "calibration" / "guarded_pose.json"
+    if not cal.exists():
+        cal = rd / "calibration" / "calibrated_pose.json"
+    print(solve(cal, rd / "calibration" / "actor_profile.json",
+                rd / "solver" / "frame_rotations.json", load_skeleton(args.rig)))
 
 
 if __name__ == "__main__":

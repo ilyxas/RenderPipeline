@@ -42,9 +42,16 @@ X, Y, Z = np.eye(3)
 MIN_CONFIDENCE = 0.3
 
 
-def _hinge(q: np.ndarray, flex_sign: float, flex_range_deg: tuple[float, float], twist_deg: float) -> tuple[np.ndarray, dict]:
+def unwrap_deg(phi: float, ref: float | None) -> float:
+    """phi + k*360 closest to ref: a roll measured past +-180 deg keeps the side it came from
+    (v4 df1e: a forearm roll wrapping 170 -> -170 made the clamp jump from +90 to -90)."""
+    return phi if ref is None else phi - 360.0 * round((phi - ref) / 360.0)
+
+
+def _hinge(q: np.ndarray, flex_sign: float, flex_range_deg: tuple[float, float], twist_deg: float,
+           twist_ref: float | None = None) -> tuple[np.ndarray, dict]:
     swing, twist = swing_twist(q, Y)
-    phi = twist_angle(twist, Y)
+    phi = np.radians(unwrap_deg(np.degrees(twist_angle(twist, Y)), twist_ref))
     rv = quat_log(swing)
     flex = np.degrees(flex_sign * rv[0])
     lo, hi = flex_range_deg
@@ -55,9 +62,9 @@ def _hinge(q: np.ndarray, flex_sign: float, flex_range_deg: tuple[float, float],
                  "off_axis_deg": float(np.degrees(abs(rv[2])))}
 
 
-def _wrist(q: np.ndarray, lim_deg: float) -> tuple[np.ndarray, dict]:
+def _wrist(q: np.ndarray, lim_deg: float, twist_ref: float | None = None) -> tuple[np.ndarray, dict]:
     swing, twist = swing_twist(q, Y)
-    phi = np.degrees(twist_angle(twist, Y))
+    phi = unwrap_deg(np.degrees(twist_angle(twist, Y)), twist_ref)
     rv = np.degrees(quat_log(swing))
     rv_c = np.array([np.clip(rv[0], -lim_deg, lim_deg), 0.0, np.clip(rv[2], -lim_deg, lim_deg)])
     phi_c = float(np.clip(phi, -lim_deg, lim_deg))
@@ -65,13 +72,15 @@ def _wrist(q: np.ndarray, lim_deg: float) -> tuple[np.ndarray, dict]:
     return out, {"swing_x_deg": float(rv[0]), "swing_z_deg": float(rv[2]), "twist_deg": float(phi)}
 
 
-def clamp_bone(name: str, q: np.ndarray, cfg: LimitsConfig) -> tuple[np.ndarray, dict | None]:
+def clamp_bone(name: str, q: np.ndarray, cfg: LimitsConfig, twist_ref: float | None = None
+               ) -> tuple[np.ndarray, dict | None]:
+    """twist_ref: the bone's unwrapped twist (deg) in the previous frame, if known."""
     if name.startswith("forearm_"):
-        return _hinge(q, +1.0, cfg.elbow_flex_deg, cfg.forearm_roll_deg)
+        return _hinge(q, +1.0, cfg.elbow_flex_deg, cfg.forearm_roll_deg, twist_ref)
     if name.startswith("hand_"):
-        return _wrist(q, cfg.wrist_deg)
+        return _wrist(q, cfg.wrist_deg, twist_ref)
     if name.startswith("shin_"):
-        return _hinge(q, -1.0, cfg.knee_flex_deg, cfg.knee_twist_deg)
+        return _hinge(q, -1.0, cfg.knee_flex_deg, cfg.knee_twist_deg, twist_ref)
     return q, None
 
 
@@ -117,7 +126,8 @@ def bridge(qs: np.ndarray, mask: np.ndarray, max_len: int) -> tuple[np.ndarray, 
     return out, bridged
 
 
-def _twist_transfer(local: np.ndarray, names: list[str], idx: dict, cfg: LimitsConfig) -> np.ndarray:
+def _twist_transfer(local: np.ndarray, names: list[str], idx: dict, cfg: LimitsConfig,
+                    twist_ref: dict | None = None) -> np.ndarray:
     """Move twist beyond the forearm-roll / knee-twist limit into the parent bone while the
     hinge is nearly straight (a straight limb's twist is shared by both segments anyway).
     Returns new local quaternions; the child's world orientation is restored later."""
@@ -128,7 +138,7 @@ def _twist_transfer(local: np.ndarray, names: list[str], idx: dict, cfg: LimitsC
         if parent not in idx or child not in idx:
             continue
         swing, twist = swing_twist(out[idx[child]], Y)
-        phi = np.degrees(twist_angle(twist, Y))
+        phi = unwrap_deg(np.degrees(twist_angle(twist, Y)), (twist_ref or {}).get(child))
         flex = np.degrees(flex_sign * quat_log(swing)[0])
         excess = phi - np.clip(phi, -lim, lim)
         if excess != 0.0 and flex < cfg.twist_transfer_max_flex_deg:
@@ -136,7 +146,8 @@ def _twist_transfer(local: np.ndarray, names: list[str], idx: dict, cfg: LimitsC
     return out
 
 
-def _clamp_frame(local: np.ndarray, skel: Skeleton, cfg: LimitsConfig) -> tuple[np.ndarray, np.ndarray, list]:
+def _clamp_frame(local: np.ndarray, skel: Skeleton, cfg: LimitsConfig, twist_ref: dict | None = None
+                 ) -> tuple[np.ndarray, np.ndarray, list]:
     """Clamp bones root to leaf; every child is re-expressed so its world orientation is the
     one it had before its parent was clamped (a clamped elbow does not swing the hand)."""
     n = len(skel.names)
@@ -151,7 +162,7 @@ def _clamp_frame(local: np.ndarray, skel: Skeleton, cfg: LimitsConfig) -> tuple[
         rl = skel.rest_local(b)
         parent_world = np.eye(3) if p < 0 else world[p]
         q_in = mat_to_quat(rl.T @ parent_world.T @ want_world[b])
-        q_out, ch = clamp_bone(name, q_in, cfg)
+        q_out, ch = clamp_bone(name, q_in, cfg, (twist_ref or {}).get(name))
         out[b] = quat_normalize(q_out)
         correction[b] = np.degrees(quat_angle_between(q_in, out[b]))
         channels.append(ch)
@@ -175,10 +186,13 @@ def apply_limits(raw: dict, cfg: LimitsConfig | None = None, skel: Skeleton | No
     clamped = np.zeros_like(rot)
     correction = np.zeros((n_t, len(bones)))
     channels = []
+    twist_ref: dict[str, float] = {}  # unwrapped raw twist per limited bone, previous frame
     for t in range(n_t):
-        local = _twist_transfer(rot[t], bones, idx, cfg)
-        clamped[t], correction[t], ch = _clamp_frame(local, skel, cfg)
+        local = _twist_transfer(rot[t], bones, idx, cfg, twist_ref)
+        clamped[t], correction[t], ch = _clamp_frame(local, skel, cfg, twist_ref)
         channels.append(ch)
+        if valid[t]:
+            twist_ref.update({bones[b]: c["twist_deg"] for b, c in enumerate(ch) if c and "twist_deg" in c})
 
     out = np.zeros_like(rot)
     report = {"config": cfg.__dict__, "bones": {}}
