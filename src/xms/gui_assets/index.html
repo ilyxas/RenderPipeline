@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="xms-token" content="__TOKEN__"><meta name="xms-remote" content="__REMOTE__"><title>Xandra Motion Studio</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
 <body><div class="app">
-<header><div class="brand"><span class="mark">X</span><div><h1>Xandra <span>Motion Studio</span></h1><p>Видео → движение → анимация</p></div></div><div class="local"><i></i> <b id="mode-label" style="font-weight:inherit">Локальный запуск</b> <span>· Xandra / Bedroom</span></div></header>
+<header><div class="brand"><span class="mark">X</span><div><h1>Xandra <span>Motion Studio</span></h1><p>Видео → движение → анимация</p></div></div><div class="local"><i></i> <b id="mode-label" style="font-weight:inherit">Локальный запуск</b> <span id="pair-label">· …</span></div></header>
 <main>
 <section class="source card"><div class="section-title"><span class="step">01</span><h2>Исходное видео</h2></div>
 <button id="pick-input" class="dropzone"><span class="file-icon">＋</span><strong id="input-name">Выбрать видео</strong><span id="input-meta">Откроется системное окно выбора файла</span></button><input id="upload-input" type="file" accept="video/*,.mov,.mp4,.m4v" hidden>
@@ -10,6 +10,11 @@
 <div class="source-note">Обрабатывается один человек. Исходный звук сохраняется в результате.</div>
 </section>
 <form id="settings" class="settings" autocomplete="off"><fieldset id="fields">
+<section class="card assets"><div class="section-title"><span class="step">00</span><h2>Персонаж и сцена</h2><button type="button" class="text-button" id="assets-refresh">Обновить</button></div>
+<div class="two"><label>Персонаж <b class="badge" id="badge-character"></b><select id="use-character"></select></label><label>Сцена <b class="badge" id="badge-scene"></b><select id="use-scene"></select></label></div>
+<p class="hint" id="assets-hint">Проверяю зарегистрированные файлы…</p>
+<div id="unregistered" hidden><p class="hint">Новые или изменённые .blend — ещё не зарегистрированы. Регистрация создаёт новую версию профиля на основе выбранной (старые не меняются) и проверяет в Blender, что скелет/сцена те же.</p><div id="unregistered-list"></div></div>
+</section>
 <section class="card"><div class="section-title"><span class="step">02</span><h2>Фрагмент</h2><button type="button" class="text-button" id="whole" disabled>Весь ролик</button></div>
 <div class="two"><label>Начало, сек<input id="start" type="number" min="0" step="0.01" value="0" disabled></label><label>Длительность, сек<input id="duration" type="number" min="0.01" step="0.01" value="5" disabled></label></div>
 <input id="duration-slider" aria-label="Длительность фрагмента" type="range" min="0.01" step="0.01" value="5" max="5" disabled><div class="range-summary"><span id="range-label">Сначала выберите видео</span><span id="frames-label"></span></div>

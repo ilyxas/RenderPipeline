@@ -33,7 +33,11 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         end=float(Fraction(info['pts'][-1]-info['pts'][0])*Fraction(info['time_base'])+1/Fraction(info['fps'])) if end is None else end
         manifest['parameters'].update(start_s=start,end_s=end)
         manifest['input_hashes']={k:file_hash(v) for k,v in {'video':video,'character':config['character_asset'],'scene':config['scene_asset'],'pose_model':config['pose_model']}.items()}
-        if manifest['input_hashes']['character']!=p['asset_sha256'] or manifest['input_hashes']['scene']!=sp['asset_sha256']:raise ValueError('Registered character/scene asset hash mismatch; re-register the correct assets')
+        if manifest['input_hashes']['character']!=p['asset_sha256'] or manifest['input_hashes']['scene']!=sp['asset_sha256']:
+            if config.get('_config_path'):
+                from .registry import check
+                check(config)
+            raise ValueError('Registered character/scene asset hash mismatch; re-register the correct assets')
         if channels=='full':
             for key in ('face_model','hand_model'):
                 if key not in config:raise ValueError(f'Missing {key}; configure it or use --channels body')

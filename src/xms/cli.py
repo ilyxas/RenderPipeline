@@ -19,6 +19,7 @@ def main():
     cl=sub.add_parser('clean',help='Remove regenerable PNG frames from run folders (dry run unless --apply)');cl.add_argument('--runs-root',default='runs');cl.add_argument('--apply',action='store_true',help='Move frame PNGs to the Trash');cl.add_argument('--delete',action='store_true',help='With --apply: delete permanently instead of moving to the Trash')
     g=sub.add_parser('gui',help='Open the local graphical pipeline launcher');g.add_argument('--port',type=int,default=0,help='Default: random on loopback, 8765 when another address is added');g.add_argument('--no-browser',action='store_true');g.add_argument('--tailscale',action='store_true',help="Also listen on this Mac's Tailscale address (phone access over the tailnet)");g.add_argument('--host',action='append',default=[],help='Also listen on this IP address (repeatable); 127.0.0.1 is always included')
     rr=sub.add_parser('render');rr.add_argument('bundle');rr.add_argument('--config');rr.add_argument('--out',required=True);rr.add_argument('--fps',required=True);rr.add_argument('--frame-indices');rr.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r']);rr.add_argument('--quality',choices=['preview','final'],default='preview');rr.add_argument('--engine',choices=['eevee','cycles'],default='eevee')
+    a=sub.add_parser('assets',help='Registered character/scene profiles and their .blend files');a.add_argument('action',choices=['status','use','register']);a.add_argument('name',nargs='?',help="use: profile like loft/v4; register: path to .blend");a.add_argument('--base',help="register: profile to copy, e.g. xandra/v9");a.add_argument('--config')
     rep=sub.add_parser('report');rep.add_argument('run');rep.add_argument('--out',required=True);rep.add_argument('--config')
     args=p.parse_args()
     try:
@@ -26,6 +27,14 @@ def main():
             from .gui import serve,resolve_hosts
             tailscale=args.tailscale or os.environ.get('XMS_GUI_TAILSCALE')=='1'
             serve(args.port,not args.no_browser,resolve_hosts(args.host,tailscale))
+        elif args.command=='assets':
+            from . import registry
+            if args.action!='status' and not args.name:p.error('assets '+args.action+' needs a name')
+            if args.action=='register' and not args.base:p.error('assets register needs --base PROFILE')
+            s=registry.use(args.name,args.config) if args.action=='use' else registry.register(args.name,args.base,args.config) if args.action=='register' else registry.status(args.config)
+            for kind,c in s['current'].items():print(f"{kind:9} {c['profile']:12} {c['asset_name']:30} {'OK' if c['ok'] else 'ПРОБЛЕМА: '+c['problem']}")
+            for u in s['unregistered']:print('не зарегистрирован:',u['path'])
+            if not s['ok']:raise SystemExit(1)
         elif args.command=='clean':
             from .clean import clean
             clean(args.runs_root,args.apply,args.delete)

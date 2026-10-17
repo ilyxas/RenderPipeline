@@ -281,7 +281,7 @@ def receive_upload(stream,size,name,folder,max_bytes):
 
 
 def serve(port=0,open_browser=True,hosts=('127.0.0.1',),uploads_root=None,max_upload_mb=None):
-    runner=Runner();token=secrets.token_urlsafe(32)
+    runner=Runner();token=secrets.token_urlsafe(32);registry_lock=threading.Lock()
     uploads=Path(uploads_root or runner.runs_root/'uploads')
     max_bytes=int(max_upload_mb or os.environ.get('XMS_GUI_MAX_UPLOAD_MB') or 8192)*2**20
     class Handler(BaseHTTPRequestHandler):
@@ -344,7 +344,18 @@ def serve(port=0,open_browser=True,hosts=('127.0.0.1',),uploads_root=None,max_up
                 elif path=='/api/run':
                     info=video_info(data['input'],data.get('config') or None)
                     if float(data['start'])+float(data['duration'])>info['duration']+.001:raise ValueError('Фрагмент выходит за длительность видео')
+                    from .registry import status
+                    if registry_lock.locked():raise ValueError('Идёт регистрация ассета')
+                    assets=status(data.get('config') or None)
+                    if not assets['ok']:raise ValueError('Персонаж/сцена не сходятся с профилем: '+'; '.join(c['problem'] for c in assets['current'].values() if not c['ok']))
                     runner.start(data);self.send(runner.snapshot())
+                elif path in ('/api/registry','/api/registry/use','/api/registry/register'):
+                    from . import registry
+                    config=data.get('config') or None
+                    if path=='/api/registry':self.send(registry.status(config));return
+                    if runner.snapshot()['status'] in ('running','stopping'):raise ValueError('Дождитесь окончания запуска')
+                    with registry_lock:
+                        self.send(registry.use(data['profile'],config) if path=='/api/registry/use' else registry.register(data['asset'],data['base'],config))
                 elif path=='/api/stop':runner.stop();self.send(runner.snapshot())
                 elif path=='/api/open':runner.open_output(data['kind']);self.send({'ok':True})
                 else:self.send({'error':'Not found'},404)
