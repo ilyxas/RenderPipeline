@@ -5,3 +5,4 @@
 
 blender/Xandra_Animations.blend filter=lfs diff=lfs merge=lfs -text
 blender/Loft_Studio_v10.blend filter=lfs diff=lfs merge=lfs -text
+blender/Xandra_Wardrobe_v10.blend filter=lfs diff=lfs merge=lfs -text
