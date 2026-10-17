@@ -12,15 +12,9 @@ Why it exists: generative video gives a result but no control. Xandra gives full
 
 This is an exploratory, for-fun research project. Owners: Ilya and Claude. Earlier work was done by Codex, Grok Build and Grok Bot.
 
-## Current state (2026-10-11, evening)
+## Current state
 
-- Infrastructure works: `./xms run`, `./xms gui` (Stop really stops), run folders, compare video, report, animated GLB (`outputs/animation.glb`), `./xms clean`.
-- **Core reconstruction is still not accepted.** The `video` solver (default) loses depth (raised arms drift forward), self-contact and limb twist; its neutral calibration forces Xandra's rest pose onto the subject's first pose (`XMS_NEUTRAL_CALIBRATION=0` to compare).
-- `--solver viggle` (external Viggle mocap, MetaHuman-body rig, retargeted by rotations; face/lips from our face pipeline) is clearly better on all eight diagnostic clips in side view — Ilya's verdict "земля и небо" — but it is an R&D backend: known gaps are arm–arm collisions, Viggle's own estimate errors (knee over-flexion) and no jumps. Details: `docs/research/VIGGLE_COMPARISON.md`.
-- The retarget was proven before any video: Viggle posed in Xandra's rest gives zero deltas; one rotated shoulder moves only that arm by exactly that angle (`tests/test_viggle_retarget.py`).
-- Characters: profile `v3` (top/shorts, LFS asset) and `v4` (Black Lace fitting asset, local) share one skeleton; limits and the Viggle map are bound to the rig, not to the asset file.
-- `temporal` has **not** passed acceptance; Stages 9–16 were built on top of it and are functional, not accepted.
-- Next candidates: arm–arm/arm–body collision (skin-based, see legacy `clip_full/02b_collide.py`), GLB with HumanoidAlpha's expected clips, shoulder/hip limits.
+Not kept here, so it cannot go stale: the current state is in [`docs/status/STATUS.md`](docs/status/STATUS.md) (what works, which solver, which character/scene profile and assets are in use), open problems with evidence in [`docs/status/TODO.md`](docs/status/TODO.md), history in [`docs/status/sessions/`](docs/status/sessions/). Keep those up to date in the same session as the change.
 
 ## R&D mode: the approach is a hypothesis
 
@@ -70,15 +64,16 @@ Critical asset. Used both for **regression** (nothing that worked may break) and
 ## Environment
 
 - macOS, Apple Silicon. Runtime in `.venv`; `./xms` refuses to run without it.
-- Blender 4.5 LTS (EEVEE), FFmpeg, MediaPipe Tasks — paths registered in `.xms/config.json`.
-- Preview: 540×960, 16 samples. Final: 1080×1920, 32 samples, default shadow rays/steps (`docs/research/RENDER_SETTINGS.md`). Prefer preview for experiments.
+- Blender 4.5 LTS (EEVEE and Cycles), FFmpeg, MediaPipe Tasks — paths registered in `.xms/config.json`.
+- Character/scene profile and `.blend` pair: change only through the registry (`./xms assets status|use|register`, Studio card «00 Персонаж и сцена»), never by editing the pair in `.xms/config.json`; profiles are immutable, a changed asset is a new version.
+- Render engines, samples and timings: `docs/status/STATUS.md` → «Рендер». Prefer preview for experiments.
 - Viggle: key only from `VIGGLE_API_KEY`; uploads are paid and external — ask Ilya before any upload; results are cached in `~/.cache/xms/viggle/`.
 - Every run writes `runs/<id>/` (ignored by Git): video, GLB, bundle, observations, manifest, diagnostics, logs, compare, report. Frame PNGs are deleted after a successful encode; `./xms clean` handles older runs.
 - Tests: `tests/` (unittest; pytest is not installed in `.venv`): `PYTHONPATH=src:tests .venv/bin/python -m unittest discover -s tests -p 'test_*.py'`. `tools/validate_base_videos.py` runs the eight diagnostic clips and keeps evidence without auto-acceptance.
 
 ## Where to look
 
-- `docs/status/` — status, TODO with evidence, session logs (start here).
+- `docs/status/` — status, TODO with evidence, session logs (start here; the source of truth for current state).
 - `README.md` — commands and current solver behaviour (most up to date).
 - `docs/development/ARCHITECTURE.md`, `STAGES.md` — design and stage plan. **Status headers there are stale.**
 - `docs/development/*HANDOFF*.md` — per-stage results; the `video` solver is not described in any handoff.
@@ -88,4 +83,4 @@ Critical asset. Used both for **regression** (nothing that worked may break) and
 ## Git
 
 - One logical change per commit with a clear message. No history rewriting.
-- Do not commit assets, renders or `runs/`.
+- Do not commit renders or `runs/`. Assets (`.blend`) only through Git LFS and only when Ilya asks; textures packed into the `.blend` so a clone renders the same.
