@@ -1,0 +1,11 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "fail (pose): hands still 27/23 cm from the opposite shoulder, forearms intersect (C6); stability: C1 fixed, remaining peaks mostly real tracker noise when the arms cross",
+ "reviewer_verified_findings": [
+  "C1 fixed: v3 solver input had depth-sign flips at frames 28, 31 (forearm_l), 32 (upper_arm_l), 39 (upper_arm_r) with jumps 17-23 cm; v4 has no flips, max jump 8.3 cm. Preview frame 28: v3 left arm swings behind the body, v4 follows the tracker dots in front.",
+  "elbow_l f28 / wrist_l f29 / elbow_l f33 / elbow_r f38: tracking data. Raw tracker forearm direction acc 35k at f28 and the palm reading jumps 59 deg in one frame while the arms cross; filter + depth reduce it to 9.5k at the solver input, 4.8k at the damper input. Damper deviations 12-16 deg, hand tips moved up to 5.8 cm.",
+  "elbow_l f22 (twist split, x2.1) and elbow_r f25 / wrist_l f34 (calibration, x3.3-3.4): internal.",
+  "Arm peak speed (image chord) 391 -> 248 deg/s on the right arm (-37 % vs source 2D); the loss happens before the solver (385 per-frame raw -> 275 after filter+calibration). Excursion is kept (139 vs 143 deg).",
+  "C6 not fixed: forearms min distance 1.2 cm, 104 frames under 5 cm."
+ ]
+}

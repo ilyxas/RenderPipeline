@@ -1,0 +1,15 @@
+{
+ "reviewer_level": "implemented + functionally verified (all stages run, bundle under the gate by construction); quality NOT accepted",
+ "reviewer_verdict": "fail, and the LEFT ARM IS WORSE THAN v3: from frame ~92 the left forearm hangs ~15 cm below the tracker's wrist; the 53 deg damper deviation hides an internal artifact chain, not tracking data. Leg: C1 fixed, knee still bent 48 deg (C4)",
+ "reviewer_verified_findings": [
+  "Raw tracker is smooth here: left elbow bend 27-39 deg, bend-plane step <= 14 deg/frame, forearm 0.09-0.15 m toward the camera (frames 84-101).",
+  "Step 1 (calibration, C4): from frame 92 the forearm depth is flattened: filtered dz +0.10 m -> calibrated 0.0015 m, length 1.13 L; elbow bend 32 -> 10 deg; bend plane turns 128 deg in one frame (guarded). Forearm landmark acc 5.0k (filtered) -> 14.5k (calibrated).",
+  "Step 2 (per-frame solver): upper-arm twist -44 -> +90 -> +161 -> 179 deg in frames 92-95, forearm roll +47 -> -86 -> -157 -> -176 deg; local acc 87,022 vs solved forearm world 14,475 (x6): a 180 deg twist split, humerus turned half a revolution.",
+  "Step 3 (limits): forearm roll clamped to -90 with unwrap, excess pushed into the upper arm (-138 -> -269 deg, frames 100-114): forearm direction moves 27-33 deg away from the solver, hand world orientation up to 175 deg off (f93), forearm 158 deg off.",
+  "Step 4 (damper): smooths each bone's local rotation on its own, so the world forearm ends up to 173 deg off (f95); max damper deviation 52.9 deg (forearm_l f92), upper_arm_l 43.4 deg with 29 frames over 10 deg; hand tip 8.5 cm.",
+  "Visible: preview frames 94, 104, 110: v4 left forearm bends down to ~1.0 m height while the tracker wrist dots are at ~1.15 m and the actor's arm is horizontal; v3 follows the dots. 2D forearm_l p95 10.2 (v3) -> 23.8 deg (v4), frames 101-117 at 15-29 deg; wrist 2D p95 5.0 -> 10.7 cm.",
+  "Cause of the regression: twist window 5-20 deg. Ablation v4a (2-10 deg, all Phase 2 on): forearm_l p95 10.2 deg, wrist 5.1 cm, i.e. v3 level; v4w/v4 (5-20): 23.8 / 10.7.",
+  "Leg: C1 fixed (v3 shin_l jump 21.4 cm + sign flip f86 -> v4 8.1 cm, no flip); ankle_l f82: raw tracker acc 16k removed by the filter (2.8k), re-raised to 8.2k by the per-frame solver (x2.2), 3.6k at the damper input, foot moved 0.9 cm. Kick peak speed 473 (source 2D) -> 365 deg/s (temporal solver 426 -> 359).",
+  "Event elbow_l f87 is labelled 'tracking data' by the automatic rule, but its damper deviation (36.8 deg) belongs to the f92 chain."
+ ]
+}
