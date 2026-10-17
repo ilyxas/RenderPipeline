@@ -79,6 +79,9 @@ result in the phone's browser; report, folder and bundle stay on the Mac.
 ```
 
 `--engine eevee` (default) is fast for iteration; `--engine cycles` renders with OpenImageDenoise and motion blur. A scene profile may set `engine_exposure` per engine. Studio has the same choice with a time estimate.
+`--samples N` overrides the samples (default by quality: EEVEE 16/32, Cycles 32/64); Studio: «Сэмплы».
+
+Character/scene assets: `./xms assets status` shows which profile and `.blend` the config uses and whether they match; `./xms assets use loft/v4` switches to a profile and the file with its hash; `./xms assets register FILE.blend --base xandra/v9` registers a changed `.blend` as the next profile version after a Blender check. Studio has the same in card «00 Персонаж и сцена». Do not edit the asset/profile pair in `.xms/config.json` by hand.
 
 Omitting `--start/--end` processes the whole video. A successful render exits 0; motion
 and visual acceptance are reported separately (`needs_review`). Ctrl+C, SIGTERM or

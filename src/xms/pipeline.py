@@ -12,9 +12,9 @@ from .assembly.encode import preflight,encode,verify
 from .qa.contract import self_peak_bytes
 
 
-def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False,resolution=None,keep_frames=False,engine='eevee'):
+def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',solver='video',quality='preview',output=None,face_closeup=False,audio_mode='envelope',surface_qa='sampled',camera='fit',refine=True,allow_degraded_final=False,resolution=None,keep_frames=False,engine='eevee',samples=None):
     out=Path(runs_root).resolve()/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]);out.mkdir(parents=True);(out/'logs').mkdir();(out/'outputs').mkdir()
-    manifest={'schema_version':'xms.run.v1','quality':'development_candidate','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':quality,'engine':engine,'solver':solver,'channels':channels,'audio':audio_mode,'surface_qa':surface_qa,'camera':camera},'config':config,'python':sys.version,'limitations':[],'warnings':[],'stages':{}}
+    manifest={'schema_version':'xms.run.v1','quality':'development_candidate','status':'running','parameters':{'input':str(Path(video).resolve()),'start_s':start,'end_s':end,'character':'xandra','scene':'bedroom','quality':quality,'engine':engine,'samples':samples,'solver':solver,'channels':channels,'audio':audio_mode,'surface_qa':surface_qa,'camera':camera},'config':config,'python':sys.version,'limitations':[],'warnings':[],'stages':{}}
     began=time.monotonic()
     def save(): (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
     def log(message):print(message,flush=True)
@@ -33,7 +33,11 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         end=float(Fraction(info['pts'][-1]-info['pts'][0])*Fraction(info['time_base'])+1/Fraction(info['fps'])) if end is None else end
         manifest['parameters'].update(start_s=start,end_s=end)
         manifest['input_hashes']={k:file_hash(v) for k,v in {'video':video,'character':config['character_asset'],'scene':config['scene_asset'],'pose_model':config['pose_model']}.items()}
-        if manifest['input_hashes']['character']!=p['asset_sha256'] or manifest['input_hashes']['scene']!=sp['asset_sha256']:raise ValueError('Registered character/scene asset hash mismatch; re-register the correct assets')
+        if manifest['input_hashes']['character']!=p['asset_sha256'] or manifest['input_hashes']['scene']!=sp['asset_sha256']:
+            if config.get('_config_path'):
+                from .registry import check
+                check(config)
+            raise ValueError('Registered character/scene asset hash mismatch; re-register the correct assets')
         if channels=='full':
             for key in ('face_model','hand_model'):
                 if key not in config:raise ValueError(f'Missing {key}; configure it or use --channels body')
@@ -141,8 +145,8 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
             render(out/'animation',out/'preview-frames',config,timeline['fps'],out/'logs/preview-blender.log',camera_plan=out/'camera-plan.json')
             encode(out/'preview-frames',video,timeline,config['ffmpeg'],out/'outputs/preview.mp4',out/'logs/preview-encode.log')
             manifest['stages']['preview_verification']=verify(out/'outputs/preview.mp4',timeline,PRESETS['preview']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/preview-decode.log')
-        log(f'RENDER {quality} engine={engine}')
-        manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log',quality=quality,camera_plan=out/'camera-plan.json',resolution=plan['resolution'],engine=engine)
+        log(f'RENDER {quality} engine={engine} samples={samples or "auto"}')
+        manifest['stages']['render_process']=render(out/'animation',out/'frames',config,timeline['fps'],out/'logs/blender.log',quality=quality,camera_plan=out/'camera-plan.json',resolution=plan['resolution'],engine=engine,samples=samples)
         rendered=json.loads((out/'frames/manifest.json').read_text());assert rendered['bundle_hash']==h
         manifest['stages']['render']=rendered;manifest['look_overrides']=rendered.get('look_overrides',[])
         if any(r.get('kind')=='override' for r in manifest['look_overrides']):
@@ -153,7 +157,7 @@ def run(video,start=None,end=None,config=None,runs_root='runs',channels='full',s
         if face_closeup:
             def closeup():
                 log('RENDER face close-up')
-                render(out/'animation',out/'face-frames',config,timeline['fps'],out/'logs/face-blender.log',view='face',quality=quality,engine=engine)
+                render(out/'animation',out/'face-frames',config,timeline['fps'],out/'logs/face-blender.log',view='face',quality=quality,engine=engine,samples=samples)
                 close=out/'outputs/face.mp4';encode(out/'face-frames',video,timeline,config['ffmpeg'],close,out/'logs/face-encode.log')
                 checked=verify(close,timeline,sp['diagnostic_views']['face']['resolution'],config['ffmpeg'],config['ffprobe'],out/'logs/face-decode.log');return {'path':str(close),'bundle_hash':h,'verification':checked}
             result=optional('face close-up',closeup);manifest['diagnostic_videos']={'face':result} if result else {}

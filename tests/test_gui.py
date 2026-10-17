@@ -17,6 +17,9 @@ class Launcher(unittest.TestCase):
             self.assertIn('--no-refine',cmd);self.assertNotIn('--face-closeup',cmd);self.assertIn(str(video.resolve()),cmd)
             self.assertEqual(parse_resolution('1080x1920'),[1080,1920])
             with self.assertRaises(ValueError):command_for({**settings,'engine':'workbench'},Path(tmp)/'runs')
+            self.assertNotIn('--samples',cmd);cmd=command_for({**settings,'samples':96},Path(tmp)/'runs');self.assertEqual(cmd[cmd.index('--samples')+1],'96')
+            for bad in (0,'abc',99999):
+                with self.assertRaises(ValueError):command_for({**settings,'samples':bad},Path(tmp)/'runs')
             for value in ['1081x1920','0x960','720','huge']:
                 with self.assertRaises(ValueError):parse_resolution(value)
 

@@ -14,11 +14,12 @@ def main():
     r.add_argument('--solver',choices=['baseline','video','temporal','viggle'],default='video',help='video: stable torso/arm retarget and video face/hands (default); temporal: experimental bounded window optimizer; baseline: preserved backend; viggle: experimental external Viggle mocap (body, head, fingers; face morphs from video with --channels full; uploads need VIGGLE_API_KEY and XMS_VIGGLE_ALLOW_UPLOAD=1, cached results do not)')
     r.add_argument('--allow-degraded-final',action='store_true',help='Explicitly render final even when the motion defect gate fails')
     r.add_argument('--face-closeup',action='store_true');r.add_argument('--audio',choices=['off','envelope','speech','singing'],default='envelope');r.add_argument('--surface-qa',choices=['off','sampled','all'],default='sampled');r.add_argument('--no-refine',action='store_true');r.add_argument('--camera',choices=['fit','fixed'],default='fit')
-    r.add_argument('--engine',choices=['eevee','cycles'],default='eevee',help='eevee: fast (default); cycles: path traced with denoiser and motion blur, for finals (much slower)');r.add_argument('--resolution',help='Even WIDTHxHEIGHT; independent of render quality (e.g. 720x1280)')
+    r.add_argument('--engine',choices=['eevee','cycles'],default='eevee',help='eevee: fast (default); cycles: path traced with denoiser and motion blur, for finals (much slower)');r.add_argument('--resolution',help='Even WIDTHxHEIGHT; independent of render quality (e.g. 720x1280)');r.add_argument('--samples',type=int,help='Render samples (default: by quality and engine: EEVEE 16/32, Cycles 32/64)')
     r.add_argument('--keep-frames',action='store_true',help='Keep the PNG frame sequences after a successful encode (removed by default)')
     cl=sub.add_parser('clean',help='Remove regenerable PNG frames from run folders (dry run unless --apply)');cl.add_argument('--runs-root',default='runs');cl.add_argument('--apply',action='store_true',help='Move frame PNGs to the Trash');cl.add_argument('--delete',action='store_true',help='With --apply: delete permanently instead of moving to the Trash')
     g=sub.add_parser('gui',help='Open the local graphical pipeline launcher');g.add_argument('--port',type=int,default=0,help='Default: random on loopback, 8765 when another address is added');g.add_argument('--no-browser',action='store_true');g.add_argument('--tailscale',action='store_true',help="Also listen on this Mac's Tailscale address (phone access over the tailnet)");g.add_argument('--host',action='append',default=[],help='Also listen on this IP address (repeatable); 127.0.0.1 is always included')
-    rr=sub.add_parser('render');rr.add_argument('bundle');rr.add_argument('--config');rr.add_argument('--out',required=True);rr.add_argument('--fps',required=True);rr.add_argument('--frame-indices');rr.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r']);rr.add_argument('--quality',choices=['preview','final'],default='preview');rr.add_argument('--engine',choices=['eevee','cycles'],default='eevee')
+    rr=sub.add_parser('render');rr.add_argument('bundle');rr.add_argument('--config');rr.add_argument('--out',required=True);rr.add_argument('--fps',required=True);rr.add_argument('--frame-indices');rr.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r']);rr.add_argument('--quality',choices=['preview','final'],default='preview');rr.add_argument('--engine',choices=['eevee','cycles'],default='eevee');rr.add_argument('--samples',type=int)
+    a=sub.add_parser('assets',help='Registered character/scene profiles and their .blend files');a.add_argument('action',choices=['status','use','register']);a.add_argument('name',nargs='?',help="use: profile like loft/v4; register: path to .blend");a.add_argument('--base',help="register: profile to copy, e.g. xandra/v9");a.add_argument('--config')
     rep=sub.add_parser('report');rep.add_argument('run');rep.add_argument('--out',required=True);rep.add_argument('--config')
     args=p.parse_args()
     try:
@@ -26,6 +27,14 @@ def main():
             from .gui import serve,resolve_hosts
             tailscale=args.tailscale or os.environ.get('XMS_GUI_TAILSCALE')=='1'
             serve(args.port,not args.no_browser,resolve_hosts(args.host,tailscale))
+        elif args.command=='assets':
+            from . import registry
+            if args.action!='status' and not args.name:p.error('assets '+args.action+' needs a name')
+            if args.action=='register' and not args.base:p.error('assets register needs --base PROFILE')
+            s=registry.use(args.name,args.config) if args.action=='use' else registry.register(args.name,args.base,args.config) if args.action=='register' else registry.status(args.config)
+            for kind,c in s['current'].items():print(f"{kind:9} {c['profile']:12} {c['asset_name']:30} {'OK' if c['ok'] else 'ПРОБЛЕМА: '+c['problem']}")
+            for u in s['unregistered']:print('не зарегистрирован:',u['path'])
+            if not s['ok']:raise SystemExit(1)
         elif args.command=='clean':
             from .clean import clean
             clean(args.runs_root,args.apply,args.delete)
@@ -41,7 +50,7 @@ def main():
         elif args.command=='render':
             from .render.process import render
             out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True);indices=None if args.frame_indices is None else [int(x) for x in args.frame_indices.split(',')]
-            print(render(args.bundle,out,load_config(args.config,render_only=True),args.fps,str(out)+'.log',indices,view=args.view,quality=args.quality,engine=args.engine))
+            print(render(args.bundle,out,load_config(args.config,render_only=True),args.fps,str(out)+'.log',indices,view=args.view,quality=args.quality,engine=args.engine,samples=args.samples))
         else:
             from .pipeline import run
             import signal
@@ -60,7 +69,7 @@ def main():
                 if not importlib.util.find_spec('scipy'):p.error('Temporal solver needs SciPy. Install the temporal dependency group or use --solver video.')
             from .render.camera import parse_resolution
             resolution=parse_resolution(args.resolution) if args.resolution else None
-            try:result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final,resolution,args.keep_frames,args.engine)
+            try:result=run(args.input,args.start,args.end,load_config(args.config),args.runs_root,args.channels,args.solver,args.quality,args.output,args.face_closeup,args.audio,args.surface_qa,args.camera,not args.no_refine,args.allow_degraded_final,resolution,args.keep_frames,args.engine,args.samples)
             except KeyboardInterrupt:print('RUN CANCELLED',flush=True);raise SystemExit(130)
             print('RUN MANIFEST',result/'manifest.json');raise SystemExit(json.loads((result/'manifest.json').read_text()).get('result_exit_code',1))
     except (ValueError,FileNotFoundError,KeyError) as error:p.error(str(error))
