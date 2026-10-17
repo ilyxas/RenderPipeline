@@ -32,11 +32,11 @@ class CalibrationConfig:
 class SolverConfig:
     min_visibility: float = 0.3
     # Twist from the elbow/knee bend plane is only trusted once the limb is bent this much.
-    # v3 review C2: 2..10 deg let the upper-arm twist snap on small elbow wobble; 5..20 deg
-    # cut frames over the gate at the per-frame solve on 7 of 8 clips (v4 ablation; df1e's
-    # peak at frames 88-96, a 180 deg forearm-roll reading, got higher).
-    bend_twist_full_deg: float = 20.0
-    bend_twist_zero_deg: float = 5.0
+    # v4 tried 5..20 deg (v3 review C2: the twist snaps on small elbow wobble). It cut frames
+    # over the gate but made the pose worse (df1e left forearm 2D error p95 10 -> 24 deg,
+    # 690b 6 -> 10 deg; reports/v4_overview.md), so it is back to 2..10 deg; C2 stays open.
+    bend_twist_full_deg: float = 10.0
+    bend_twist_zero_deg: float = 2.0
     # Thigh: bend-plane twist fades in over this (de-biased) knee bend; below it the foot
     # heading drives the thigh twist.
     knee_twist_zero_deg: float = 10.0
