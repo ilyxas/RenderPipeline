@@ -20,9 +20,9 @@
 <input id="duration-slider" aria-label="Длительность фрагмента" type="range" min="0.01" step="0.01" value="5" max="5" disabled><div class="range-summary"><span id="range-label">Сначала выберите видео</span><span id="frames-label"></span></div>
 </section>
 <section class="card"><div class="section-title"><span class="step">03</span><h2>Рендер</h2></div>
-<div class="two"><label>Разрешение<select id="resolution"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920 · Full HD</option><option value="1440x2560">1440 × 2560 · 2K</option><option value="2160x3840">2160 × 3840 · 4K</option></select></label><label>Качество<select id="quality"><option value="preview">Preview · 16 сэмплов</option><option value="final">Final · 64 сэмпла</option></select></label></div>
-<label>Движок<select id="engine"><option value="eevee">EEVEE · быстро</option><option value="cycles">Cycles · фотореализм, медленно</option></select></label>
-<p class="hint" id="quality-hint">Быстрый рендер для оценки движения.</p>
+<div class="two"><label>Разрешение<select id="resolution"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920 · Full HD</option><option value="1440x2560">1440 × 2560 · 2K</option><option value="2160x3840">2160 × 3840 · 4K</option></select></label><label>Качество<select id="quality"><option value="preview">Preview · проверка движения</option><option value="final">Final · чистовой</option></select></label></div>
+<div class="two"><label>Движок<select id="engine"><option value="eevee">EEVEE · быстро</option><option value="cycles">Cycles · фотореализм, медленно</option></select></label><label>Сэмплы<select id="samples"></select></label></div>
+<p class="hint" id="quality-hint">Быстрый рендер для оценки движения. Сэмплы по умолчанию — EEVEE 16, Cycles 32.</p>
 <p class="hint" id="engine-hint"></p>
 <label>Метод реконструкции<select id="solver"><option value="video">Video · основной</option><option value="baseline">Baseline · исходный</option><option value="temporal">Temporal · экспериментальный</option><option value="viggle">Viggle · внешний мокап (эксперимент)</option></select></label>
 <div id="viggle-box" hidden><p class="hint" id="viggle-hint"></p><div class="checks"><label><input id="viggle-upload" type="checkbox"><span>Разрешить платную отправку в Viggle<small>Видео целиком уходит во внешний сервис, ~$0.05 за секунду. Без галочки используется только кэш.</small></span></label></div></div>

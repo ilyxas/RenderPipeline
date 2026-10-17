@@ -71,6 +71,12 @@ def command_for(settings,runs_root,config_path=None):
     for value,choices in [(quality,('preview','final')),(engine,('eevee','cycles')),(solver,('video','baseline','temporal','viggle')),(audio,('off','envelope','speech','singing')),(surface,('off','sampled','all'))]:
         if value not in choices:raise ValueError('Неизвестная настройка: '+str(value))
     cmd=[sys.executable,'-u','-m','xms.cli','run',str(path),'--start',str(start),'--runs-root',str(runs_root),'--quality',quality,'--engine',engine,'--resolution',resolution,'--solver',solver,'--audio',audio,'--surface-qa',surface,'--channels','body' if settings.get('body_only') else 'full','--camera','fixed' if settings.get('fixed_camera') else 'fit']
+    samples=settings.get('samples')
+    if samples not in (None,''):
+        from .render.engine import samples_for
+        try:samples=samples_for(engine,quality,int(samples))
+        except (TypeError,ValueError):raise ValueError('Неверное число сэмплов: '+str(samples)) from None
+        cmd+=['--samples',str(samples)]
     if not settings.get('to_end'):cmd+=['--end',str(start+duration)]
     if settings.get('face_closeup') and not settings.get('body_only'):cmd+=['--face-closeup']
     if settings.get('no_refine'):cmd+=['--no-refine']

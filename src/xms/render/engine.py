@@ -10,6 +10,11 @@ CYCLES_COMMON={'adaptive_threshold':0.02,'max_bounces':8,'motion_blur_shutter':0
 # Cycles 64 samples 1080x1920 ~15 s; preview 32 samples 540x960 3.7 s, run 20261016-032906-988e05f7; persistent data cuts ~1.3 s/frame of reloads). Used only for the time estimate shown before a run.
 _RATE={'eevee':{'preview':1.2,'final':0.6},'cycles':{'preview':3.6,'final':6.5}}
 _OVERHEAD={'eevee':0.4,'cycles':0.2}
+# Samples when none is chosen (quality default) and the choices offered in Studio; --samples accepts any 1..4096.
+DEFAULT_SAMPLES={'eevee':{'preview':16,'final':32},'cycles':{'preview':CYCLES['preview']['samples'],'final':CYCLES['final']['samples']}}
+SAMPLE_CHOICES={'eevee':(8,16,24,32,48,64,128),'cycles':(16,24,32,48,64,96,128,256)}
+# Per-megapixel time grows like (samples + _SAMPLE_FIXED): part of the frame cost does not depend on samples.
+_SAMPLE_FIXED={'eevee':4,'cycles':8}
 
 
 def check(engine):
@@ -22,15 +27,22 @@ def exposure(scene_profile,engine):
     return scene_profile.get('engine_exposure',{}).get(check(engine),scene_profile['exposure'])
 
 
-def estimate_seconds(engine,quality,resolution,frames):
-    megapixels=resolution[0]*resolution[1]/1e6
-    return frames*(_RATE[check(engine)][quality]*megapixels+_OVERHEAD[engine])
+def samples_for(engine,quality,samples=None):
+    if samples is None:return DEFAULT_SAMPLES[check(engine)][quality]
+    if isinstance(samples,bool) or not isinstance(samples,int) or not 1<=samples<=4096:raise ValueError('Samples must be an integer 1..4096: '+str(samples))
+    return samples
 
 
-def configure(scene,engine,quality,preferences=None):
+def estimate_seconds(engine,quality,resolution,frames,samples=None):
+    megapixels=resolution[0]*resolution[1]/1e6;base=DEFAULT_SAMPLES[check(engine)][quality];fixed=_SAMPLE_FIXED[engine]
+    return frames*(_RATE[engine][quality]*(samples_for(engine,quality,samples)+fixed)/(base+fixed)*megapixels+_OVERHEAD[engine])
+
+
+def configure(scene,engine,quality,preferences=None,samples=None):
     """Switch a Blender scene to the engine; return the settings recorded in the render manifest."""
-    if check(engine)=='eevee':
-        scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.use_motion_blur=False;scene.render.use_persistent_data=False
+    samples=samples_for(engine,quality,samples)
+    if engine=='eevee':
+        scene.eevee.taa_render_samples=samples;scene.render.engine='BLENDER_EEVEE_NEXT';scene.render.use_motion_blur=False;scene.render.use_persistent_data=False
         return {'engine':'eevee','samples':scene.eevee.taa_render_samples}
     c=scene.cycles;scene.render.engine='CYCLES';c.device='GPU';backend=None
     if preferences is not None:
@@ -42,7 +54,7 @@ def configure(scene,engine,quality,preferences=None):
                 for d in preferences.devices:d.use=d.type==name
                 backend=name;break
     if backend is None:c.device='CPU'
-    c.samples=CYCLES[quality]['samples'];c.use_adaptive_sampling=True;c.adaptive_threshold=CYCLES_COMMON['adaptive_threshold']
+    c.samples=samples;c.use_adaptive_sampling=True;c.adaptive_threshold=CYCLES_COMMON['adaptive_threshold']
     c.use_denoising=True;c.denoiser='OPENIMAGEDENOISE';c.denoising_use_gpu=backend is not None
     c.max_bounces=CYCLES_COMMON['max_bounces'];c.caustics_reflective=False;c.caustics_refractive=False;c.film_transparent=False
     scene.render.use_motion_blur=True;scene.render.motion_blur_shutter=CYCLES_COMMON['motion_blur_shutter']
