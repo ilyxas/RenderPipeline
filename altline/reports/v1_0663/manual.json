@@ -1,0 +1,73 @@
+{
+ "clip_content": "both arms crossed over the chest, hands to opposite shoulders (verified in source)",
+ "verdict": "fail: hands 37-46 cm from the opposite shoulders (should touch), elbows 56-64 deg instead of ~130+, forearms intersect, trunk leans back 20 deg, arm whip glitch f26-33",
+ "visual_findings": {
+  "method": "ffmpeg frame extraction from preview/preview.mp4 and the source video, inspected by eye; numbers from physical_plausibility_auto",
+  "findings": [
+   "f14 rest OK.",
+   "f26-33: tracker glitch while the arms move in: upper_arm_l local swing X goes +12 -> -35 -> +57 deg within 7 frames (length_ratio forearm_l 0.48 and upper_arm_l 0.63 at f30 = depth collapse); the left arm whips backward then forward (1194 deg/s at f31, 22282 deg/s^2). Not bridged.",
+   "f60, f120: front view shows crossed forearms at chest height; side view shows the forearms ~30 cm in FRONT of the chest (hand z 0.25-0.35 m) and below the shoulders (y 1.26-1.32) - source has the hands lying on the shoulders. Hand -> opposite shoulder distance 37-46 cm.",
+   "Elbow flexion only 56-64 deg (tracker raw 77-83, de-bias removes ~20); real crossed-arm pose needs ~130-145.",
+   "Forearms pass through each other: min centreline distance 0.6 cm (f60), < 5 cm in 99 frames.",
+   "Trunk leans BACK up to 20 deg (chest pitch, f36) while the source stands upright; tracker shoulders are 11 cm behind the hips in calibrated data."
+  ]
+ },
+ "action_items": [
+  {
+   "id": "A1",
+   "severity": "blocker",
+   "area": "tracker / new depth-recovery stage",
+   "file": "altline/calibration.py (new function after load_frames) or new altline/depth.py; observations.py variant",
+   "change": "MediaPipe world landmarks collapse depth for limbs pointing at the camera. Use the constant actor lengths (actor_profile.actor_lengths_m) to recover depth: per segment, if length_ratio < 0.9, keep the image-plane direction from image_joints (x scaled by width/height aspect, metric scale from the baseline torso) and set |dz| = sqrt(L^2 - dxy^2), sign from MediaPipe world dz (fallback: temporal continuity). Cheap first experiment: rerun observations with --variant heavy and compare length_ratio and side views.",
+   "expected": "length_ratio of arm/leg segments within +-10%; front kick leg goes forward instead of up; hands come back onto face/shoulders. Done = side view of preview agrees with source on 85a9/0663/df1e; fail = hands still >15 cm from face/shoulders.",
+   "evidence": "tracker hand_l 28 cm in front of the right shoulder (should be ~5); length_ratio forearm_l min 0.476 (f30), upper_arm_l 0.628 (f30)."
+  },
+  {
+   "id": "A2",
+   "severity": "blocker",
+   "area": "solver math (hinge de-bias)",
+   "file": "altline/solver.py: debias_bend(), _hinge(); altline/config.py CalibrationConfig.hinge_bias_correction",
+   "change": "debias_bend remaps [bias,180] -> [0,180], i.e. it removes ~20-30 deg from every mid-range bend. Make the correction fade out: theta' = max(0, theta - bias) for theta <= 2*bias, theta' = theta for theta >= 2*bias + 20 (smooth blend between). Do not touch bends the tracker already under-reports.",
+   "expected": "elbow flexion back to raw tracker values in bent poses (0663: ~77-81 deg instead of 56-61; 85a9: ~62-64 instead of 32-35); hands move 4-7 cm closer to the body. Not sufficient alone: tracker raw bend is itself far below the real 130-150 deg (A1).",
+   "evidence": "elbow_l raw 77-79 -> 56-58 deg after de-bias (f100-140); hand_l moves 5 cm further forward (z 0.23 -> 0.28)."
+  },
+  {
+   "id": "A3",
+   "severity": "major",
+   "area": "temporal stability",
+   "file": "altline/limits.py apply_limits() mask; new filter step before solver (calibration output) ; altline/config.py LimitsConfig.spike_deg",
+   "change": "There is no temporal filtering at all, and the single-frame spike detector (spike_deg=25) did not fire once in 8 runs (0 bridged runs). Add (a) an anomaly mask from calibrated_pose length_ratio: |ratio-1| > 0.2 on the bone's segment -> anomalous, bridged by slerp; (b) a One-Euro filter (min_cutoff ~1.5 Hz, beta tuned on 690b/9645 so that clean motion is not lagged) on the quaternion log relative to the previous frame, or on landmarks before solving; (c) multi-frame glitch detection (departure from a 5-frame robust fit) instead of 1-frame slerp midpoint.",
+   "expected": "0663 f26-33 and 85a9 f20-27 glitches bridged; flagged bone-frames above the 3000 deg/s^2 gate drop by >70% without lag in the slow clips (compare peak timing of upper_arm in 690b before/after).",
+   "evidence": "upper_arm_l 22282 deg/s^2 f31, forearm_l 22171 f30, upper_arm_r 18228 f30, forearm_r 20776 f36; 85 bone-frames above gate, identical to raw solver; geodesic jumps up to 49.8 deg/frame (upper_arm_l f31)."
+  },
+  {
+   "id": "A7",
+   "severity": "major",
+   "area": "tracker (trunk pitch)",
+   "file": "altline/solver.py bone_targets() pelvis/spine/chest",
+   "change": "When both arms are brought in front of the body the tracker moves the shoulders back (shoulders ~11 cm behind hips in calibrated data) and the rig leans back. Hypothesis-level fix: cap trunk pitch change relative to the baseline unless supported by image evidence (image-space shoulder-hip vertical distance shrinks when really leaning), or derive the pelvis tilt from the hips/legs only and limit spine+chest pitch to physiological +-15 deg extension.",
+   "expected": "0663 chest pitch max +20 deg (f36) and 85a9 +17.7 deg (f47) -> < 5 deg; source is upright.",
+   "evidence": "chest pitch +20.2 deg at f36."
+  },
+  {
+   "id": "A10",
+   "severity": "minor",
+   "area": "physical plausibility",
+   "file": "new constraint step after limits",
+   "change": "Forearms pass through each other (0663: min centreline distance 0.6 cm at f60, 99 frames < 5 cm). Add a capsule separation constraint (forearm radius ~3.5 cm) - only after A1/A2, because today the arms are in the wrong place anyway.",
+   "expected": "forearm centreline distance >= 7 cm.",
+   "evidence": "forearm distance 0.6 cm at f60; 99 frames < 5 cm."
+  }
+ ],
+ "acceptance_level": "implemented / functionally runs; NOT quality accepted",
+ "review_notes": {
+  "math": "No numerical failures: max ||q|-1| = 0 in solver/limits output and <=6.9e-8 in the bundle (7-digit rounding); bundle matrices orthonormal to 3e-7; no hemisphere sign flips between consecutive frames; no rot_between near-180 deg cases; no twist correction > 120 deg (so no hidden elbow/knee inside-out flips absorbed by upper-arm/thigh twist). Solver re-run reproduces raw_rotations to <1e-14 deg. Degeneracy that matters: twist reference parallel to the bone (straight limbs) for upper_arm/thigh in most frames -> twist inherited (see A4/A5).",
+  "coordinate_space": "canon = (x,-y,-z) has det +1 (no mirror). Left/right and forward checks pass in 100% of frames in all runs (left shoulder/hip on +X, nose and toes on +Z, image left shoulder right of right shoulder). FK of the bundle matches the solver's target directions to <2 deg except where limits clamped a parent (hand_r 9.5 deg in 061c, foot_l 40 deg in df1e). Deviation from raw landmarks is a constant 10-19 deg on limbs = the hinge de-bias (by design, but see A2). Rest frames: trunk/head/legs within 1 deg of identity (neck 6-7, foot ~7); arms 12-19 deg (actor A-pose differs from rig A-pose, plus de-bias). Head rest yaw +5.8..+7.9 deg in every clip.",
+  "bone_lengths": "FK lengths exact (<=4.4e-16 m deviation), joint gaps constant. Actor-side length_ratio is the useful signal: arm segments drop to 0.48-0.66 and the kicking thigh to 0.70 exactly at the bad frames -> tracker depth collapse.",
+  "limits": "Only cosmetic clamps (<=1.5 deg). The 7-frame arm glitch f26-33 passes untouched: limits have no length_ratio-based anomaly input and the 1-frame spike test (max 19.4 deg < 25) never fires. Clamps do not hide anything here - they simply do not see the problem."
+ },
+ "keyframe_images": {
+  "preview": "plots/preview_keyframes.png",
+  "source_strip(every 18th frame)": "plots/source_strip.png"
+ }
+}

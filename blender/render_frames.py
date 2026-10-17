@@ -11,7 +11,7 @@ p=argparse.ArgumentParser()
 for n in ('bundle','profile','scene','scene-profile','out'):p.add_argument('--'+n,required=True)
 p.add_argument('--quality',choices=['preview','final'],default='preview');p.add_argument('--camera-plan')
 p.add_argument('--resolution')
-p.add_argument('--engine',choices=['eevee','cycles'],default='eevee')
+p.add_argument('--engine',choices=['eevee','cycles'],default='eevee');p.add_argument('--samples',type=int)
 p.add_argument('--fps',required=True);p.add_argument('--frame-indices')
 p.add_argument('--view',default='main',choices=['main','face','hand_l','hand_r'])
 a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);out=Path(a.out);out.mkdir(parents=True,exist_ok=False)
@@ -22,7 +22,7 @@ record={};b,profile,face=apply_bundle(a.bundle,a.profile,times,fps=float(fps),re
 from xms.render.camera import PRESETS
 sc.render.resolution_x,sc.render.resolution_y=PRESETS[a.quality]['resolution'];sc.eevee.taa_render_samples=PRESETS[a.quality]['samples'];sc.eevee.shadow_ray_count=PRESETS[a.quality]['shadow_ray_count'];sc.eevee.shadow_step_count=PRESETS[a.quality]['shadow_step_count']
 from xms.render.engine import configure,exposure
-engine_settings=configure(sc,a.engine,a.quality,bpy.context.preferences.addons['cycles'].preferences if a.engine=='cycles' else None);sc.view_settings.exposure=exposure(sp,a.engine)
+engine_settings=configure(sc,a.engine,a.quality,bpy.context.preferences.addons['cycles'].preferences if a.engine=='cycles' else None,a.samples);sc.view_settings.exposure=exposure(sp,a.engine)
 if a.resolution:
     from xms.render.camera import parse_resolution
     sc.render.resolution_x,sc.render.resolution_y=parse_resolution(a.resolution)
