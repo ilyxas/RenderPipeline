@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="xms-token" content="__TOKEN__"><meta name="xms-remote" content="__REMOTE__"><title>Xandra Motion Studio</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
 <body><div class="app">
-<header><div class="brand"><span class="mark">X</span><div><h1>Xandra <span>Motion Studio</span></h1><p>Видео → движение → анимация</p></div></div><div class="local"><i></i> <b id="mode-label" style="font-weight:inherit">Локальный запуск</b> <span>· Xandra / Bedroom</span></div></header>
+<header><div class="brand"><span class="mark">X</span><div><h1>Xandra <span>Motion Studio</span></h1><p>Видео → движение → анимация</p></div></div><div class="local"><i></i> <b id="mode-label" style="font-weight:inherit">Локальный запуск</b> <span id="pair-label">· …</span></div></header>
 <main>
 <section class="source card"><div class="section-title"><span class="step">01</span><h2>Исходное видео</h2></div>
 <button id="pick-input" class="dropzone"><span class="file-icon">＋</span><strong id="input-name">Выбрать видео</strong><span id="input-meta">Откроется системное окно выбора файла</span></button><input id="upload-input" type="file" accept="video/*,.mov,.mp4,.m4v" hidden>
@@ -10,14 +10,19 @@
 <div class="source-note">Обрабатывается один человек. Исходный звук сохраняется в результате.</div>
 </section>
 <form id="settings" class="settings" autocomplete="off"><fieldset id="fields">
+<section class="card assets"><div class="section-title"><span class="step">00</span><h2>Персонаж и сцена</h2><button type="button" class="text-button" id="assets-refresh">Обновить</button></div>
+<div class="two"><label>Персонаж <b class="badge" id="badge-character"></b><select id="use-character"></select></label><label>Сцена <b class="badge" id="badge-scene"></b><select id="use-scene"></select></label></div>
+<p class="hint" id="assets-hint">Проверяю зарегистрированные файлы…</p>
+<div id="unregistered" hidden><p class="hint">Новые или изменённые .blend — ещё не зарегистрированы. Регистрация создаёт новую версию профиля на основе выбранной (старые не меняются) и проверяет в Blender, что скелет/сцена те же.</p><div id="unregistered-list"></div></div>
+</section>
 <section class="card"><div class="section-title"><span class="step">02</span><h2>Фрагмент</h2><button type="button" class="text-button" id="whole" disabled>Весь ролик</button></div>
 <div class="two"><label>Начало, сек<input id="start" type="number" min="0" step="0.01" value="0" disabled></label><label>Длительность, сек<input id="duration" type="number" min="0.01" step="0.01" value="5" disabled></label></div>
 <input id="duration-slider" aria-label="Длительность фрагмента" type="range" min="0.01" step="0.01" value="5" max="5" disabled><div class="range-summary"><span id="range-label">Сначала выберите видео</span><span id="frames-label"></span></div>
 </section>
 <section class="card"><div class="section-title"><span class="step">03</span><h2>Рендер</h2></div>
-<div class="two"><label>Разрешение<select id="resolution"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920 · Full HD</option><option value="1440x2560">1440 × 2560 · 2K</option><option value="2160x3840">2160 × 3840 · 4K</option></select></label><label>Качество<select id="quality"><option value="preview">Preview · 16 сэмплов</option><option value="final">Final · 64 сэмпла</option></select></label></div>
-<label>Движок<select id="engine"><option value="eevee">EEVEE · быстро</option><option value="cycles">Cycles · фотореализм, медленно</option></select></label>
-<p class="hint" id="quality-hint">Быстрый рендер для оценки движения.</p>
+<div class="two"><label>Разрешение<select id="resolution"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920 · Full HD</option><option value="1440x2560">1440 × 2560 · 2K</option><option value="2160x3840">2160 × 3840 · 4K</option></select></label><label>Качество<select id="quality"><option value="preview">Preview · проверка движения</option><option value="final">Final · чистовой</option></select></label></div>
+<div class="two"><label>Движок<select id="engine"><option value="eevee">EEVEE · быстро</option><option value="cycles">Cycles · фотореализм, медленно</option></select></label><label>Сэмплы<select id="samples"></select></label></div>
+<p class="hint" id="quality-hint">Быстрый рендер для оценки движения. Сэмплы по умолчанию — EEVEE 16, Cycles 32.</p>
 <p class="hint" id="engine-hint"></p>
 <label>Метод реконструкции<select id="solver"><option value="video">Video · основной</option><option value="baseline">Baseline · исходный</option><option value="temporal">Temporal · экспериментальный</option><option value="viggle">Viggle · внешний мокап (эксперимент)</option></select></label>
 <div id="viggle-box" hidden><p class="hint" id="viggle-hint"></p><div class="checks"><label><input id="viggle-upload" type="checkbox"><span>Разрешить платную отправку в Viggle<small>Видео целиком уходит во внешний сервис, ~$0.05 за секунду. Без галочки используется только кэш.</small></span></label></div></div>
